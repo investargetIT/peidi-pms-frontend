@@ -1,5 +1,26 @@
 <template>
   <div>
+    <!-- 页面头部 -->
+    <div class="page-header flex justify-between items-center mb-6">
+      <div class="header-left">
+        <h1 class="text-2xl font-bold">项目进度管理系统</h1>
+        <p class="text-gray-600 mt-1">产品开发全流程跟踪与管理</p>
+      </div>
+      <div class="header-right flex items-center gap-3">
+        <el-button class="flex items-center gap-2">
+          <el-icon><Download /></el-icon>
+          导出报告
+        </el-button>
+        <el-button
+          type="primary"
+          class="flex items-center gap-2"
+          color="#1a1a1a"
+        >
+          <el-icon><Plus /></el-icon>
+          新建项目
+        </el-button>
+      </div>
+    </div>
     <!-- 统计面板 -->
     <div class="statistics-panel flex gap-4 mb-6">
       <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
@@ -79,7 +100,14 @@
 import { ref } from "vue";
 import { fetchStatusList } from "@/api/pmApi.ts";
 import { ElMessage } from "element-plus";
-import { Calendar, Loading, Check, Search } from "@element-plus/icons-vue";
+import {
+  Calendar,
+  Loading,
+  Check,
+  Search,
+  Download,
+  Plus
+} from "@element-plus/icons-vue";
 import factories from "./const";
 import addProduct from "./addProduct.vue";
 import productList from "./productList.vue";
@@ -129,6 +157,11 @@ const refreshList = () => {
 </script>
 
 <style scoped>
+.page-header {
+  padding: 16px 0;
+  border-bottom: 1px solid #eee;
+}
+
 .dialog-footer {
   text-align: right;
 }

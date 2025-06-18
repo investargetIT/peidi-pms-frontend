@@ -1,33 +1,58 @@
 <template>
   <div>
+    <!-- 统计面板 -->
+    <div class="statistics-panel flex gap-4 mb-6">
+      <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
+        <div class="text-gray-600">总项目数</div>
+        <div class="text-3xl font-bold mt-2">3</div>
+        <div class="absolute right-4 top-4">
+          <el-icon class="text-blue-400"><Calendar /></el-icon>
+        </div>
+      </div>
+      <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
+        <div class="text-gray-600">开发中</div>
+        <div class="text-3xl font-bold mt-2 text-blue-500">2</div>
+        <div class="absolute right-4 top-4">
+          <el-icon class="text-blue-400"><Loading /></el-icon>
+        </div>
+      </div>
+      <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
+        <div class="text-gray-600">已上市</div>
+        <div class="text-3xl font-bold mt-2 text-green-500">1</div>
+        <div class="absolute right-4 top-4">
+          <el-icon class="text-green-400"><Check /></el-icon>
+        </div>
+      </div>
+    </div>
     <!-- 新增产品按钮 -->
     <div class="flex justify-between items-center">
       <div class="container">
-        <h2 class="text-2xl font-bold">产品维护列表</h2>
-        <el-select
-          style="width: 240px"
-          v-model="searchInfo.status"
-          placeholder="请选择状态"
-          clearable
-        >
-          <el-option
-            v-for="item in statusList"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-        <el-input
-          v-model="searchInfo.productNo"
-          style="width: 240px"
-          placeholder="请输入产品编号"
-          clearable
-        />
-        <el-input
-          v-model="searchInfo.productName"
-          style="width: 240px"
-          placeholder="请输入产品名称"
-          clearable
-        />
+        <h2 class="text-2xl font-bold mb-4">产品维护列表</h2>
+        <div class="search-wrapper flex items-center gap-4">
+          <el-input
+            v-model="searchInfo.keyword"
+            style="width: 400px"
+            placeholder="搜索产品名称、品牌、系列、PM负责人或NPD负责人..."
+            clearable
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <el-select
+            style="width: 120px"
+            v-model="searchInfo.status"
+            placeholder="全部状态"
+            clearable
+          >
+            <el-option
+              v-for="item in statusList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </div>
       </div>
       <el-button type="primary" color="#161718" @click="handleAddProduct"
         >新增产品</el-button
@@ -54,6 +79,7 @@
 import { ref } from "vue";
 import { fetchStatusList } from "@/api/pmApi.ts";
 import { ElMessage } from "element-plus";
+import { Calendar, Loading, Check, Search } from "@element-plus/icons-vue";
 import factories from "./const";
 import addProduct from "./addProduct.vue";
 import productList from "./productList.vue";
@@ -63,7 +89,8 @@ const listRef = ref(null);
 const searchInfo = ref({
   status: "",
   productNo: "",
-  productName: ""
+  productName: "",
+  keyword: ""
 });
 
 const handleAddProduct = () => {
@@ -71,7 +98,8 @@ const handleAddProduct = () => {
   searchInfo.value = {
     status: "",
     productNo: "",
-    productName: ""
+    productName: "",
+    keyword: ""
   };
 };
 
@@ -111,6 +139,18 @@ const refreshList = () => {
 
   .el-select {
     margin-left: 10px;
+  }
+}
+
+.statistics-panel {
+  .stat-card {
+    position: relative;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+      transform: translateY(-2px);
+    }
   }
 }
 </style>

@@ -49,28 +49,29 @@ const Layout = () => import("@/layout/index.vue");
 
 /** 原始静态路由（未做任何处理） */
 const routes = [
+  {
+    path: "/classify",
+    name: "category",
+    component: () => import("@/views/classify/index.vue"),
+    meta: {
+      title: "产品维护列表",
+      icon: "prime:book"
+    },
+    children: [
+      {
+        path: "/fighting/index",
+        name: "Fighting",
+        component: () => import("@/views/classify/index.vue"),
+        meta: {
+          title: "产品维护列表"
+        }
+      }
+    ]
+  }
   // {
-  // path: "/classify",
-  // name: "category",
-  // component: () => import("@/views/classify/index.vue"),
-  // meta: {
-  //   title: "商品分类管理",
-  // },
-  //   children: [
-  //   {
-  //     path: "/fighting/index",
-  //     name: "Fighting",
-  //     component: () => import("@/views/fighting/index.vue"),
-  //     meta: {
-  //       title: "加油"
-  //     }
-  //   }
-  // ]
-  // },
-  // {
-  //   path: "/addTasks",
-  //   name: "addTasks",
-  //   redirect: "/addTask/index",
+  //   path: "/dashboard",
+  //   name: "dashboard",
+  //   redirect: "/dashboard/index",
   //   component: Layout,
   //   meta: {
   //     icon: "prime:book",
@@ -79,11 +80,11 @@ const routes = [
   //   },
   //   children: [
   //     {
-  //       path: "/addTask/index",
-  //       name: "addTask",
-  //       component: () => import("@/views/addTask/index.vue"),
+  //       path: "/dashboard/index",
+  //       name: "dashboard",
+  //       component: () => import("@/views/dashboard/index.vue"),
   //       meta: {
-  //         title: "添加任务",
+  //         title: "项目进度概览",
   //         showParent: false
   //       }
   //     }

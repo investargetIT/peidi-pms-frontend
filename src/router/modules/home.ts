@@ -8,16 +8,16 @@ export default {
   component: Layout,
   meta: {
     icon: "prime:box",
-    title: "首页",
+    title: "产品进度概览",
     rank: 0
   },
   children: [
     {
       path: "/index",
-      name: "task",
-      component: () => import("@/views/classify/index.vue"),
+      name: "dashboard",
+      component: () => import("@/views/dashboard/index.vue"),
       meta: {
-        title: "产品维护列表",
+        title: "产品进度概览",
         showParent: false
       }
     }

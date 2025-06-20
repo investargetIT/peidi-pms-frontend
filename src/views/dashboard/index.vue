@@ -283,13 +283,6 @@ const removeAssignee = tag => {
   }
 };
 
-const delteHelper = index => {
-  if (isMy) {
-    return;
-  }
-  newTaskData.value.workers.splice(index, 1);
-};
-
 const handleAddProduct = () => {
   showModal.value = true;
   searchForm.value = {

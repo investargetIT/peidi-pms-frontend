@@ -3,8 +3,12 @@
     <el-table :data="tableData" style="width: 100%">
       <el-table-column prop="productName" label="产品信息">
         <template #default="scope">
-          <div>{{ scope.row.productName }}</div>
-          <div>{{ scope.row.brandName }}</div>
+          <div>
+            <div class="text-base font-medium text-gray-900">
+              {{ scope.row.productName }}
+            </div>
+            <div class="text-xs text-gray-500">{{ scope.row.brandName }}</div>
+          </div>
         </template>
       </el-table-column>
       <el-table-column prop="pmDingUser" label="PM负责人">
@@ -43,11 +47,69 @@
       </el-table-column>
       <el-table-column prop="priorityName" label="优先级">
         <template #default="scope">
-          <el-tag
-            :type="scope.row.priorityName === '高' ? 'danger' : 'warning'"
+          <div
+            :class="getPriorityColor(scope.row.priorityName)"
+            class="priority-badge"
           >
-            {{ scope.row.priorityName }}
-          </el-tag>
+            <div class="flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-3 h-3 mr-1"
+                v-if="scope.row.priorityName === '高'"
+              >
+                <path
+                  d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+                ></path>
+                <path d="M12 9v4"></path>
+                <path d="M12 17h.01"></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-3 h-3 mr-1"
+                v-else-if="scope.row.priorityName === '中'"
+              >
+                <path
+                  d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                ></path>
+                <line x1="4" x2="4" y1="22" y2="15"></line>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-3 h-3 mr-1"
+                v-else-if="scope.row.priorityName === '低'"
+              >
+                <path
+                  d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                ></path>
+                <line x1="4" x2="4" y1="22" y2="15"></line>
+              </svg>
+              {{ scope.row.priorityName }}
+            </div>
+          </div>
         </template>
       </el-table-column>
       <el-table-column prop="progress" label="进度">
@@ -163,6 +225,19 @@ const getStatusColor = (status: string) => {
   }
 };
 
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case "高":
+      return "bg-red-50 text-red-600";
+    case "中":
+      return "bg-yellow-50 text-yellow-600";
+    case "低":
+      return "bg-green-50 text-green-600";
+    default:
+      return "bg-gray-50 text-gray-600";
+  }
+};
+
 function extractEmplId(arr) {
   const result = [];
   for (const item of arr) {
@@ -237,6 +312,18 @@ defineExpose({
     margin-right: 5px;
     border-radius: 50%;
   }
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: default;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: all 0.2s;
 }
 
 .status-badge {

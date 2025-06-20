@@ -123,7 +123,26 @@
       ></el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <el-button @click="showDetails(scope.row)">详情</el-button>
+          <button
+            @click="showDetails(scope.row)"
+            class="inline-flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors p-1 bg-transparent border-none outline-none"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-4 h-4"
+            >
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
         </template>
       </el-table-column>
     </el-table>

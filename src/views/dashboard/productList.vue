@@ -128,10 +128,7 @@ watch(
 
 const fetchProductList = () => {
   const searchStr: any = [];
-  const commonInfo: IQueryParams = {
-    pageNo: pagination.value.pageNo,
-    pageSize: pagination.value.pageSize
-  };
+  const commonInfo = {} as any;
   const searchArr = [] as any;
   Object.keys(props.searchInfo)?.forEach(key => {
     const searchParams = {} as any;

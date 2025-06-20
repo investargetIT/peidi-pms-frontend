@@ -107,7 +107,7 @@
                 style="width: 100%"
               >
                 <el-option
-                  v-for="item in statusList"
+                  v-for="item in infoList"
                   :key="item.value"
                   :label="item.label"
                   :value="item.value"
@@ -219,6 +219,9 @@ const showModal = ref(false);
 const statusList = ref([]);
 const priorityList = ref([]);
 const stageList = ref([]);
+const stageStatusList = ref([]);
+const infoList = ref([]);
+const brandList = ref([]);
 const listRef = ref(null);
 const searchForm = ref({
   productName: "",
@@ -292,9 +295,16 @@ const handleAddProduct = () => {
 };
 
 const getTypeList = () => {
-  Promise.all([fetchStatusList("pmPriority"), fetchStatusList("pmStage")]).then(
-    ([priorityRes, stageRes]) => {
+  Promise.all([
+    fetchStatusList("pmPriority"),
+    fetchStatusList("pmStage"),
+    fetchStatusList("pmStageStatus"),
+    fetchStatusList("pmInfoStatus"),
+    fetchStatusList("pmBrand")
+  ]).then(
+    ([priorityRes, stageRes, stageStatusRes, infoStatusRes, brandRes]) => {
       if (priorityRes.code === 200) {
+        // 优先级
         priorityList.value = priorityRes.data?.map(item => {
           return {
             label: item.value,
@@ -303,7 +313,35 @@ const getTypeList = () => {
         });
       }
       if (stageRes.code === 200) {
+        // 阶段任务状态
         stageList.value = stageRes.data?.map(item => {
+          return {
+            label: item.value,
+            value: item.id
+          };
+        });
+      }
+      if (stageStatusRes.code === 200) {
+        // 阶段任务状态
+        stageStatusList.value = stageStatusRes.data?.map(item => {
+          return {
+            label: item.value,
+            value: item.id
+          };
+        });
+      }
+      if (infoStatusRes.code === 200) {
+        // 阶段任务状态
+        infoList.value = infoStatusRes.data?.map(item => {
+          return {
+            label: item.value,
+            value: item.id
+          };
+        });
+      }
+      if (brandRes.code === 200) {
+        // 阶段任务状态
+        brandList.value = brandRes.data?.map(item => {
           return {
             label: item.value,
             value: item.id

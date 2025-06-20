@@ -87,16 +87,20 @@
               </el-input>
             </el-form-item>
             <el-form-item prop="brand" label="品牌" class="flex-1 mb-0">
-              <el-input
-                v-model="searchForm.brand"
-                class="custom-search-input"
+              <el-select
+                v-model="searchForm.brandId"
+                class="custom-select"
                 placeholder="品牌"
                 clearable
+                style="width: 100%"
               >
-                <template #prefix>
-                  <el-icon class="text-gray-400"><Search /></el-icon>
-                </template>
-              </el-input>
+                <el-option
+                  v-for="item in brandList"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item prop="status" label="状态" class="flex-1 mb-0">
               <el-select
@@ -225,7 +229,7 @@ const brandList = ref([]);
 const listRef = ref(null);
 const searchForm = ref({
   productName: "",
-  brand: "",
+  brandId: "",
   keyword: "",
   status: "",
   productNo: "",

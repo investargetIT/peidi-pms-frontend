@@ -209,6 +209,7 @@ import { ref } from "vue";
 import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
 import * as dd from "dingtalk-jsapi";
 import { fetchStatusList } from "@/api/pmApi.ts";
+import { ddAuthFun } from "@/utils/ddAuth";
 import { ElMessage } from "element-plus";
 import {
   Calendar as ElementCalendar,
@@ -240,6 +241,7 @@ const DINGTALK_CORP_ID = "dingfc722e531a4125b735c2f4657eb6378f";
 setTimeout(() => {
   initDingH5RemoteDebug();
 }, 100);
+ddAuthFun();
 const choosePerson = type => {
   let data_this =
     type == "pmUserName"

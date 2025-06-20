@@ -139,12 +139,18 @@ const fetchProductList = () => {
   const searchStr: any = [];
   const commonInfo = {} as any;
   const searchArr = [] as any;
+  console.log("props.searchInfo:", props.searchInfo);
   Object.keys(props.searchInfo)?.forEach(key => {
     const searchParams = {} as any;
-    if (props.searchInfo[key]) {
+    const validKey = ["pmUserName", "npdUserName"];
+    const isValidStringKey =
+      props.searchInfo[key] && !Array.isArray(props.searchInfo[key]);
+    const isValidArrKey =
+      Array.isArray(props.searchInfo[key]) && props.searchInfo[key].length > 0;
+    if (isValidStringKey || isValidArrKey) {
       searchParams.searchName = key;
       searchParams.searchType = "like";
-      if (["pmUserName", "npdUserName"].includes(key)) {
+      if (validKey.includes(key)) {
         searchParams.searValue = extractEmplId(props.searchInfo[key]).join(
           "&#&"
         );
@@ -154,6 +160,7 @@ const fetchProductList = () => {
       searchArr.push(searchParams);
     }
   });
+  console.log("searchArr:", searchArr);
   commonInfo.searchStr = JSON.stringify(searchArr);
   getProjectProgressList(commonInfo).then(res => {
     // 为每个产品添加默认状态

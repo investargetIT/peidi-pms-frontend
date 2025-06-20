@@ -29,7 +29,7 @@
         <div class="text-3xl font-semibold mt-2">3</div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
-            class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center"
+            class="w-15 h-15 rounded-full bg-blue-50/50 flex items-center justify-center"
           >
             <LucideCalendar class="w-4 h-4 text-blue-600" />
           </div>
@@ -40,9 +40,11 @@
         <div class="text-3xl font-semibold mt-2 text-blue-500">2</div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
-            class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center"
+            class="w-6 h-6 rounded-full bg-blue-50/50 flex items-center justify-center"
           >
-            <el-icon class="text-blue-400 text-xl"><Loading /></el-icon>
+            <el-icon class="text-blue-400" style="font-size: 14px"
+              ><Loading
+            /></el-icon>
           </div>
         </div>
       </div>
@@ -51,49 +53,103 @@
         <div class="text-3xl font-semibold mt-2 text-green-500">1</div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
-            class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center"
+            class="w-6 h-6 rounded-full bg-green-50/50 flex items-center justify-center"
           >
-            <el-icon class="text-green-400 text-xl"><Check /></el-icon>
+            <el-icon class="text-green-400" style="font-size: 14px"
+              ><Check
+            /></el-icon>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 搜索区域 -->
-    <div class="flex justify-between items-center mb-6">
-      <div class="container">
-        <div class="search-wrapper flex items-center gap-4">
-          <el-input
-            v-model="searchInfo.keyword"
-            style="width: 400px"
-            placeholder="搜索产品名称、品牌、系列、PM负责人或NPD负责人..."
-            clearable
-          >
-            <template #prefix>
-              <el-icon class="text-gray-400"><Search /></el-icon>
-            </template>
-          </el-input>
-          <el-select
-            style="width: 120px"
-            v-model="searchInfo.status"
-            placeholder="全部状态"
-            clearable
-          >
-            <el-option
-              v-for="item in statusList"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </div>
+    <div class="search-area w-full bg-white rounded-lg shadow-sm mb-6">
+      <div class="w-full p-4">
+        <el-form :model="searchForm" class="search-form">
+          <div class="search-wrapper flex items-center gap-4">
+            <el-form-item prop="productName" class="flex-1 mb-0">
+              <el-input
+                v-model="searchForm.productName"
+                class="custom-search-input"
+                placeholder="产品名称"
+                clearable
+              >
+                <template #prefix>
+                  <el-icon class="text-gray-400"><Search /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+            <el-form-item prop="brand" class="flex-1 mb-0">
+              <el-input
+                v-model="searchForm.brand"
+                class="custom-search-input"
+                placeholder="品牌"
+                clearable
+              >
+                <template #prefix>
+                  <el-icon class="text-gray-400"><Search /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+            <el-form-item style="width: 30%" label="PM负责人">
+              <el-tag
+                v-for="tag in searchForm.requester"
+                :key="tag"
+                :disable-transitions="false"
+              >
+                {{ tag.name }}
+              </el-tag>
+              <el-button
+                class="button-new-tag"
+                size="default"
+                @click="choosePerson('contacter')"
+              >
+                + PM负责人
+              </el-button>
+            </el-form-item>
+            <el-form-item style="width: 30%" label="NPD负责人">
+              <el-tag
+                v-for="tag in searchForm.assignee"
+                :key="tag"
+                :disable-transitions="false"
+              >
+                {{ tag.name }}
+              </el-tag>
+              <el-button
+                class="button-new-tag"
+                size="default"
+                @click="choosePerson('worker')"
+              >
+                + NPD负责人
+              </el-button>
+            </el-form-item>
+
+            <el-form-item prop="status" class="mb-0" style="min-width: 160px">
+              <el-select
+                v-model="searchForm.status"
+                placeholder="全部状态"
+                clearable
+                class="custom-select"
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="item in statusList"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+          </div>
+        </el-form>
       </div>
     </div>
 
     <!-- 产品列表 -->
     <productList
       ref="listRef"
-      :searchInfo="searchInfo"
+      :searchInfo="searchForm"
       :statusList="statusList"
     />
 
@@ -121,6 +177,7 @@ import {
   Flag
 } from "lucide-vue-next";
 import { ref } from "vue";
+import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
 import { fetchStatusList } from "@/api/pmApi.ts";
 import { ElMessage } from "element-plus";
 import {
@@ -135,20 +192,68 @@ import productList from "./productList.vue";
 const showModal = ref(false);
 const statusList = ref([]);
 const listRef = ref(null);
-const searchInfo = ref({
+const searchForm = ref({
+  productName: "",
+  brand: "",
+  keyword: "",
   status: "",
   productNo: "",
-  productName: "",
-  keyword: ""
+  requester: [],
+  assignee: []
 });
+const DINGTALK_CORP_ID = "dingfc722e531a4125b735c2f4657eb6378f";
+setTimeout(() => {
+  initDingH5RemoteDebug();
+}, 100);
+const choosePerson = type => {
+  let data_this =
+    type == "contacter"
+      ? searchForm.value.requester
+      : searchForm.value.assignee;
+  // let test = [{ "avatar": "", "name": "台江鹏", "emplId": "474805081221550528" }];
+  // if (type == 'contacter') {
+  //   form.value.requester = (test)
+  // }
+  // if (type == 'worker') {
+  //   form.value.assignee = (test)
+  // }
+  // return
+  dd.biz.contact.choose({
+    multiple: true, //是否多选：true多选 false单选； 默认true
+    users: extractEmplId(data_this), //默认选中的用户列表，员工userid；成功回调中应包含该信息
+    corpId: DINGTALK_CORP_ID, //企业id
+    max: 10, //人数限制，当multiple为true才生效，可选范围1-1500
+    onSuccess: function (data) {
+      console.log("data", data);
+      if (type == "contacter") {
+        searchForm.value.requester = data;
+      }
+      if (type == "worker") {
+        searchForm.value.assignee = data;
+      }
+      // alert("dd successs: " + JSON.stringify(data));
+    },
+    onFail: function (err) {}
+  });
+};
+
+const delteHelper = index => {
+  if (isMy) {
+    return;
+  }
+  newTaskData.value.workers.splice(index, 1);
+};
 
 const handleAddProduct = () => {
   showModal.value = true;
-  searchInfo.value = {
+  searchForm.value = {
+    productName: "",
+    brand: "",
+    keyword: "",
     status: "",
     productNo: "",
-    productName: "",
-    keyword: ""
+    contacters: [],
+    workers: []
   };
 };
 
@@ -164,7 +269,9 @@ const getStatusList = () => {
     }
   });
 };
+
 getStatusList();
+
 const saveProduct = () => {
   // 保存产品逻辑
   console.log("保存产品:", newProduct.value);
@@ -211,6 +318,58 @@ const refreshList = () => {
         box-shadow: 0 0 0 1px #d1d5db;
       }
     }
+  }
+}
+
+.search-form {
+  .el-form-item {
+    margin-bottom: 0;
+  }
+
+  .el-form-item__content {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.custom-search-input {
+  :deep(.el-input__wrapper) {
+    height: 40px;
+    padding: 4px 12px;
+    background-color: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%) !important;
+  }
+
+  :deep(.el-input__wrapper.is-focus) {
+    border-color: #e5e7eb;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%) !important;
+  }
+}
+
+.custom-select {
+  :deep(.el-input__wrapper) {
+    height: 40px;
+    padding: 4px 12px;
+    background-color: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%) !important;
+  }
+
+  :deep(.el-input__wrapper.is-focus) {
+    border-color: #e5e7eb;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%) !important;
+  }
+
+  :deep(.el-input__inner) {
+    height: 30px;
+    line-height: 30px;
+  }
+
+  :deep(.el-input) {
+    height: 40px;
   }
 }
 </style>

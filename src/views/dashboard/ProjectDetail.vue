@@ -178,95 +178,20 @@
     </el-card>
 
     <!-- 阶段详情弹窗 -->
-    <el-dialog
-      v-model="stageDialogVisible"
-      :title="selectedStage?.name"
-      width="600px"
-    >
-      <div v-if="selectedStage" class="stage-detail">
-        <div class="mb-4">
-          <h4 class="font-medium mb-2">阶段状态</h4>
-          <el-tag :type="getStageStatusType(selectedStage.status)">
-            {{ getStageStatusText(selectedStage.status) }}
-          </el-tag>
-        </div>
-
-        <div class="mb-4">
-          <h4 class="font-medium mb-2">负责人</h4>
-          <div class="flex flex-wrap gap-2">
-            <el-tag
-              v-for="assignee in selectedStage.assignees"
-              :key="assignee.dingId"
-              closable
-              @close="removeAssignee(selectedStage.id, assignee.dingId)"
-            >
-              <div class="flex items-center gap-1">
-                <el-avatar :size="20" :src="assignee.avatarUrl" class="text-xs">
-                  {{ assignee.userName.charAt(0) }}
-                </el-avatar>
-                {{ assignee.userName }}
-              </div>
-            </el-tag>
-          </div>
-        </div>
-
-        <div
-          v-if="
-            selectedStage.attachments &&
-            selectedStage.attachments.length > 0 &&
-            selectedStage.attachments[0] !== 'string'
-          "
-        >
-          <h4 class="font-medium mb-2">附件</h4>
-          <div class="space-y-2">
-            <div
-              v-for="(attachment, index) in selectedStage.attachments"
-              :key="index"
-              class="flex items-center gap-2 p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
-              @click="openAttachment(attachment)"
-            >
-              <el-icon><Document /></el-icon>
-              <span class="text-sm">{{ getFileName(attachment) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 阶段时间信息 -->
-        <div class="mb-4">
-          <h4 class="font-medium mb-2">时间信息</h4>
-          <div class="space-y-2">
-            <div v-if="selectedStage.deadlineDate" class="flex justify-between">
-              <span class="text-sm text-gray-600">截止日期：</span>
-              <span class="text-sm">{{ selectedStage.deadlineDate }}</span>
-            </div>
-            <div v-if="selectedStage.finishDate" class="flex justify-between">
-              <span class="text-sm text-gray-600">完成日期：</span>
-              <span class="text-sm">{{ selectedStage.finishDate }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 备注信息 -->
-        <div v-if="selectedStage.remark" class="mb-4">
-          <h4 class="font-medium mb-2">备注</h4>
-          <p class="text-sm text-gray-600">{{ selectedStage.remark }}</p>
-        </div>
-      </div>
-    </el-dialog>
+    <StageDetailModal
+      :stage="selectedStage"
+      v-model:visible="stageDialogVisible"
+      @save="handleSaveStage"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import {
-  View,
-  Plus,
-  Search,
-  Document,
-  Paperclip
-} from "@element-plus/icons-vue";
+import { View, Plus, Search, Paperclip } from "@element-plus/icons-vue";
 import { AlertTriangle, Flag } from "lucide-vue-next";
 import { getProjectProgressList, getProjectStageList } from "@/api/progress";
+import StageDetailModal from "./StageDetailModal.vue";
 
 const props = defineProps({
   selectedProject: {
@@ -293,8 +218,6 @@ const fetchStageConfigList = async () => {
   getProjectStageList({ infoId: props.selectedProject.id }).then(res => {
     if (res?.code === 200) {
       stageListConfig.value = res.data;
-      console.log("==计算属性==");
-      console.log(res?.data);
     }
   });
 };
@@ -459,15 +382,42 @@ const openStageDetail = stage => {
   stageDialogVisible.value = true;
 };
 
-const getFileName = url => {
-  if (!url || url === "string") return "";
-  const parts = url.split("/");
-  return parts[parts.length - 1] || "附件文件";
+const handleSaveStage = updatedStage => {
+  // 更新stageListConfig中对应的阶段数据
+  const stageId = updatedStage.stageId || updatedStage.id;
+  const stageIndex = stageListConfig.value.findIndex(
+    s => s.stageId === stageId
+  );
+  if (stageIndex !== -1) {
+    // 更新阶段配置
+    stageListConfig.value[stageIndex] = {
+      ...stageListConfig.value[stageIndex],
+      statusName: getStatusNameFromCode(updatedStage.status),
+      deadlineDate: updatedStage.deadlineDate,
+      finishDate: updatedStage.finishDate,
+      remark: updatedStage.remark,
+      chargeDingUser: updatedStage.assignees || [],
+      fileUrlList: updatedStage.attachments || []
+    };
+  }
+
+  // 关闭弹窗
+  stageDialogVisible.value = false;
+
+  // 这里可以调用API保存数据
+  console.log("保存阶段数据:", updatedStage);
 };
 
-const openAttachment = url => {
-  if (url && url !== "string") {
-    window.open(url, "_blank");
+const getStatusNameFromCode = statusCode => {
+  switch (statusCode) {
+    case "completed":
+      return "已完成";
+    case "in-progress":
+      return "进行中";
+    case "delayed":
+      return "延期";
+    default:
+      return "待开始";
   }
 };
 </script>

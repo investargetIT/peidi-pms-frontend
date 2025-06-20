@@ -175,12 +175,20 @@
       </div>
     </div>
 
-    <!-- 产品列表 -->
-    <productList
-      ref="listRef"
-      :searchInfo="searchForm"
-      :statusList="statusList"
-    />
+    <!-- 主要内容区域 -->
+    <div class="main-content flex gap-6">
+      <!-- 左侧产品列表 -->
+      <div class="left-panel flex-1">
+        <productList
+          ref="listRef"
+          :searchInfo="searchForm"
+          :statusList="statusList"
+        />
+      </div>
+
+      <!-- 右侧项目详情 -->
+      <ProjectDetail :selectedProject="selectedProject" />
+    </div>
 
     <!-- 新增产品弹窗 -->
     <addProduct
@@ -220,6 +228,7 @@ import {
 import factories from "./const";
 import addProduct from "./addProduct.vue";
 import productList from "./productList.vue";
+import ProjectDetail from "./ProjectDetail.vue";
 const showModal = ref(false);
 const statusList = ref([]);
 const priorityList = ref([]);
@@ -228,6 +237,7 @@ const stageStatusList = ref([]);
 const infoList = ref([]);
 const brandList = ref([]);
 const listRef = ref(null);
+const selectedProject = ref(null);
 const searchForm = ref({
   productName: "",
   brandId: "",

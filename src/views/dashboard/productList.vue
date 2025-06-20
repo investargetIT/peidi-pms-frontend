@@ -1,44 +1,57 @@
 <template>
   <div class="mt-3 rounded-sm">
     <el-table :data="tableData" style="width: 100%">
-      <el-table-column prop="productNo" label="产品信息">
+      <el-table-column prop="productName" label="产品信息">
         <template #default="scope">
-          <span
-            @click="
-              selectedDetails = scope.row;
-              recordDialogVisible = true;
-            "
-            class="cursor-pointer underline"
-            >{{ scope.row.productNo }}</span
-          >
+          <div>{{ scope.row.productName }}</div>
+          <div>{{ scope.row.brandName }}</div>
         </template>
       </el-table-column>
-      <el-table-column prop="pmDingUser" label="PM负责人"></el-table-column>
-      <el-table-column prop="npdDingUser" label="NPD负责人"></el-table-column>
-      <el-table-column prop="statusName" label="状态">
+      <el-table-column prop="pmDingUser" label="PM负责人">
         <template #default="scope">
-          <div class="flex gap-2">
-            <el-popover
-              v-for="(status, index) in getStatusTags(scope.row.statusName)"
-              :key="index"
-              placement="top"
-              trigger="hover"
-              :content="`记录数：${status?.number}`"
-            >
-              <template #reference>
-                <el-tag
-                  class="mx-1"
-                  :type="status?.text === '审核通过' ? 'success' : 'info'"
-                >
-                  {{ status?.text }}
-                </el-tag>
-              </template>
-            </el-popover>
+          <div
+            v-for="item in scope.row.pmDingUser"
+            :key="item.dingId"
+            class="userContainer"
+          >
+            <img :src="item.avatarUrl" class="userIcon" />
+            <span>{{ item.userName }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="priorityId" label="优先级"></el-table-column>
-      <el-table-column prop="progress" label="进度"></el-table-column>
+      <el-table-column prop="npdDingUser" label="NPD负责人">
+        <template #default="scope">
+          <div
+            v-for="item in scope.row.npdDingUser"
+            :key="item.dingId"
+            class="userContainer"
+          >
+            <img :src="item.avatarUrl" class="userIcon" />
+            <span>{{ item.userName }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="statusName" label="状态">
+        <template #default="scope">
+          <el-tag :type="scope.row.statusName === '高' ? 'danger' : 'warning'">
+            {{ scope.row.statusName }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="priorityName" label="优先级">
+        <template #default="scope">
+          <el-tag
+            :type="scope.row.priorityName === '高' ? 'danger' : 'warning'"
+          >
+            {{ scope.row.priorityName }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="progress" label="进度">
+        <template #default="scope">
+          <el-progress :percentage="scope.row.progress" />
+        </template>
+      </el-table-column>
       <el-table-column
         prop="expectedListingDate"
         label="预计上市"
@@ -49,14 +62,14 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
+    <!-- <el-pagination
       @current-change="handlePageChange"
       :current-page="pagination.pageNo"
       :page-size="pagination.pageSize"
       layout="total, prev, pager, next"
       :total="pagination.total"
       style="width: 100%; margin-top: 20px; text-align: center"
-    ></el-pagination>
+    ></el-pagination> -->
   </div>
 </template>
 
@@ -163,12 +176,8 @@ const fetchProductList = () => {
   console.log("searchArr:", searchArr);
   commonInfo.searchStr = JSON.stringify(searchArr);
   getProjectProgressList(commonInfo).then(res => {
-    // 为每个产品添加默认状态
-    const products = res.data.records.map(product => ({
-      ...product
-    }));
-    tableData.value = products.map(product => reverseMapping(product));
-    pagination.value.total = res.data.total;
+    tableData.value = res?.data?.records || [];
+    // pagination.value.total = res.data.total;
   });
 };
 
@@ -188,8 +197,22 @@ defineExpose({
   fetchProductList
 });
 </script>
-<style>
+<style scoped>
 .hhh {
   color: red;
+}
+
+.userContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+
+  .userIcon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+    border-radius: 50%;
+  }
 }
 </style>

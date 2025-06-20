@@ -124,7 +124,7 @@
           <div class="search-row flex items-start gap-4">
             <div class="person-selector flex-1">
               <div class="person-row flex items-center">
-                <div class="person-label">需求发起人</div>
+                <div class="person-label">PM负责人</div>
                 <div class="person-tags flex-1 ml-4">
                   <el-tag
                     v-for="tag in searchForm.pmUserName"
@@ -141,14 +141,14 @@
                     size="small"
                     @click="choosePerson('pmUserName')"
                   >
-                    + 需求发起人
+                    + PM负责人
                   </el-button>
                 </div>
               </div>
             </div>
             <div class="person-selector flex-1">
               <div class="person-row flex items-center">
-                <div class="person-label">承接人</div>
+                <div class="person-label">NPD负责人</div>
                 <div class="person-tags flex-1 ml-4">
                   <el-tag
                     v-for="tag in searchForm.npdUserName"
@@ -165,7 +165,7 @@
                     size="small"
                     @click="choosePerson('npdUserName')"
                   >
-                    + 承接人
+                    + NPD负责人
                   </el-button>
                 </div>
               </div>

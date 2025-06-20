@@ -15,6 +15,7 @@
           type="primary"
           class="flex items-center gap-2 px-4 h-9"
           color="#1a1a1a"
+          @click="handleAddProduct"
         >
           <el-icon><Plus /></el-icon>
           新建项目
@@ -285,15 +286,6 @@ const removeAssignee = tag => {
 
 const handleAddProduct = () => {
   showModal.value = true;
-  searchForm.value = {
-    productName: "",
-    brand: "",
-    keyword: "",
-    status: "",
-    productNo: "",
-    contacters: [],
-    workers: []
-  };
 };
 
 const getStatusList = () => {

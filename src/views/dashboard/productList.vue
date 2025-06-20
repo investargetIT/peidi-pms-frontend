@@ -1,7 +1,7 @@
 <template>
   <div class="mt-3 rounded-sm">
     <el-table :data="tableData" style="width: 100%">
-      <el-table-column prop="productNo" label="产品编号">
+      <el-table-column prop="productNo" label="产品信息">
         <template #default="scope">
           <span
             @click="
@@ -13,7 +13,8 @@
           >
         </template>
       </el-table-column>
-      <el-table-column prop="productName" label="产品名称"></el-table-column>
+      <el-table-column prop="pmDingUser" label="PM负责人"></el-table-column>
+      <el-table-column prop="npdDingUser" label="NPD负责人"></el-table-column>
       <el-table-column prop="statusName" label="状态">
         <template #default="scope">
           <div class="flex gap-2">
@@ -36,12 +37,15 @@
           </div>
         </template>
       </el-table-column>
+      <el-table-column prop="priorityId" label="优先级"></el-table-column>
+      <el-table-column prop="progress" label="进度"></el-table-column>
+      <el-table-column
+        prop="expectedListingDate"
+        label="预计上市"
+      ></el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
           <el-button @click="showDetails(scope.row)">详情</el-button>
-          <el-button @click="deleteProductFun(scope.row)" type="danger"
-            >删除</el-button
-          >
         </template>
       </el-table-column>
     </el-table>
@@ -53,20 +57,6 @@
       :total="pagination.total"
       style="width: 100%; margin-top: 20px; text-align: center"
     ></el-pagination>
-    <addProduct
-      v-if="dialogVisible"
-      v-model:visible="dialogVisible"
-      :details="selectedDetails"
-      :isEdit="true"
-      @refresh="fetchProductList"
-    ></addProduct>
-    <recordList
-      v-if="recordDialogVisible"
-      v-model:visible="recordDialogVisible"
-      :details="selectedDetails"
-      :statusList="props.statusList"
-      @refresh="fetchProductList"
-    ></recordList>
   </div>
 </template>
 
@@ -77,9 +67,6 @@ import { getProductList, deleteProduct } from "@/api/pmApi.ts";
 import UpdateDialog from "./UpdateDialog.vue";
 import { reverseMapping, mapping } from "./utils";
 import { debounce, storageLocal } from "@pureadmin/utils";
-import addProduct from "./addProduct.vue";
-import recordList from "./recordList.vue";
-import { status } from "nprogress";
 const tableData = ref([]);
 const pagination = ref({
   pageNo: 1,

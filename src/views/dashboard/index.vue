@@ -204,6 +204,7 @@ import {
 import { ref } from "vue";
 import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
 import { fetchStatusList } from "@/api/pmApi.ts";
+import { getProjectProgressList } from "@/api/progress";
 import { ElMessage } from "element-plus";
 import {
   Calendar as ElementCalendar,
@@ -216,6 +217,8 @@ import addProduct from "./addProduct.vue";
 import productList from "./productList.vue";
 const showModal = ref(false);
 const statusList = ref([]);
+const priorityList = ref([]);
+const stageList = ref([]);
 const listRef = ref(null);
 const searchForm = ref({
   productName: "",
@@ -288,20 +291,30 @@ const handleAddProduct = () => {
   showModal.value = true;
 };
 
-const getStatusList = () => {
-  fetchStatusList().then(res => {
-    if (res.code === 200) {
-      statusList.value = res.data?.map(item => {
-        return {
-          label: item.value,
-          value: item.id
-        };
-      });
+const getTypeList = () => {
+  Promise.all([fetchStatusList("pmPriority"), fetchStatusList("pmStage")]).then(
+    ([priorityRes, stageRes]) => {
+      if (priorityRes.code === 200) {
+        priorityList.value = priorityRes.data?.map(item => {
+          return {
+            label: item.value,
+            value: item.id
+          };
+        });
+      }
+      if (stageRes.code === 200) {
+        stageList.value = stageRes.data?.map(item => {
+          return {
+            label: item.value,
+            value: item.id
+          };
+        });
+      }
     }
-  });
+  );
 };
 
-getStatusList();
+getTypeList();
 
 const saveProduct = () => {
   // 保存产品逻辑

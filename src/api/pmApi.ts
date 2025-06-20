@@ -122,10 +122,10 @@ export const downloadFile = params => {
   });
 };
 
-export const fetchStatusList = () => {
+export const fetchStatusList = (type = "status") => {
   return http.request("get", baseUrlApi("prm/common/enum", false), {
     params: {
-      type: "status"
+      type
     }
   });
 };

@@ -207,6 +207,7 @@ import {
 } from "lucide-vue-next";
 import { ref } from "vue";
 import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
+import * as dd from "dingtalk-jsapi";
 import { fetchStatusList } from "@/api/pmApi.ts";
 import { ElMessage } from "element-plus";
 import {

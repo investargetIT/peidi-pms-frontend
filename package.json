@@ -60,7 +60,7 @@
     "dayjs": "^1.11.12",
     "dhtmlx-gantt": "^9.0.3",
     "dingtalk-h5-remote-debug": "^0.1.3",
-    "dingtalk-jsapi": "^3.0.41",
+    "dingtalk-jsapi": "^3.0.42",
     "echarts": "^5.5.1",
     "element-plus": "^2.8.0",
     "exceljs": "^4.4.0",

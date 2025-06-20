@@ -127,7 +127,7 @@
                 <div class="person-label">需求发起人</div>
                 <div class="person-tags flex-1 ml-4">
                   <el-tag
-                    v-for="tag in searchForm.requester"
+                    v-for="tag in searchForm.pmUserName"
                     :key="tag.emplId"
                     :disable-transitions="false"
                     closable
@@ -139,7 +139,7 @@
                   <el-button
                     class="add-person-btn"
                     size="small"
-                    @click="choosePerson('contacter')"
+                    @click="choosePerson('pmUserName')"
                   >
                     + 需求发起人
                   </el-button>
@@ -151,7 +151,7 @@
                 <div class="person-label">承接人</div>
                 <div class="person-tags flex-1 ml-4">
                   <el-tag
-                    v-for="tag in searchForm.assignee"
+                    v-for="tag in searchForm.npdUserName"
                     :key="tag.emplId"
                     :disable-transitions="false"
                     closable
@@ -163,7 +163,7 @@
                   <el-button
                     class="add-person-btn"
                     size="small"
-                    @click="choosePerson('worker')"
+                    @click="choosePerson('npdUserName')"
                   >
                     + 承接人
                   </el-button>
@@ -208,7 +208,6 @@ import {
 import { ref } from "vue";
 import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
 import { fetchStatusList } from "@/api/pmApi.ts";
-import { getProjectProgressList } from "@/api/progress";
 import { ElMessage } from "element-plus";
 import {
   Calendar as ElementCalendar,
@@ -233,8 +232,8 @@ const searchForm = ref({
   keyword: "",
   status: "",
   productNo: "",
-  requester: [],
-  assignee: []
+  pmUserName: [],
+  npdUserName: []
 });
 const DINGTALK_CORP_ID = "dingfc722e531a4125b735c2f4657eb6378f";
 setTimeout(() => {
@@ -242,9 +241,9 @@ setTimeout(() => {
 }, 100);
 const choosePerson = type => {
   let data_this =
-    type == "contacter"
-      ? searchForm.value.requester
-      : searchForm.value.assignee;
+    type == "pmUserName"
+      ? searchForm.value.pmUserName
+      : searchForm.value.npdUserName;
   // let test = [{ "avatar": "", "name": "台江鹏", "emplId": "474805081221550528" }];
   // if (type == 'contacter') {
   //   form.value.requester = (test)
@@ -260,11 +259,11 @@ const choosePerson = type => {
     max: 10, //人数限制，当multiple为true才生效，可选范围1-1500
     onSuccess: function (data) {
       console.log("data", data);
-      if (type == "contacter") {
-        searchForm.value.requester = data;
+      if (type == "pmUserName") {
+        searchForm.value.pmUserName = data;
       }
-      if (type == "worker") {
-        searchForm.value.assignee = data;
+      if (type == "npdUserName") {
+        searchForm.value.npdUserName = data;
       }
       // alert("dd successs: " + JSON.stringify(data));
     },
@@ -277,20 +276,20 @@ const extractEmplId = users => {
 };
 
 const removeRequester = tag => {
-  const index = searchForm.value.requester.findIndex(
+  const index = searchForm.value.pmUserName.findIndex(
     item => item.emplId === tag.emplId
   );
   if (index > -1) {
-    searchForm.value.requester.splice(index, 1);
+    searchForm.value.pmUserName.splice(index, 1);
   }
 };
 
 const removeAssignee = tag => {
-  const index = searchForm.value.assignee.findIndex(
+  const index = searchForm.value.npdUserName.findIndex(
     item => item.emplId === tag.emplId
   );
   if (index > -1) {
-    searchForm.value.assignee.splice(index, 1);
+    searchForm.value.npdUserName.splice(index, 1);
   }
 };
 

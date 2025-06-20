@@ -62,6 +62,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import { getProjectProgressList } from "@/api/progress";
 import { ElMessage } from "element-plus";
 import { getProductList, deleteProduct } from "@/api/pmApi.ts";
 import UpdateDialog from "./UpdateDialog.vue";
@@ -126,6 +127,14 @@ watch(
   { immediate: true, deep: true }
 );
 
+function extractEmplId(arr) {
+  const result = [];
+  for (const item of arr) {
+    result.push(item.emplId || item.userId);
+  }
+  return result;
+}
+
 const fetchProductList = () => {
   const searchStr: any = [];
   const commonInfo = {} as any;
@@ -135,12 +144,18 @@ const fetchProductList = () => {
     if (props.searchInfo[key]) {
       searchParams.searchName = key;
       searchParams.searchType = "like";
-      searchParams.searchValue = props.searchInfo[key];
+      if (["pmUserName", "npdUserName"].includes(key)) {
+        searchParams.searValue = extractEmplId(props.searchInfo[key]).join(
+          "&#&"
+        );
+      } else {
+        searchParams.searchValue = props.searchInfo[key];
+      }
       searchArr.push(searchParams);
     }
   });
   commonInfo.searchStr = JSON.stringify(searchArr);
-  getProductList(commonInfo).then(res => {
+  getProjectProgressList(commonInfo).then(res => {
     // 为每个产品添加默认状态
     const products = res.data.records.map(product => ({
       ...product
@@ -161,8 +176,6 @@ const showDetails = row => {
 
   dialogVisible.value = true;
 };
-
-fetchProductList();
 
 defineExpose({
   fetchProductList

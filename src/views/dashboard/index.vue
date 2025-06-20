@@ -195,13 +195,7 @@
     </div>
 
     <!-- 新增产品弹窗 -->
-    <addProduct
-      v-if="showModal"
-      v-model:visible="showModal"
-      :factories="factories"
-      @refresh="refreshList"
-      :saveProduct="saveProduct"
-    />
+    <CreateProjectModal v-model:visible="showModal" @save="handleSaveProject" />
   </div>
 </template>
 
@@ -230,9 +224,9 @@ import {
   Search as ElementSearch
 } from "@element-plus/icons-vue";
 import factories from "./const";
-import addProduct from "./addProduct.vue";
 import productList from "./productList.vue";
 import ProjectDetail from "./ProjectDetail.vue";
+import CreateProjectModal from "./CreateProjectModal.vue";
 const showModal = ref(false);
 const statusList = ref([]);
 const priorityList = ref([]);
@@ -314,6 +308,16 @@ const handleAddProduct = () => {
   showModal.value = true;
 };
 
+const handleSaveProject = newProject => {
+  // 这里可以调用API保存项目数据
+  console.log("保存新项目:", newProject);
+
+  // 刷新列表
+  refreshList();
+
+  ElMessage.success("项目创建成功");
+};
+
 const getTypeList = () => {
   Promise.all([
     fetchStatusList("pmPriority"),
@@ -373,13 +377,6 @@ const getTypeList = () => {
 };
 
 getTypeList();
-
-const saveProduct = () => {
-  // 保存产品逻辑
-  console.log("保存产品:", newProduct.value);
-  ElMessage.success("产品保存成功");
-  showModal.value = false;
-};
 
 const refreshList = () => {
   listRef.value.fetchProductList();

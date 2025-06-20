@@ -165,15 +165,6 @@ const showDetails = row => {
   dialogVisible.value = true;
 };
 
-const deleteProductFun = row => {
-  deleteProduct(mapping(row)).then(res => {
-    if (res.code === 200) {
-      ElMessage.success("删除成功");
-      fetchProductList();
-    }
-  });
-};
-
 fetchProductList();
 
 defineExpose({

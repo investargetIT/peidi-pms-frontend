@@ -33,9 +33,12 @@
       </el-table-column>
       <el-table-column prop="statusName" label="状态">
         <template #default="scope">
-          <el-tag :type="scope.row.statusName === '高' ? 'danger' : 'warning'">
+          <div
+            :class="getStatusColor(scope.row.statusName)"
+            class="status-badge"
+          >
             {{ scope.row.statusName }}
-          </el-tag>
+          </div>
         </template>
       </el-table-column>
       <el-table-column prop="priorityName" label="优先级">
@@ -75,6 +78,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import { Badge } from "lucide-vue-next";
 import { getProjectProgressList } from "@/api/progress";
 import { ElMessage } from "element-plus";
 import { getProductList, deleteProduct } from "@/api/pmApi.ts";
@@ -139,6 +143,25 @@ watch(
   },
   { immediate: true, deep: true }
 );
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "开发中":
+      return "status-developing";
+    case "已上市":
+      return "status-listed";
+    case "待开始":
+      return "status-pending";
+    case "审核通过":
+      return "status-approved";
+    case "已上架":
+      return "status-listed";
+    case "已放弃":
+      return "status-abandoned";
+    default:
+      return "status-default";
+  }
+};
 
 function extractEmplId(arr) {
   const result = [];
@@ -214,5 +237,46 @@ defineExpose({
     margin-right: 5px;
     border-radius: 50%;
   }
+}
+
+.status-badge {
+  display: inline-block;
+  min-width: 48px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+  border-radius: 12px;
+}
+
+.status-developing {
+  color: #1890ff;
+  background-color: #e6f4ff;
+}
+
+.status-listed {
+  color: #52c41a;
+  background-color: #f6ffed;
+}
+
+.status-pending {
+  color: #8c8c8c;
+  background-color: #f5f5f5;
+}
+
+.status-approved {
+  color: #52c41a;
+  background-color: #f6ffed;
+}
+
+.status-abandoned {
+  color: #ff4d4f;
+  background-color: #fff2f0;
+}
+
+.status-default {
+  color: #8c8c8c;
+  background-color: #f5f5f5;
 }
 </style>

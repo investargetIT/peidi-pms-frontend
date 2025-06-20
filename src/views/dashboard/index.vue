@@ -66,9 +66,14 @@
     <!-- 搜索区域 -->
     <div class="search-area w-full bg-white rounded-lg shadow-sm mb-6">
       <div class="w-full p-4">
-        <el-form :model="searchForm" class="search-form">
-          <div class="search-wrapper flex items-center gap-4">
-            <el-form-item prop="productName" class="flex-1 mb-0">
+        <el-form :model="searchForm" :inline="true" class="search-form">
+          <!-- 第一行：产品名称、品牌、状态 -->
+          <div class="search-row flex items-center gap-4 mb-4">
+            <el-form-item
+              prop="productName"
+              label="产品名称"
+              class="flex-1 mb-0"
+            >
               <el-input
                 v-model="searchForm.productName"
                 class="custom-search-input"
@@ -80,7 +85,7 @@
                 </template>
               </el-input>
             </el-form-item>
-            <el-form-item prop="brand" class="flex-1 mb-0">
+            <el-form-item prop="brand" label="品牌" class="flex-1 mb-0">
               <el-input
                 v-model="searchForm.brand"
                 class="custom-search-input"
@@ -92,46 +97,13 @@
                 </template>
               </el-input>
             </el-form-item>
-            <el-form-item style="width: 30%" label="PM负责人">
-              <el-tag
-                v-for="tag in searchForm.requester"
-                :key="tag"
-                :disable-transitions="false"
-              >
-                {{ tag.name }}
-              </el-tag>
-              <el-button
-                class="button-new-tag"
-                size="default"
-                @click="choosePerson('contacter')"
-              >
-                + PM负责人
-              </el-button>
-            </el-form-item>
-            <el-form-item style="width: 30%" label="NPD负责人">
-              <el-tag
-                v-for="tag in searchForm.assignee"
-                :key="tag"
-                :disable-transitions="false"
-              >
-                {{ tag.name }}
-              </el-tag>
-              <el-button
-                class="button-new-tag"
-                size="default"
-                @click="choosePerson('worker')"
-              >
-                + NPD负责人
-              </el-button>
-            </el-form-item>
-
-            <el-form-item prop="status" class="mb-0" style="min-width: 160px">
+            <el-form-item prop="status" label="状态" class="flex-1 mb-0">
               <el-select
                 v-model="searchForm.status"
                 placeholder="全部状态"
                 clearable
                 class="custom-select"
-                style="width: 160px"
+                style="width: 100%"
               >
                 <el-option
                   v-for="item in statusList"
@@ -141,6 +113,58 @@
                 />
               </el-select>
             </el-form-item>
+          </div>
+
+          <!-- 第二行：PM负责人和NPD负责人 -->
+          <div class="search-row flex items-start gap-4">
+            <div class="person-selector flex-1">
+              <div class="person-row flex items-center">
+                <div class="person-label">需求发起人</div>
+                <div class="person-tags flex-1 ml-4">
+                  <el-tag
+                    v-for="tag in searchForm.requester"
+                    :key="tag.emplId"
+                    :disable-transitions="false"
+                    closable
+                    @close="removeRequester(tag)"
+                    class="mr-2"
+                  >
+                    {{ tag.name }}
+                  </el-tag>
+                  <el-button
+                    class="add-person-btn"
+                    size="small"
+                    @click="choosePerson('contacter')"
+                  >
+                    + 需求发起人
+                  </el-button>
+                </div>
+              </div>
+            </div>
+            <div class="person-selector flex-1">
+              <div class="person-row flex items-center">
+                <div class="person-label">承接人</div>
+                <div class="person-tags flex-1 ml-4">
+                  <el-tag
+                    v-for="tag in searchForm.assignee"
+                    :key="tag.emplId"
+                    :disable-transitions="false"
+                    closable
+                    @close="removeAssignee(tag)"
+                    class="mr-2"
+                  >
+                    {{ tag.name }}
+                  </el-tag>
+                  <el-button
+                    class="add-person-btn"
+                    size="small"
+                    @click="choosePerson('worker')"
+                  >
+                    + 承接人
+                  </el-button>
+                </div>
+              </div>
+            </div>
           </div>
         </el-form>
       </div>
@@ -237,6 +261,28 @@ const choosePerson = type => {
   });
 };
 
+const extractEmplId = users => {
+  return users.map(user => user.emplId);
+};
+
+const removeRequester = tag => {
+  const index = searchForm.value.requester.findIndex(
+    item => item.emplId === tag.emplId
+  );
+  if (index > -1) {
+    searchForm.value.requester.splice(index, 1);
+  }
+};
+
+const removeAssignee = tag => {
+  const index = searchForm.value.assignee.findIndex(
+    item => item.emplId === tag.emplId
+  );
+  if (index > -1) {
+    searchForm.value.assignee.splice(index, 1);
+  }
+};
+
 const delteHelper = index => {
   if (isMy) {
     return;
@@ -329,6 +375,40 @@ const refreshList = () => {
   .el-form-item__content {
     display: flex;
     align-items: center;
+  }
+}
+
+.person-selector {
+  .person-label {
+    min-width: 80px;
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  .person-row {
+    align-items: center;
+  }
+
+  .person-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .add-person-btn {
+    height: 28px;
+    padding: 0 12px;
+    font-size: 12px;
+    color: #666;
+    background: transparent;
+    border: 1px dashed #d9d9d9;
+
+    &:hover {
+      color: #1890ff;
+      border-color: #1890ff;
+    }
   }
 }
 

@@ -183,11 +183,15 @@
           ref="listRef"
           :searchInfo="searchForm"
           :statusList="statusList"
+          @selectProject="handleSelectProject"
         />
       </div>
 
       <!-- 右侧项目详情 -->
-      <ProjectDetail :selectedProject="selectedProject" />
+      <ProjectDetail
+        :selectedProject="selectedProject"
+        :stageList="stageList"
+      />
     </div>
 
     <!-- 新增产品弹窗 -->
@@ -379,6 +383,11 @@ const saveProduct = () => {
 
 const refreshList = () => {
   listRef.value.fetchProductList();
+};
+
+const handleSelectProject = project => {
+  selectedProject.value = project;
+  console.log("选中的项目:", project);
 };
 </script>
 

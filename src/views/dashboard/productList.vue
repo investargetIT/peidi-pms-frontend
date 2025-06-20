@@ -124,7 +124,7 @@
       <el-table-column label="操作">
         <template #default="scope">
           <button
-            @click="showDetails(scope.row)"
+            @click="handleShowDetails(scope.row)"
             class="inline-flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors p-1 bg-transparent border-none outline-none"
           >
             <svg
@@ -206,6 +206,8 @@ const props = defineProps({
     default: () => []
   }
 });
+
+const emit = defineEmits(["selectProject"]);
 
 interface IQueryParams {
   pageNo: number;
@@ -308,6 +310,10 @@ const showDetails = row => {
   console.log("selectedDetails:", selectedDetails.value);
 
   dialogVisible.value = true;
+};
+
+const handleShowDetails = row => {
+  emit("selectProject", row);
 };
 
 defineExpose({

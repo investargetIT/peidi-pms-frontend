@@ -2,11 +2,6 @@
   <div class="right-panel w-80 bg-white rounded-lg shadow-sm p-6">
     <div class="detail-header flex items-center justify-between mb-6">
       <h3 class="text-lg font-semibold">项目详情</h3>
-      <div
-        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
-      >
-        <Eye class="w-4 h-4 text-gray-500" />
-      </div>
     </div>
 
     <div class="detail-content">

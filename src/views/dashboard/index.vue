@@ -122,54 +122,11 @@
 
           <!-- 第二行：PM负责人和NPD负责人 -->
           <div class="search-row flex items-start gap-4">
-            <div class="person-selector flex-1">
-              <div class="person-row flex items-center">
-                <div class="person-label">PM负责人</div>
-                <div class="person-tags flex-1 ml-4">
-                  <el-tag
-                    v-for="tag in searchForm.pmUserName"
-                    :key="tag.emplId"
-                    :disable-transitions="false"
-                    closable
-                    @close="removeRequester(tag)"
-                    class="mr-2"
-                  >
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-button
-                    class="add-person-btn"
-                    size="small"
-                    @click="choosePerson('pmUserName')"
-                  >
-                    + PM负责人
-                  </el-button>
-                </div>
-              </div>
-            </div>
-            <div class="person-selector flex-1">
-              <div class="person-row flex items-center">
-                <div class="person-label">NPD负责人</div>
-                <div class="person-tags flex-1 ml-4">
-                  <el-tag
-                    v-for="tag in searchForm.npdUserName"
-                    :key="tag.emplId"
-                    :disable-transitions="false"
-                    closable
-                    @close="removeAssignee(tag)"
-                    class="mr-2"
-                  >
-                    {{ tag.name }}
-                  </el-tag>
-                  <el-button
-                    class="add-person-btn"
-                    size="small"
-                    @click="choosePerson('npdUserName')"
-                  >
-                    + NPD负责人
-                  </el-button>
-                </div>
-              </div>
-            </div>
+            <PersonSelector label="PM负责人" v-model="searchForm.pmUserName" />
+            <PersonSelector
+              label="NPD负责人"
+              v-model="searchForm.npdUserName"
+            />
           </div>
         </el-form>
       </div>
@@ -212,10 +169,9 @@ import {
   Flag
 } from "lucide-vue-next";
 import { ref } from "vue";
-import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
-import * as dd from "dingtalk-jsapi";
+
 import { fetchStatusList } from "@/api/pmApi.ts";
-import { ddAuthFun } from "@/utils/ddAuth";
+
 import { ElMessage } from "element-plus";
 import {
   Calendar as ElementCalendar,
@@ -227,6 +183,7 @@ import factories from "./const";
 import productList from "./productList.vue";
 import ProjectDetail from "./ProjectDetail.vue";
 import CreateProjectModal from "./CreateProjectModal.vue";
+import PersonSelector from "@/components/PersonSelector.vue";
 const showModal = ref(false);
 const statusList = ref([]);
 const priorityList = ref([]);
@@ -245,64 +202,6 @@ const searchForm = ref({
   pmUserName: [],
   npdUserName: []
 });
-const DINGTALK_CORP_ID = "dingfc722e531a4125b735c2f4657eb6378f";
-setTimeout(() => {
-  initDingH5RemoteDebug();
-}, 100);
-ddAuthFun();
-const choosePerson = type => {
-  let data_this =
-    type == "pmUserName"
-      ? searchForm.value.pmUserName
-      : searchForm.value.npdUserName;
-  // let test = [{ "avatar": "", "name": "台江鹏", "emplId": "474805081221550528" }];
-  // if (type == 'contacter') {
-  //   form.value.requester = (test)
-  // }
-  // if (type == 'worker') {
-  //   form.value.assignee = (test)
-  // }
-  // return
-  dd.biz.contact.choose({
-    multiple: true, //是否多选：true多选 false单选； 默认true
-    users: extractEmplId(data_this), //默认选中的用户列表，员工userid；成功回调中应包含该信息
-    corpId: DINGTALK_CORP_ID, //企业id
-    max: 10, //人数限制，当multiple为true才生效，可选范围1-1500
-    onSuccess: function (data) {
-      console.log("data", data);
-      if (type == "pmUserName") {
-        searchForm.value.pmUserName = data;
-      }
-      if (type == "npdUserName") {
-        searchForm.value.npdUserName = data;
-      }
-      // alert("dd successs: " + JSON.stringify(data));
-    },
-    onFail: function (err) {}
-  });
-};
-
-const extractEmplId = users => {
-  return users.map(user => user.emplId);
-};
-
-const removeRequester = tag => {
-  const index = searchForm.value.pmUserName.findIndex(
-    item => item.emplId === tag.emplId
-  );
-  if (index > -1) {
-    searchForm.value.pmUserName.splice(index, 1);
-  }
-};
-
-const removeAssignee = tag => {
-  const index = searchForm.value.npdUserName.findIndex(
-    item => item.emplId === tag.emplId
-  );
-  if (index > -1) {
-    searchForm.value.npdUserName.splice(index, 1);
-  }
-};
 
 const handleAddProduct = () => {
   showModal.value = true;
@@ -433,40 +332,6 @@ const handleSelectProject = project => {
   .el-form-item__content {
     display: flex;
     align-items: center;
-  }
-}
-
-.person-selector {
-  .person-label {
-    min-width: 80px;
-    font-size: 14px;
-    color: #666;
-    white-space: nowrap;
-  }
-
-  .person-row {
-    align-items: center;
-  }
-
-  .person-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .add-person-btn {
-    height: 28px;
-    padding: 0 12px;
-    font-size: 12px;
-    color: #666;
-    background: transparent;
-    border: 1px dashed #d9d9d9;
-
-    &:hover {
-      color: #1890ff;
-      border-color: #1890ff;
-    }
   }
 }
 

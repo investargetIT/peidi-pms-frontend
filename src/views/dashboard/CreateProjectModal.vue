@@ -22,37 +22,37 @@
         label-position="top"
       >
         <!-- 品牌选择 -->
-        <el-form-item label="品牌" prop="brand" class="form-item">
+        <el-form-item label="品牌" prop="brandId" class="form-item">
           <el-select
-            v-model="formData.brand"
+            v-model="formData.brandId"
             placeholder="请选择品牌"
             style="width: 100%"
             size="large"
             @change="handleBrandChange"
           >
             <el-option
-              v-for="brand in Object.keys(brandSeriesData)"
-              :key="brand"
-              :label="brand"
-              :value="brand"
+              v-for="item in brandList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
             />
           </el-select>
         </el-form-item>
 
         <!-- 系列选择 -->
-        <el-form-item label="系列" prop="series" class="form-item">
+        <el-form-item label="系列" prop="seriesId" class="form-item">
           <el-select
-            v-model="formData.series"
-            :placeholder="formData.brand ? '请选择系列' : '请先选择品牌'"
+            v-model="formData.seriesId"
+            :placeholder="formData.brandId ? '请选择系列' : '请先选择品牌'"
             style="width: 100%"
             size="large"
-            :disabled="!formData.brand"
+            :disabled="!formData.brandId"
           >
             <el-option
-              v-for="series in availableSeries"
-              :key="series"
-              :label="series"
-              :value="series"
+              v-for="item in seriesList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
             />
           </el-select>
         </el-form-item>
@@ -67,83 +67,40 @@
         </el-form-item>
 
         <!-- 优先级 -->
-        <el-form-item label="优先级" prop="priority" class="form-item">
+        <el-form-item label="优先级" prop="priorityId" class="form-item">
           <el-select
-            v-model="formData.priority"
+            v-model="formData.priorityId"
             placeholder="请选择优先级"
             style="width: 100%"
             size="large"
           >
-            <el-option label="高" value="high" />
-            <el-option label="中" value="medium" />
-            <el-option label="低" value="low" />
+            <el-option
+              v-for="item in priorityList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
 
         <!-- PM负责人 -->
-        <el-form-item label="PM负责人" prop="pmManagerId" class="form-item">
-          <el-select
-            v-model="formData.pmManagerId"
-            placeholder="请选择PM负责人"
-            style="width: 100%"
-            size="large"
-            filterable
-          >
-            <el-option
-              v-for="user in mockUsers"
-              :key="user.id"
-              :label="user.name"
-              :value="user.id"
-            >
-              <div class="user-option">
-                <el-avatar :size="28" class="user-avatar">
-                  {{ user.name.charAt(0) }}
-                </el-avatar>
-                <div class="user-info">
-                  <div class="user-name">{{ user.name }}</div>
-                  <div class="user-email">{{ user.email }}</div>
-                </div>
-              </div>
-            </el-option>
-          </el-select>
+        <el-form-item label="PM负责人" prop="pmDingIds" class="form-item">
+          <PersonSelector label="PM负责人" v-model="formData.pmDingIds" />
         </el-form-item>
 
         <!-- NPD负责人 -->
-        <el-form-item label="NPD负责人" prop="npdManagerId" class="form-item">
-          <el-select
-            v-model="formData.npdManagerId"
-            placeholder="请选择NPD负责人"
-            style="width: 100%"
-            size="large"
-            filterable
-          >
-            <el-option
-              v-for="user in mockUsers"
-              :key="user.id"
-              :label="user.name"
-              :value="user.id"
-            >
-              <div class="user-option">
-                <el-avatar :size="28" class="user-avatar">
-                  {{ user.name.charAt(0) }}
-                </el-avatar>
-                <div class="user-info">
-                  <div class="user-name">{{ user.name }}</div>
-                  <div class="user-email">{{ user.email }}</div>
-                </div>
-              </div>
-            </el-option>
-          </el-select>
+        <el-form-item label="NPD负责人" prop="npdDingIds" class="form-item">
+          <PersonSelector label="NPD负责人" v-model="formData.npdDingIds" />
         </el-form-item>
 
         <!-- 预计上市日期 -->
         <el-form-item
           label="预计上市日期"
-          prop="expectedLaunchDate"
+          prop="expectedListingDate"
           class="form-item"
         >
           <el-date-picker
-            v-model="formData.expectedLaunchDate"
+            v-model="formData.expectedListingDate"
             type="date"
             placeholder="请选择预计上市日期"
             format="YYYY-MM-DD"
@@ -180,11 +137,21 @@
 import { ref, computed, watch } from "vue";
 import { Document } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
+import { getProjectTypeList } from "@/api/progress";
+import PersonSelector from "@/components/PersonSelector.vue";
 
 const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  brandList: {
+    type: Array,
+    default: () => []
+  },
+  priorityList: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -194,54 +161,92 @@ const emit = defineEmits(["update:visible", "save"]);
 const dialogVisible = ref(false);
 const saving = ref(false);
 const formRef = ref(null);
-
-// 表单数据
-const formData = ref({
-  brand: "",
-  series: "",
-  productName: "",
-  priority: "medium",
-  pmManagerId: "",
-  npdManagerId: "",
-  expectedLaunchDate: ""
-});
-
-// 品牌和系列数据
-const brandSeriesData = {
-  "爵宴 Meatyway": ["键支系列", "营养系列", "健康系列", "美味系列"],
-  "好适嘉 Healthguard": ["医疗系列", "保健系列", "康复系列", "预防系列"]
-};
+const seriesList = ref([]);
 
 // 模拟用户数据
 const mockUsers = ref([
-  { id: "u1", name: "张三", email: "zhang@company.com" },
-  { id: "u2", name: "李四", email: "li@company.com" },
-  { id: "u3", name: "王五", email: "wang@company.com" },
-  { id: "u4", name: "赵六", email: "zhao@company.com" },
-  { id: "u5", name: "刘七", email: "liu@company.com" },
-  { id: "u6", name: "陈八", email: "chen@company.com" }
+  {
+    id: "user1",
+    emplId: "474805081221550528",
+    name: "张三",
+    email: "zhangsan@company.com",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zhang"
+  },
+  {
+    id: "user2",
+    emplId: "474805081221550529",
+    name: "李四",
+    email: "lisi@company.com",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Li"
+  },
+  {
+    id: "user3",
+    emplId: "474805081221550530",
+    name: "王五",
+    email: "wangwu@company.com",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Wang"
+  }
 ]);
 
 // 默认阶段模板
 const defaultStages = [
-  { id: "s1", name: "产品提案", status: "pending" },
-  { id: "s2", name: "配方文件", status: "pending" },
-  { id: "s3", name: "工厂报价", status: "pending" },
-  { id: "s4", name: "终料文件", status: "pending" },
-  { id: "s5", name: "CTM Plan", status: "pending" },
-  { id: "s6", name: "69码申请", status: "pending" },
-  { id: "s7", name: "产品下单", status: "pending" },
-  { id: "s8", name: "包装资质验证", status: "pending" },
-  { id: "s9", name: "生产周期", status: "pending" },
-  { id: "s10", name: "产品培训", status: "pending" },
-  { id: "s11", name: "详情页设计", status: "pending" },
-  { id: "s12", name: "产品到仓", status: "pending" }
+  { name: "产品提案", status: "pending", order: 1 },
+  { name: "配方文件", status: "pending", order: 2 },
+  { name: "工厂报价", status: "pending", order: 3 },
+  { name: "样品制作", status: "pending", order: 4 },
+  { name: "样品评估", status: "pending", order: 5 },
+  { name: "包装设计", status: "pending", order: 6 },
+  { name: "营养标签", status: "pending", order: 7 },
+  { name: "法规审查", status: "pending", order: 8 },
+  { name: "试产验证", status: "pending", order: 9 },
+  { name: "市场测试", status: "pending", order: 10 },
+  { name: "量产准备", status: "pending", order: 11 },
+  { name: "正式上市", status: "pending", order: 12 }
 ];
+
+// 表单数据
+const formData = ref({
+  brandId: "",
+  seriesId: "",
+  productName: "",
+  priorityId: "",
+  pmDingIds: [],
+  npdDingIds: [],
+  expectedListingDate: ""
+});
+
+// 自定义校验函数
+const validatePersonArray = (rule, value, callback) => {
+  console.log("===数据校验==");
+  console.log(rule);
+  console.log(value);
+  if (!value || value.length === 0) {
+    callback(new Error(rule.message));
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    callback(new Error("数据格式错误，请重新选择人员"));
+    return;
+  }
+
+  // 检查数组中的每个元素是否包含必需的属性
+  const isValidArray = value.every(
+    item => item && typeof item === "object" && item.emplId && item.name
+  );
+
+  if (!isValidArray) {
+    callback(new Error("人员数据格式不正确，请重新选择"));
+    return;
+  }
+
+  callback();
+};
 
 // 表单验证规则
 const formRules = {
-  brand: [{ required: true, message: "请选择品牌", trigger: "change" }],
-  series: [{ required: true, message: "请选择系列", trigger: "change" }],
+  brandId: [{ required: true, message: "请选择品牌", trigger: "change" }],
+  seriesId: [{ required: true, message: "请选择系列", trigger: "change" }],
   productName: [
     { required: true, message: "请输入产品名称", trigger: "blur" },
     {
@@ -251,14 +256,22 @@ const formRules = {
       trigger: "blur"
     }
   ],
-  priority: [{ required: true, message: "请选择优先级", trigger: "change" }],
-  pmManagerId: [
-    { required: true, message: "请选择PM负责人", trigger: "change" }
+  priorityId: [{ required: true, message: "请选择优先级", trigger: "change" }],
+  pmDingIds: [
+    {
+      validator: validatePersonArray,
+      message: "请选择PM负责人",
+      trigger: "change"
+    }
   ],
-  npdManagerId: [
-    { required: true, message: "请选择NPD负责人", trigger: "change" }
+  npdDingIds: [
+    {
+      validator: validatePersonArray,
+      message: "请选择NPD负责人",
+      trigger: "change"
+    }
   ],
-  expectedLaunchDate: [
+  expectedListingDate: [
     { required: true, message: "请选择预计上市日期", trigger: "change" }
   ]
 };
@@ -277,17 +290,24 @@ watch(dialogVisible, newVal => {
   }
 });
 
-// 计算属性
-const availableSeries = computed(() => {
-  return formData.value.brand
-    ? brandSeriesData[formData.value.brand] || []
-    : [];
-});
-
 // 方法
-const handleBrandChange = () => {
+const handleBrandChange = value => {
   // 品牌改变时重置系列选择
-  formData.value.series = "";
+  formData.value.seriesId = "";
+  fetchTypeList(value);
+};
+
+const fetchTypeList = brandId => {
+  getProjectTypeList({ brandId }).then(res => {
+    if (res?.code === 200) {
+      seriesList.value = res?.data?.map(item => {
+        return {
+          label: item.seriesName,
+          value: item.id
+        };
+      });
+    }
+  });
 };
 
 const disabledDate = time => {
@@ -308,17 +328,15 @@ const handleSave = async () => {
     // 创建新产品对象
     const newProduct = {
       id: newProductId,
-      brand: formData.value.brand,
-      series: formData.value.series,
+      brandId: formData.value.brandId,
+      seriesId: formData.value.seriesId,
       productName: formData.value.productName,
       status: "开发中",
-      expectedLaunchDate: formData.value.expectedLaunchDate,
+      expectedListingDate: formData.value.expectedListingDate,
       overallProgress: 0,
-      priority: formData.value.priority,
-      pmManager: mockUsers.value.find(u => u.id === formData.value.pmManagerId),
-      npdManager: mockUsers.value.find(
-        u => u.id === formData.value.npdManagerId
-      ),
+      priorityId: formData.value.priorityId,
+      pmManagers: formData.value.pmDingIds, // 直接使用数组
+      npdManagers: formData.value.npdDingIds, // 直接使用数组
       stages: defaultStages.map((stage, index) => ({
         ...stage,
         id: `${newProductId}_s${index + 1}`
@@ -343,13 +361,13 @@ const handleClose = () => {
     formRef.value.resetFields();
   }
   formData.value = {
-    brand: "",
-    series: "",
+    brandId: "",
+    seriesId: "",
     productName: "",
-    priority: "medium",
-    pmManagerId: "",
-    npdManagerId: "",
-    expectedLaunchDate: ""
+    priorityId: "",
+    pmDingIds: [],
+    npdDingIds: [],
+    expectedListingDate: ""
   };
   dialogVisible.value = false;
 };

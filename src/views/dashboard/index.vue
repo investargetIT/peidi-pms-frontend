@@ -152,7 +152,12 @@
     </div>
 
     <!-- 新增产品弹窗 -->
-    <CreateProjectModal v-model:visible="showModal" @save="handleSaveProject" />
+    <CreateProjectModal
+      v-model:visible="showModal"
+      @save="handleSaveProject"
+      :brandList="brandList"
+      :priorityList="priorityList"
+    />
   </div>
 </template>
 

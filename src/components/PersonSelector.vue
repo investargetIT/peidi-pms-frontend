@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import * as dd from "dingtalk-jsapi";
 import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
 import { ddAuthFun } from "@/utils/ddAuth";
@@ -68,7 +68,6 @@ const choosePerson = () => {
     corpId: props.corpId,
     max: props.maxCount,
     onSuccess: function (data) {
-      console.log("选择人员成功:", data);
       emit("update:modelValue", data);
     },
     onFail: function (err) {

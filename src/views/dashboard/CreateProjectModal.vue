@@ -85,12 +85,20 @@
 
         <!-- PM负责人 -->
         <el-form-item label="PM负责人" prop="pmDingIds" class="form-item">
-          <PersonSelector label="PM负责人" v-model="formData.pmDingIds" />
+          <PersonSelector
+            label="PM负责人"
+            v-model="formData.pmDingIds"
+            @change="handlePersonChange('pmDingIds')"
+          />
         </el-form-item>
 
         <!-- NPD负责人 -->
         <el-form-item label="NPD负责人" prop="npdDingIds" class="form-item">
-          <PersonSelector label="NPD负责人" v-model="formData.npdDingIds" />
+          <PersonSelector
+            label="NPD负责人"
+            v-model="formData.npdDingIds"
+            @change="handlePersonChange('npdDingIds')"
+          />
         </el-form-item>
 
         <!-- 预计上市日期 -->
@@ -163,46 +171,9 @@ const saving = ref(false);
 const formRef = ref(null);
 const seriesList = ref([]);
 
-// 模拟用户数据
-const mockUsers = ref([
-  {
-    id: "user1",
-    emplId: "474805081221550528",
-    name: "张三",
-    email: "zhangsan@company.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zhang"
-  },
-  {
-    id: "user2",
-    emplId: "474805081221550529",
-    name: "李四",
-    email: "lisi@company.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Li"
-  },
-  {
-    id: "user3",
-    emplId: "474805081221550530",
-    name: "王五",
-    email: "wangwu@company.com",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Wang"
-  }
-]);
-
-// 默认阶段模板
-const defaultStages = [
-  { name: "产品提案", status: "pending", order: 1 },
-  { name: "配方文件", status: "pending", order: 2 },
-  { name: "工厂报价", status: "pending", order: 3 },
-  { name: "样品制作", status: "pending", order: 4 },
-  { name: "样品评估", status: "pending", order: 5 },
-  { name: "包装设计", status: "pending", order: 6 },
-  { name: "营养标签", status: "pending", order: 7 },
-  { name: "法规审查", status: "pending", order: 8 },
-  { name: "试产验证", status: "pending", order: 9 },
-  { name: "市场测试", status: "pending", order: 10 },
-  { name: "量产准备", status: "pending", order: 11 },
-  { name: "正式上市", status: "pending", order: 12 }
-];
+const handlePersonChange = type => {
+  formRef.value.validateField(type);
+};
 
 // 表单数据
 const formData = ref({
@@ -217,29 +188,31 @@ const formData = ref({
 
 // 自定义校验函数
 const validatePersonArray = (rule, value, callback) => {
-  console.log("===数据校验==");
-  console.log(rule);
-  console.log(value);
   if (!value || value.length === 0) {
+    console.log("验证失败: 数据为空");
     callback(new Error(rule.message));
     return;
   }
 
   if (!Array.isArray(value)) {
+    console.log("验证失败: 不是数组");
     callback(new Error("数据格式错误，请重新选择人员"));
     return;
   }
 
-  // 检查数组中的每个元素是否包含必需的属性
   const isValidArray = value.every(
     item => item && typeof item === "object" && item.emplId && item.name
   );
 
+  console.log("isValidArray:", isValidArray);
+
   if (!isValidArray) {
+    console.log("验证失败: 数组元素格式不正确");
     callback(new Error("人员数据格式不正确，请重新选择"));
     return;
   }
 
+  console.log("验证通过");
   callback();
 };
 
@@ -261,14 +234,14 @@ const formRules = {
     {
       validator: validatePersonArray,
       message: "请选择PM负责人",
-      trigger: "change"
+      trigger: ["change", "blur"]
     }
   ],
   npdDingIds: [
     {
       validator: validatePersonArray,
       message: "请选择NPD负责人",
-      trigger: "change"
+      trigger: ["change", "blur"]
     }
   ],
   expectedListingDate: [
@@ -331,16 +304,10 @@ const handleSave = async () => {
       brandId: formData.value.brandId,
       seriesId: formData.value.seriesId,
       productName: formData.value.productName,
-      status: "开发中",
       expectedListingDate: formData.value.expectedListingDate,
-      overallProgress: 0,
       priorityId: formData.value.priorityId,
-      pmManagers: formData.value.pmDingIds, // 直接使用数组
-      npdManagers: formData.value.npdDingIds, // 直接使用数组
-      stages: defaultStages.map((stage, index) => ({
-        ...stage,
-        id: `${newProductId}_s${index + 1}`
-      }))
+      pmDingIds: formData.value.pmDingIds, // 直接使用数组
+      npdDingIds: formData.value.npdDingIds // 直接使用数组
     };
 
     // 模拟API调用延迟

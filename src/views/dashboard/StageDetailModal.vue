@@ -121,7 +121,7 @@
             :on-error="handleError"
             :before-upload="beforeUpload"
             :on-success="uploadSuccess"
-            :auto-upload="true"
+            :auto-upload="false"
             :on-preview="handlePreview"
             list-type="text"
             :show-file-list="false"
@@ -283,57 +283,186 @@ const handleRemove = (uploadFile, uploadFiles) => {
 };
 
 const handleChange = file => {
-  console.log("hhhhhh", JSON.stringify(file));
+  console.log("handleChange called with file:", file);
+  console.log("File status:", file.status);
+  console.log("File response:", file.response);
+
+  // 如果文件已经有响应（已上传），则不处理
   if (file.response) {
+    console.log("File already has response, skipping");
     return;
   }
-  const { name, type, size, lastModified } = file;
-  const dotIndex = file.name.lastIndexOf(".");
-  const fileNameWithoutExtension = file.name.slice(0, dotIndex);
-  const fileExtension = file.name.slice(dotIndex);
-  let fileName = `${fileNameWithoutExtension}_${Date.now()}${fileExtension}`; // 如果可以上传多个文件，这里需要用fileList.forEach()处理
-  let f = new File([file.raw], fileName, {
-    type: type,
-    lastModified: lastModified
-  });
-  f.uid = file.uid; // new File 没有uid属性，会导致组件底层报错，这里手动加上
-  file.raw = f; // 用f替换file的数据
-  uploadRef.value.submit();
-  loading.value = true;
-  console.log(file.raw);
+
+  // 如果文件状态不是ready，说明已经在上传过程中或已处理
+  if (file.status !== "ready") {
+    console.log("File status is not ready, current status:", file.status);
+    return;
+  }
+
+  console.log("Processing file for upload:", file.name);
+
+  try {
+    const { name, type, size, lastModified } = file;
+
+    // 生成唯一文件名，避免重名冲突
+    const dotIndex = file.name.lastIndexOf(".");
+    const fileNameWithoutExtension = file.name.slice(0, dotIndex);
+    const fileExtension = file.name.slice(dotIndex);
+    const timestamp = Date.now();
+    let fileName = `${fileNameWithoutExtension}_${timestamp}${fileExtension}`;
+
+    // 创建新的文件对象
+    let f = new File([file.raw], fileName, {
+      type: type,
+      lastModified: lastModified
+    });
+    f.uid = file.uid;
+    file.raw = f;
+
+    // 更新文件状态
+    file.status = "uploading";
+    loading.value = true;
+
+    console.log("Starting manual upload for:", file.raw.name);
+    console.log("Original file size:", (size / 1024 / 1024).toFixed(2) + "MB");
+
+    // 使用 nextTick 确保文件信息更新后再上传
+    nextTick(() => {
+      if (uploadRef.value) {
+        uploadRef.value.submit();
+      } else {
+        console.error("Upload ref is not available");
+        loading.value = false;
+        ElMessage.error("上传组件未就绪，请重试");
+      }
+    });
+  } catch (error) {
+    console.error("Error processing file for upload:", error);
+    loading.value = false;
+    ElMessage.error("文件处理失败，请重试");
+  }
 };
 
-const handleError = () => {
+const handleError = (error, file) => {
   loading.value = false;
-  message("上传失败", { type: "error" });
+  console.error("Upload error:", error);
+  console.error("Failed file:", file);
+
+  // 移除失败的文件
+  if (editedStage.value.fileUrlList && file) {
+    const fileIndex = editedStage.value.fileUrlList.findIndex(
+      item => item.uid === file.uid
+    );
+    if (fileIndex !== -1) {
+      editedStage.value.fileUrlList.splice(fileIndex, 1);
+    }
+  }
+
+  const fileName = file?.raw?.name || file?.name || "未知文件";
+  const errorMessage = error?.message || error?.msg || "网络错误或服务器异常";
+
+  ElMessage.error(`文件 "${fileName}" 上传失败: ${errorMessage}`);
 };
 
 const beforeUpload = file => {
-  console.log("123");
+  console.log("beforeUpload called for file:", file.name);
+  console.log("File size:", (file.size / 1024 / 1024).toFixed(2) + "MB");
 
-  // const { name } = file;
-  // const dotIndex = name.lastIndexOf('.');
-  // const fileNameWithoutExtension = name.slice(0, dotIndex);
-  // const fileExtension = name.slice(dotIndex);
-  // console.log('1234');
+  // 基本文件检查
+  if (!file) {
+    ElMessage.error("文件不存在");
+    return false;
+  }
 
-  // const newFileName = `${fileNameWithoutExtension}_${Date.now()}${fileExtension}`;
-  // console.log('1111', newFileName, file.name);
-  // uploadFile
+  if (!file.name) {
+    ElMessage.error("文件名不能为空");
+    return false;
+  }
+
+  console.log("File validation passed, proceeding with upload");
   return true;
 };
 
-const uploadSuccess = res => {
+const uploadSuccess = (res, file) => {
   loading.value = false;
-  console.log("uploadSuccess", res, editedStage.value.fileUrlList);
-  if (editedStage.value.fileUrlList) {
-    editedStage.value.fileUrlList.map(item => {
-      if (item.raw) {
-        item.realFileName = item.raw.name;
+  console.log("uploadSuccess called with response:", res);
+  console.log("uploadSuccess called with file:", file);
+
+  try {
+    // 检查多种成功条件
+    const isSuccess =
+      res &&
+      (res.success ||
+        res.code === 200 ||
+        (!res.error && !res.success === false));
+
+    if (isSuccess) {
+      // 上传成功，更新文件信息
+      if (editedStage.value.fileUrlList) {
+        const fileIndex = editedStage.value.fileUrlList.findIndex(
+          item => item.uid === file.uid
+        );
+        if (fileIndex !== -1) {
+          editedStage.value.fileUrlList[fileIndex].realFileName =
+            file.raw?.name || file.name;
+          editedStage.value.fileUrlList[fileIndex].response = res;
+          editedStage.value.fileUrlList[fileIndex].status = "success";
+          editedStage.value.fileUrlList[fileIndex].url =
+            res.url || res.data?.url || "";
+
+          console.log(
+            "Updated file info:",
+            editedStage.value.fileUrlList[fileIndex]
+          );
+        }
       }
-    });
+
+      const fileName = file.raw?.name || file.name;
+      ElMessage.success(`文件 "${fileName}" 上传成功`);
+      console.log("File uploaded successfully:", fileName);
+    } else {
+      // 上传失败，但仍然有一些错误码可能表示部分成功
+      const isPartialSuccess = res?.error?.code === 414; // 假设414表示某种可接受的错误
+
+      if (isPartialSuccess) {
+        // 部分成功情况的处理
+        if (editedStage.value.fileUrlList) {
+          const fileIndex = editedStage.value.fileUrlList.findIndex(
+            item => item.uid === file.uid
+          );
+          if (fileIndex !== -1) {
+            editedStage.value.fileUrlList[fileIndex].realFileName =
+              file.raw?.name || file.name;
+            editedStage.value.fileUrlList[fileIndex].response = res;
+            editedStage.value.fileUrlList[fileIndex].status = "success";
+          }
+        }
+
+        const fileName = file.raw?.name || file.name;
+        ElMessage.warning(`文件 "${fileName}" 上传完成（有警告）`);
+        console.log("File uploaded with warning:", fileName, res);
+      } else {
+        // 完全失败
+        const errorMessage =
+          res?.error?.message || res?.msg || res?.message || "文件上传失败";
+        ElMessage.error(errorMessage);
+        console.error("File upload failed:", res);
+
+        // 移除失败的文件
+        if (editedStage.value.fileUrlList) {
+          const fileIndex = editedStage.value.fileUrlList.findIndex(
+            item => item.uid === file.uid
+          );
+          if (fileIndex !== -1) {
+            editedStage.value.fileUrlList.splice(fileIndex, 1);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error in uploadSuccess:", error);
+    ElMessage.error("处理上传结果时发生错误");
   }
-  const { success, error } = res;
 };
 
 const handlePreview = file => {
@@ -450,18 +579,47 @@ const cancelEdit = () => {
 };
 
 const getFileNames = fileList => {
-  if (!fileList || !Array.isArray(fileList)) return [];
+  if (!fileList || !Array.isArray(fileList)) {
+    console.log("getFileNames: Invalid fileList", fileList);
+    return [];
+  }
+
+  console.log("getFileNames: Processing fileList", fileList);
 
   return fileList
     .filter(item => {
-      // 过滤成功上传的文件
-      return item.response?.success || item.status === "success";
+      // 过滤成功上传的文件，包括多种成功条件
+      const isSuccess =
+        item.response?.success ||
+        item.response?.code === 200 ||
+        item.status === "success" ||
+        item.response?.error?.code === 414; // 特殊错误码也视为成功
+
+      console.log("getFileNames: File filter result", {
+        fileName: item.realFileName || item.raw?.name || item.name,
+        isSuccess,
+        response: item.response,
+        status: item.status
+      });
+
+      return isSuccess;
     })
     .map(item => {
-      // 提取文件名
-      return item.realFileName || item.raw?.name || item.name;
+      // 提取文件名，优先使用 realFileName
+      const fileName = item.realFileName || item.raw?.name || item.name;
+      console.log("getFileNames: Extracted fileName", fileName);
+      return fileName;
     })
-    .filter(name => name && name !== "string"); // 过滤无效文件名
+    .filter(name => {
+      // 过滤无效文件名
+      const isValid =
+        name &&
+        typeof name === "string" &&
+        name.trim() !== "" &&
+        name !== "string";
+      console.log("getFileNames: FileName validation", { name, isValid });
+      return isValid;
+    });
 };
 
 const handleSave = () => {

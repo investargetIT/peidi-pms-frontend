@@ -119,6 +119,7 @@
       :stage="selectedStage"
       v-model:visible="stageDialogVisible"
       @save="handleSaveStage"
+      :stageStatusList="stageStatusList"
     />
   </div>
 </template>
@@ -137,6 +138,10 @@ const props = defineProps({
     default: null
   },
   stageList: {
+    type: Array,
+    default: () => []
+  },
+  stageStatusList: {
     type: Array,
     default: () => []
   }
@@ -330,7 +335,8 @@ const handleSaveStage = updatedStage => {
     // 更新阶段配置
     stageListConfig.value[stageIndex] = {
       ...stageListConfig.value[stageIndex],
-      statusName: getStatusNameFromCode(updatedStage.status),
+      statusId: updatedStage.statusId,
+      statusName: getStatusNameFromId(updatedStage.statusId),
       deadlineDate: updatedStage.deadlineDate,
       finishDate: updatedStage.finishDate,
       remark: updatedStage.remark,
@@ -346,17 +352,12 @@ const handleSaveStage = updatedStage => {
   console.log("保存阶段数据:", updatedStage);
 };
 
-const getStatusNameFromCode = statusCode => {
-  switch (statusCode) {
-    case "completed":
-      return "已完成";
-    case "in-progress":
-      return "进行中";
-    case "delayed":
-      return "延期";
-    default:
-      return "待开始";
-  }
+const getStatusNameFromId = statusId => {
+  // 根据statusId从stageStatusList中找到对应的状态名称
+  const statusItem = props.stageStatusList.find(
+    item => item.value === statusId
+  );
+  return statusItem ? statusItem.label : "待开始";
 };
 </script>
 

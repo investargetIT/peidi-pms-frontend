@@ -1,14 +1,14 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    :title="props.stage?.stateName"
+    :title="props.stage?.stageName"
     width="800px"
     :before-close="handleClose"
     class="stage-detail-modal"
   >
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <span class="text-xl font-medium">{{ props.stage?.stateName }}</span>
+        <span class="text-xl font-medium">{{ props.stage?.statusName }}</span>
         <div class="flex items-center gap-2">
           <el-button v-if="!isEditing" size="small" @click="startEdit">
             编辑
@@ -32,21 +32,23 @@
         <el-form-item label="状态">
           <el-select
             v-if="isEditing"
-            v-model="editedStage.status"
+            v-model="editedStage.statusId"
             placeholder="选择状态"
             style="width: 200px"
           >
-            <el-option label="待开始" value="pending" />
-            <el-option label="进行中" value="in-progress" />
-            <el-option label="已完成" value="completed" />
-            <el-option label="延期" value="delayed" />
+            <el-option
+              v-for="item in stageStatusList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
           <el-tag
             v-else
-            :type="getStatusType(props.stage?.status)"
+            :type="getStatusType(props.stage?.statusName)"
             size="default"
           >
-            {{ getStatusText(props.stage?.status) }}
+            {{ getStatusText(props.stage?.statusName) }}
           </el-tag>
         </el-form-item>
       </div>
@@ -128,14 +130,12 @@
           <div class="space-y-2">
             <div
               v-if="
-                editedStage.attachments &&
-                editedStage.attachments.length > 0 &&
-                editedStage.attachments[0] !== 'string'
+                editedStage.fileUrlList && editedStage.fileUrlList.length > 0
               "
               class="space-y-2"
             >
               <div
-                v-for="(attachment, index) in editedStage.attachments"
+                v-for="(attachment, index) in editedStage.fileUrlList"
                 :key="index"
                 class="flex items-center justify-between p-3 bg-gray-50 rounded"
               >
@@ -224,6 +224,10 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  stageStatusList: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -261,30 +265,22 @@ watch(dialogVisible, newVal => {
 });
 
 // 方法
-const getStatusType = status => {
-  switch (status) {
-    case "completed":
+const getStatusType = statusName => {
+  switch (statusName) {
+    case "已完成":
       return "success";
-    case "in-progress":
+    case "进行中":
       return "primary";
-    case "delayed":
+    case "延期":
       return "danger";
+    case "待开始":
     default:
       return "info";
   }
 };
 
-const getStatusText = status => {
-  switch (status) {
-    case "completed":
-      return "已完成";
-    case "in-progress":
-      return "进行中";
-    case "delayed":
-      return "延期";
-    default:
-      return "待开始";
-  }
+const getStatusText = statusName => {
+  return statusName || "待开始";
 };
 
 const startEdit = () => {
@@ -328,13 +324,13 @@ const triggerFileUpload = () => {
 const handleFileUpload = event => {
   const files = event.target.files;
   if (files && files.length > 0) {
-    if (!editedStage.value.attachments) {
-      editedStage.value.attachments = [];
+    if (!editedStage.value.fileUrlList) {
+      editedStage.value.fileUrlList = [];
     }
 
     Array.from(files).forEach(file => {
       const url = URL.createObjectURL(file);
-      editedStage.value.attachments.push(url);
+      editedStage.value.fileUrlList.push(url);
     });
 
     // 重置input
@@ -344,7 +340,7 @@ const handleFileUpload = event => {
 };
 
 const removeAttachment = index => {
-  editedStage.value.attachments.splice(index, 1);
+  editedStage.value.fileUrlList.splice(index, 1);
 };
 
 const downloadAttachment = url => {

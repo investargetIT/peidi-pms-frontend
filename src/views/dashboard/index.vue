@@ -148,6 +148,7 @@
       <ProjectDetail
         :selectedProject="selectedProject"
         :stageList="stageList"
+        :stageStatusList="stageStatusList"
       />
     </div>
 

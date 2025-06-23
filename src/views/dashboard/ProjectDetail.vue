@@ -77,6 +77,8 @@
                       value => updateStageAssignees(stage.id, value)
                     "
                     :max-count="5"
+                    :show-avatar="true"
+                    size="small"
                     class="stage-person-selector"
                   />
                 </div>

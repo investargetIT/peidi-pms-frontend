@@ -9,9 +9,22 @@
           :disable-transitions="false"
           closable
           @close="removePerson(tag)"
-          class="mr-2"
+          class="mr-2 person-tag"
+          :class="{ 'with-avatar': showAvatar, [`size-${size}`]: true }"
         >
-          {{ tag.name }}
+          <div class="flex items-center gap-1">
+            <el-avatar
+              v-if="showAvatar"
+              :size="size === 'small' ? 16 : 20"
+              :src="tag.avatar"
+              class="text-xs"
+            >
+              {{ tag.name.charAt(0) }}
+            </el-avatar>
+            <span :class="size === 'small' ? 'text-xs' : 'text-sm'">{{
+              tag.name
+            }}</span>
+          </div>
         </el-tag>
         <el-button class="add-person-btn" size="small" @click="choosePerson">
           + {{ label }}
@@ -43,6 +56,15 @@ const props = defineProps({
   corpId: {
     type: String,
     default: "dingfc722e531a4125b735c2f4657eb6378f"
+  },
+  showAvatar: {
+    type: Boolean,
+    default: false
+  },
+  size: {
+    type: String,
+    default: "default", // default, small
+    validator: value => ["default", "small"].includes(value)
   }
 });
 
@@ -115,6 +137,39 @@ const removePerson = tag => {
     &:hover {
       color: #1890ff;
       border-color: #1890ff;
+    }
+  }
+
+  .person-tag {
+    &.with-avatar {
+      padding: 2px 8px 2px 4px;
+
+      :deep(.el-tag__content) {
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    &.size-small {
+      height: 24px;
+      padding: 2px 6px;
+      font-size: 11px;
+      line-height: 20px;
+
+      &.with-avatar {
+        padding: 2px 6px 2px 2px;
+      }
+    }
+
+    &.size-default {
+      height: 28px;
+      padding: 2px 8px;
+      font-size: 13px;
+      line-height: 24px;
+
+      &.with-avatar {
+        padding: 2px 8px 2px 4px;
+      }
     }
   }
 }

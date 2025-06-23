@@ -89,6 +89,7 @@
             label="PM负责人"
             v-model="formData.pmDingIds"
             @change="handlePersonChange('pmDingIds')"
+            :show-avatar="true"
           />
         </el-form-item>
 
@@ -98,6 +99,7 @@
             label="NPD负责人"
             v-model="formData.npdDingIds"
             @change="handlePersonChange('npdDingIds')"
+            :show-avatar="true"
           />
         </el-form-item>
 

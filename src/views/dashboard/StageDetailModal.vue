@@ -104,26 +104,31 @@
         <!-- 附件标题和上传按钮 -->
         <div class="flex items-center justify-between mb-4">
           <span class="text-sm font-medium text-gray-900">附件</span>
-          <el-button
+          <el-upload
             v-if="isEditing"
-            size="small"
-            type="primary"
-            plain
-            @click="triggerFileUpload"
+            ref="uploadRef"
+            v-model:file-list="editedStage.fileUrlList"
+            class="upload-demo"
+            :action="postUrl"
+            :data="{
+              path: default_upload_url,
+              create_parents: false
+            }"
+            :before-remove="handleRemove"
+            :with-credentials="false"
+            :accept="'*'"
+            :on-change="handleChange"
+            :on-error="handleError"
+            :before-upload="beforeUpload"
+            :on-success="uploadSuccess"
+            :auto-upload="false"
+            :on-preview="handlePreview"
+            list-type="text"
+            :show-file-list="false"
           >
-            <el-icon><Upload /></el-icon>
-            上传文件
-          </el-button>
+            <el-button size="small" type="primary" plain>选择文件</el-button>
+          </el-upload>
         </div>
-
-        <input
-          ref="fileInputRef"
-          type="file"
-          multiple
-          accept="*/*"
-          style="display: none"
-          @change="handleFileUpload"
-        />
 
         <!-- 附件列表 -->
         <div class="space-y-2">
@@ -219,8 +224,14 @@ import {
   Delete,
   Document
 } from "@element-plus/icons-vue";
-import { ElMessage } from "element-plus";
+import { ElLoading, ElMessageBox, ElMessage } from "element-plus";
 import PersonSelector from "@/components/PersonSelector.vue";
+import {
+  testAllIPs,
+  default_upload_url,
+  chaohuiDownload
+} from "@/utils/chaohuiapi";
+import { message } from "@/utils/message";
 
 const props = defineProps({
   stage: {
@@ -245,6 +256,86 @@ const isEditing = ref(false);
 const editedStage = ref(null);
 const searchKeyword = ref("");
 const fileInputRef = ref(null);
+const uploadRef = ref(null);
+const loading = ref(false);
+const sid = ref("");
+const postUrl = ref("");
+
+testAllIPs().then(res => {
+  if (res.sid) {
+    sid.value = res.sid;
+    postUrl.value = res.postUrl;
+  }
+});
+
+const handleRemove = (uploadFile, uploadFiles) => {
+  return ElMessageBox.confirm(`确认删除该文件吗?`).then(
+    () => true,
+    () => false
+  );
+};
+
+const handleChange = file => {
+  console.log("hhhhhh", JSON.stringify(file));
+  if (file.response) {
+    return;
+  }
+  const { name, type, size, lastModified } = file;
+  const dotIndex = file.name.lastIndexOf(".");
+  const fileNameWithoutExtension = file.name.slice(0, dotIndex);
+  const fileExtension = file.name.slice(dotIndex);
+  let fileName = `${fileNameWithoutExtension}_${Date.now()}${fileExtension}`; // 如果可以上传多个文件，这里需要用fileList.forEach()处理
+  let f = new File([file.raw], fileName, {
+    type: type,
+    lastModified: lastModified
+  });
+  f.uid = file.uid; // new File 没有uid属性，会导致组件底层报错，这里手动加上
+  file.raw = f; // 用f替换file的数据
+  uploadRef.value.submit();
+  loading.value = true;
+  console.log(file.raw);
+};
+
+const handleError = () => {
+  loading.value = false;
+  message("上传失败", { type: "error" });
+};
+
+const beforeUpload = file => {
+  console.log("123");
+
+  // const { name } = file;
+  // const dotIndex = name.lastIndexOf('.');
+  // const fileNameWithoutExtension = name.slice(0, dotIndex);
+  // const fileExtension = name.slice(dotIndex);
+  // console.log('1234');
+
+  // const newFileName = `${fileNameWithoutExtension}_${Date.now()}${fileExtension}`;
+  // console.log('1111', newFileName, file.name);
+  // uploadFile
+  return true;
+};
+
+const uploadSuccess = res => {
+  loading.value = false;
+  console.log("uploadSuccess", res, editedStage.value.fileUrlList);
+  if (editedStage.value.fileUrlList) {
+    editedStage.value.fileUrlList.map(item => {
+      if (item.raw) {
+        item.realFileName = item.raw.name;
+      }
+    });
+  }
+  const { success, error } = res;
+};
+
+const handlePreview = file => {
+  console.log("preview file:", file);
+  const fileName = file.realFileName || file.raw?.name || file.name;
+  if (fileName) {
+    chaohuiDownload(fileName);
+  }
+};
 
 // 监听visible变化
 watch(
@@ -255,6 +346,37 @@ watch(
     dialogVisible.value = newVal;
     if (newVal && props.stage) {
       editedStage.value = JSON.parse(JSON.stringify(props.stage));
+
+      // 格式化fileUrlList为el-upload兼容的格式
+      if (
+        editedStage.value.fileUrlList &&
+        Array.isArray(editedStage.value.fileUrlList)
+      ) {
+        editedStage.value.fileUrlList = editedStage.value.fileUrlList.map(
+          (item, index) => {
+            if (typeof item === "string") {
+              return {
+                name: item,
+                url: item,
+                status: "success",
+                uid: Date.now() + index,
+                response: { success: true }
+              };
+            } else if (item && typeof item === "object") {
+              return {
+                ...item,
+                status: item.status || "success",
+                uid: item.uid || Date.now() + index,
+                response: item.response || { success: true }
+              };
+            }
+            return item;
+          }
+        );
+      } else {
+        editedStage.value.fileUrlList = [];
+      }
+
       isEditing.value = false;
       console.log("editedStage set to:", editedStage.value);
     }
@@ -318,12 +440,29 @@ const cancelEdit = () => {
   editedStage.value = JSON.parse(JSON.stringify(props.stage));
 };
 
+const getFileNames = fileList => {
+  if (!fileList || !Array.isArray(fileList)) return [];
+
+  return fileList
+    .filter(item => {
+      // 过滤成功上传的文件
+      return item.response?.success || item.status === "success";
+    })
+    .map(item => {
+      // 提取文件名
+      return item.realFileName || item.raw?.name || item.name;
+    })
+    .filter(name => name && name !== "string"); // 过滤无效文件名
+};
+
 const handleSave = () => {
   // 确保传递正确的数据结构
   const stageData = {
     ...editedStage.value,
     // 确保ID字段正确
-    stageId: editedStage.value.stageId
+    stageId: editedStage.value.stageId,
+    // 处理fileUrlList数据
+    fileUrlList: getFileNames(editedStage.value.fileUrlList)
   };
   emit("save", stageData);
   isEditing.value = false;
@@ -344,7 +483,9 @@ const handleAssigneesChange = assignees => {
 };
 
 const triggerFileUpload = () => {
-  fileInputRef.value?.click();
+  if (uploadRef.value) {
+    uploadRef.value.$el.querySelector('input[type="file"]').click();
+  }
 };
 
 const handleFileUpload = event => {
@@ -356,7 +497,12 @@ const handleFileUpload = event => {
 
     Array.from(files).forEach(file => {
       const url = URL.createObjectURL(file);
-      editedStage.value.fileUrlList.push(url);
+      editedStage.value.fileUrlList.push({
+        name: file.name,
+        url: url,
+        raw: file,
+        status: "ready"
+      });
     });
 
     // 重置input
@@ -366,19 +512,39 @@ const handleFileUpload = event => {
 };
 
 const removeAttachment = index => {
-  editedStage.value.fileUrlList.splice(index, 1);
-};
-
-const downloadAttachment = url => {
-  if (url && url !== "string") {
-    window.open(url, "_blank");
+  if (editedStage.value.fileUrlList) {
+    editedStage.value.fileUrlList.splice(index, 1);
   }
 };
 
-const getFileName = url => {
-  if (!url || url === "string") return "附件文件";
-  const parts = url.split("/");
-  return parts[parts.length - 1] || "附件文件";
+const downloadAttachment = attachment => {
+  const fileName =
+    attachment.realFileName ||
+    attachment.raw?.name ||
+    attachment.name ||
+    attachment;
+  if (fileName && fileName !== "string") {
+    chaohuiDownload(fileName);
+  }
+};
+
+const getFileName = attachment => {
+  if (typeof attachment === "string") {
+    if (attachment === "string") return "附件文件";
+    const parts = attachment.split("/");
+    return parts[parts.length - 1] || "附件文件";
+  }
+
+  if (attachment && typeof attachment === "object") {
+    return (
+      attachment.realFileName ||
+      attachment.raw?.name ||
+      attachment.name ||
+      "附件文件"
+    );
+  }
+
+  return "附件文件";
 };
 
 const getFileSize = url => {

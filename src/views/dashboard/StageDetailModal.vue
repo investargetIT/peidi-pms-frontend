@@ -89,7 +89,7 @@
       <div>
         <PersonSelector
           label="负责人"
-          :model-value="editedStage.chargeDingUser || []"
+          :model-value="editedStage.chargeIds || []"
           @update:model-value="handleAssigneesChange"
           :readonly="!isEditing"
           :show-avatar="true"
@@ -121,7 +121,7 @@
             :on-error="handleError"
             :before-upload="beforeUpload"
             :on-success="uploadSuccess"
-            :auto-upload="false"
+            :auto-upload="true"
             :on-preview="handlePreview"
             list-type="text"
             :show-file-list="false"
@@ -259,14 +259,21 @@ const fileInputRef = ref(null);
 const uploadRef = ref(null);
 const loading = ref(false);
 const sid = ref("");
-const postUrl = ref("");
+const postUrl = ref("/api/upload"); // 设置默认值，避免按钮不显示
 
-testAllIPs().then(res => {
-  if (res.sid) {
-    sid.value = res.sid;
-    postUrl.value = res.postUrl;
-  }
-});
+testAllIPs()
+  .then(res => {
+    if (res.sid) {
+      sid.value = res.sid;
+      postUrl.value = res.postUrl;
+      console.log("Upload URL initialized:", postUrl.value);
+    }
+  })
+  .catch(err => {
+    console.error("Failed to initialize upload URL:", err);
+    // 设置一个默认的上传URL，避免空值导致按钮不显示
+    postUrl.value = "/api/upload";
+  });
 
 const handleRemove = (uploadFile, uploadFiles) => {
   return ElMessageBox.confirm(`确认删除该文件吗?`).then(
@@ -433,6 +440,8 @@ const getStatusText = statusName => {
 
 const startEdit = () => {
   isEditing.value = true;
+  console.log("Started editing mode, isEditing:", isEditing.value);
+  console.log("postUrl:", postUrl.value);
 };
 
 const cancelEdit = () => {
@@ -479,36 +488,7 @@ const handleClose = () => {
 
 const handleAssigneesChange = assignees => {
   console.log("负责人变更:", assignees);
-  editedStage.value.chargeDingUser = assignees;
-};
-
-const triggerFileUpload = () => {
-  if (uploadRef.value) {
-    uploadRef.value.$el.querySelector('input[type="file"]').click();
-  }
-};
-
-const handleFileUpload = event => {
-  const files = event.target.files;
-  if (files && files.length > 0) {
-    if (!editedStage.value.fileUrlList) {
-      editedStage.value.fileUrlList = [];
-    }
-
-    Array.from(files).forEach(file => {
-      const url = URL.createObjectURL(file);
-      editedStage.value.fileUrlList.push({
-        name: file.name,
-        url: url,
-        raw: file,
-        status: "ready"
-      });
-    });
-
-    // 重置input
-    event.target.value = "";
-    ElMessage.success(`已添加 ${files.length} 个文件`);
-  }
+  editedStage.value.chargeIds = assignees;
 };
 
 const removeAttachment = index => {
@@ -626,5 +606,18 @@ const displayRemark = computed(() => {
 
 .stage-person-selector :deep(.person-selector-container) {
   width: 100%;
+}
+
+.upload-demo {
+  display: inline-block;
+}
+
+.upload-demo :deep(.el-upload) {
+  display: inline-block;
+}
+
+.upload-demo :deep(.el-upload .el-button) {
+  display: inline-block !important;
+  visibility: visible !important;
 }
 </style>

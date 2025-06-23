@@ -127,8 +127,13 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { View, Paperclip } from "@element-plus/icons-vue";
+import { ElMessage, ElLoading } from "element-plus";
 import { AlertTriangle, Flag } from "lucide-vue-next";
-import { getProjectProgressList, getProjectStageList } from "@/api/progress";
+import {
+  getProjectProgressList,
+  getProjectStageList,
+  updateProjectStateProgress
+} from "@/api/progress";
 import StageDetailModal from "./StageDetailModal.vue";
 import PersonSelector from "@/components/PersonSelector.vue";
 
@@ -325,31 +330,108 @@ const openStageDetail = stage => {
   console.log("selectedStage:", selectedStage.value);
 };
 
-const handleSaveStage = updatedStage => {
-  // 更新stageListConfig中对应的阶段数据
-  const stageId = updatedStage.stageId;
-  const stageIndex = stageListConfig.value.findIndex(
-    s => s.stageId === stageId
-  );
-  if (stageIndex !== -1) {
-    // 更新阶段配置
-    stageListConfig.value[stageIndex] = {
-      ...stageListConfig.value[stageIndex],
-      statusId: updatedStage.statusId,
-      statusName: getStatusNameFromId(updatedStage.statusId),
-      deadlineDate: updatedStage.deadlineDate,
-      finishDate: updatedStage.finishDate,
-      remark: updatedStage.remark,
-      chargeDingUser: updatedStage.chargeDingUser || [],
-      fileUrlList: updatedStage.fileUrlList || []
-    };
+const getFileName = arr => {
+  let names = [];
+  arr.map(item => {
+    if (item.response.success) {
+      names.push(item.raw.name);
+    }
+    if (!item.response.success && item.response?.error?.code == 414) {
+      names.push(item.raw.name);
+    }
+  });
+  return names;
+};
+
+const handleSaveStage = async updatedStage => {
+  try {
+    // 验证必要字段
+    if (!updatedStage.stageId) {
+      ElMessage.error("阶段ID不能为空");
+      return;
+    }
+
+    if (!props.selectedProject?.id) {
+      ElMessage.error("项目信息不完整");
+      return;
+    }
+
+    // 显示加载状态
+    const loading = ElLoading.service({
+      lock: true,
+      text: "保存中...",
+      background: "rgba(0, 0, 0, 0.7)"
+    });
+
+    try {
+      // 构建API请求数据
+      const requestData = {
+        infoId: props.selectedProject.id,
+        stageId: updatedStage.stageId,
+        statusId: updatedStage.statusId,
+        deadlineDate: updatedStage.deadlineDate,
+        remark: updatedStage.remark,
+        // 处理负责人数据，提取emplId
+        chargeDingIds:
+          updatedStage.chargeDingIds?.map(user => user.emplId || user.dingId) ||
+          [],
+        // 处理文件列表数据
+        fileUrlList: updatedStage.fileUrlList || []
+      };
+      if (updatedStage.finishDate) {
+        requestData.finishDate = updatedStage.finishDate;
+      }
+
+      console.log("保存阶段数据请求:", requestData);
+
+      // 调用API保存数据
+      // const res = await updateProjectStateProgress(requestData);
+
+      // if (res?.code === 200) {
+      //   // API调用成功，更新本地数据
+      //   const stageIndex = stageListConfig.value.findIndex(
+      //     s => s.stageId === updatedStage.stageId
+      //   );
+
+      //   if (stageIndex !== -1) {
+      //     // 更新阶段配置
+      //     stageListConfig.value[stageIndex] = {
+      //       ...stageListConfig.value[stageIndex],
+      //       statusId: updatedStage.statusId,
+      //       statusName: getStatusNameFromId(updatedStage.statusId),
+      //       deadlineDate: updatedStage.deadlineDate,
+      //       finishDate: updatedStage.finishDate,
+      //       remark: updatedStage.remark,
+      //       chargeIds: updatedStage.chargeIds || [],
+      //       fileUrlList: updatedStage.fileUrlList || []
+      //     };
+      //   }
+
+      //   // 显示成功消息
+      //   ElMessage.success("保存成功");
+
+      //   // 关闭弹窗
+      //   stageDialogVisible.value = false;
+
+      //   console.log("阶段数据保存成功:", updatedStage);
+      // } else {
+      //   // API返回错误
+      //   ElMessage.error(res?.msg || "保存失败，请重试");
+      //   console.error("保存阶段数据失败:", res);
+      // }
+    } catch (apiError) {
+      // API调用异常
+      console.error("保存阶段数据API调用失败:", apiError);
+      ElMessage.error("网络错误，请检查网络连接后重试");
+    } finally {
+      // 关闭加载状态
+      loading.close();
+    }
+  } catch (error) {
+    // 其他异常
+    console.error("保存阶段数据异常:", error);
+    ElMessage.error("保存过程中发生错误，请重试");
   }
-
-  // 关闭弹窗
-  stageDialogVisible.value = false;
-
-  // 这里可以调用API保存数据
-  console.log("保存阶段数据:", updatedStage);
 };
 
 const getStatusNameFromId = statusId => {

@@ -281,6 +281,11 @@ const fetchProductList = () => {
       Array.isArray(props.searchInfo[key]) && props.searchInfo[key].length > 0;
     if (isValidStringKey || isValidArrKey) {
       searchParams.searchName = key;
+      const keyMap = {
+        pmUserName: "pm",
+        npdUserName: "npd"
+      };
+      searchParams.searchName = keyMap[key] || key;
       searchParams.searchType = "like";
       if (validKey.includes(key)) {
         searchParams.searValue = extractEmplId(props.searchInfo[key]).join(

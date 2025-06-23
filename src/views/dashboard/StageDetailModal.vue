@@ -75,11 +75,11 @@
           </el-form-item>
         </div>
 
-        <div v-if="props.stage?.finishDate">
+        <div v-if="shouldShowFinishDate">
           <el-form-item label="完成日期">
             <div class="flex items-center gap-2">
               <el-icon class="text-green-500"><Calendar /></el-icon>
-              <span class="text-sm">{{ props.stage.finishDate }}</span>
+              <span class="text-sm">{{ displayFinishDate }}</span>
             </div>
           </el-form-item>
         </div>
@@ -101,100 +101,106 @@
 
       <!-- 附件 -->
       <div>
-        <el-form-item>
-          <template #label>
-            <div class="flex items-center justify-between w-full">
-              <span>附件</span>
-              <el-button
-                v-if="isEditing"
-                size="small"
-                type="primary"
-                plain
-                @click="triggerFileUpload"
-              >
-                <el-icon><Upload /></el-icon>
-                上传文件
-              </el-button>
-            </div>
-          </template>
+        <!-- 附件标题和上传按钮 -->
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-medium text-gray-900">附件</span>
+          <el-button
+            v-if="isEditing"
+            size="small"
+            type="primary"
+            plain
+            @click="triggerFileUpload"
+          >
+            <el-icon><Upload /></el-icon>
+            上传文件
+          </el-button>
+        </div>
 
-          <input
-            ref="fileInputRef"
-            type="file"
-            multiple
-            accept="*/*"
-            style="display: none"
-            @change="handleFileUpload"
-          />
+        <input
+          ref="fileInputRef"
+          type="file"
+          multiple
+          accept="*/*"
+          style="display: none"
+          @change="handleFileUpload"
+        />
 
-          <div class="space-y-2">
+        <!-- 附件列表 -->
+        <div class="space-y-2">
+          <div
+            v-if="editedStage.fileUrlList && editedStage.fileUrlList.length > 0"
+            class="space-y-2"
+          >
             <div
-              v-if="
-                editedStage.fileUrlList && editedStage.fileUrlList.length > 0
-              "
-              class="space-y-2"
+              v-for="(attachment, index) in editedStage.fileUrlList"
+              :key="index"
+              class="flex items-center justify-between p-3 bg-gray-50 rounded"
             >
-              <div
-                v-for="(attachment, index) in editedStage.fileUrlList"
-                :key="index"
-                class="flex items-center justify-between p-3 bg-gray-50 rounded"
-              >
-                <div class="flex items-center gap-3">
-                  <el-icon class="text-gray-400"><Document /></el-icon>
-                  <div>
-                    <div class="font-medium text-sm">
-                      {{ getFileName(attachment) }}
-                    </div>
-                    <div class="text-xs text-gray-500">
-                      {{ getFileSize(attachment) }} · {{ getCurrentDate() }}
-                    </div>
+              <div class="flex items-center gap-3">
+                <el-icon class="text-gray-400"><Document /></el-icon>
+                <div>
+                  <div class="font-medium text-sm">
+                    {{ getFileName(attachment) }}
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    {{ getFileSize(attachment) }} · {{ getCurrentDate() }}
                   </div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <el-button
-                    size="small"
-                    text
-                    @click="downloadAttachment(attachment)"
-                  >
-                    <el-icon><Download /></el-icon>
-                  </el-button>
-                  <el-button
-                    v-if="isEditing"
-                    size="small"
-                    text
-                    type="danger"
-                    @click="removeAttachment(index)"
-                  >
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <el-button
+                  size="small"
+                  text
+                  @click="downloadAttachment(attachment)"
+                >
+                  <el-icon><Download /></el-icon>
+                </el-button>
+                <el-button
+                  v-if="isEditing"
+                  size="small"
+                  text
+                  type="danger"
+                  @click="removeAttachment(index)"
+                >
+                  <el-icon><Delete /></el-icon>
+                </el-button>
               </div>
             </div>
-            <div v-else class="text-center text-gray-500 py-8">
-              <el-icon class="text-4xl mb-2 opacity-50"><Document /></el-icon>
-              <p class="text-sm">暂无附件</p>
-            </div>
           </div>
-        </el-form-item>
+          <div v-else class="text-center text-gray-500 py-8">
+            <el-icon class="text-4xl mb-2 opacity-50"><Document /></el-icon>
+            <p class="text-sm">暂无附件</p>
+          </div>
+        </div>
       </div>
 
       <!-- 备注 -->
       <div>
-        <el-form-item label="备注">
+        <!-- 备注标题 -->
+        <div class="mb-4">
+          <span class="text-sm font-medium text-gray-900">备注</span>
+        </div>
+
+        <!-- 备注内容 -->
+        <div v-if="isEditing">
           <el-input
-            v-if="isEditing"
             v-model="editedStage.remark"
             type="textarea"
             :rows="3"
             placeholder="添加备注信息..."
+            style="width: 100%"
           />
-          <div v-else class="p-3 bg-gray-50 rounded min-h-20">
-            <p v-if="props.stage?.remark" class="text-sm">
-              {{ props.stage.remark }}
+        </div>
+        <div v-else class="w-full">
+          <div v-if="displayRemark" class="p-3 bg-gray-50 rounded w-full">
+            <p class="text-sm text-gray-900 whitespace-pre-wrap">
+              {{ displayRemark }}
             </p>
-            <p v-else class="text-sm text-gray-500">暂无备注</p>
           </div>
-        </el-form-item>
+          <div v-else class="text-center text-gray-500 py-8">
+            <p class="text-sm">暂无备注</p>
+          </div>
+        </div>
       </div>
     </div>
   </el-dialog>
@@ -263,6 +269,26 @@ watch(dialogVisible, newVal => {
     isEditing.value = false;
   }
 });
+
+// 监听statusId变化，当为117时设置完成日期
+watch(
+  () => editedStage.value?.statusId,
+  newStatusId => {
+    if (newStatusId === 117) {
+      // 设置完成日期为当前时间
+      const now = new Date();
+      const currentDate = now.toISOString().split("T")[0]; // YYYY-MM-DD格式
+      if (editedStage.value) {
+        editedStage.value.finishDate = currentDate;
+      }
+    } else {
+      // 如果不是117，清除完成日期
+      if (editedStage.value) {
+        editedStage.value.finishDate = null;
+      }
+    }
+  }
+);
 
 // 方法
 const getStatusType = statusName => {
@@ -363,6 +389,31 @@ const getFileSize = url => {
 const getCurrentDate = () => {
   return new Date().toLocaleDateString("zh-CN");
 };
+
+const shouldShowFinishDate = computed(() => {
+  // 在编辑模式下检查editedStage，否则检查props.stage
+  const currentStage = isEditing.value ? editedStage.value : props.stage;
+  return currentStage?.statusId === 117;
+});
+
+const displayFinishDate = computed(() => {
+  // 在编辑模式下检查editedStage，否则检查props.stage
+  const currentStage = isEditing.value ? editedStage.value : props.stage;
+  return currentStage?.finishDate || "未设置";
+});
+
+const displayRemark = computed(() => {
+  // 在编辑模式下检查editedStage，否则检查props.stage
+  const currentStage = isEditing.value ? editedStage.value : props.stage;
+  const remark = currentStage?.remark;
+
+  // 确保remark是字符串类型且不为空
+  if (remark && typeof remark === "string" && remark.trim() !== "") {
+    return remark.trim();
+  }
+
+  return "";
+});
 </script>
 
 <style scoped>

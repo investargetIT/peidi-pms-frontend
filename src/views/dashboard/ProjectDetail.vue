@@ -56,12 +56,12 @@
           <div class="space-y-2">
             <div
               v-for="stage in displayStages"
-              :key="stage.id"
+              :key="stage.stageId"
               class="stage-item p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
               @click="openStageDetail(stage)"
             >
               <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium">{{ stage.name }}</span>
+                <span class="text-sm font-medium">{{ stage.stateName }}</span>
                 <el-tag :type="getStageStatusType(stage.status)" size="small">
                   {{ getStageStatusText(stage.status) }}
                 </el-tag>
@@ -74,7 +74,7 @@
                     label="负责人"
                     :model-value="stage.assignees || []"
                     @update:model-value="
-                      value => updateStageAssignees(stage.id, value)
+                      value => updateStageAssignees(stage.stageId, value)
                     "
                     :max-count="5"
                     :show-avatar="true"
@@ -178,8 +178,8 @@ const displayStages = computed(() => {
       return [];
     }
     return props.stageList.map(stage => ({
-      id: stage.id,
-      name: stage.value,
+      stageId: stage.id,
+      stateName: stage.value,
       status: "pending",
       statusName: "待开始",
       assignees: [],
@@ -191,9 +191,10 @@ const displayStages = computed(() => {
   }
 
   return stageListConfig.value.map(stage => ({
-    id: stage.stageId,
-    name: stage.stageName,
+    stageId: stage.stageId,
+    stateName: stage.stateName,
     status: getStatusFromName(stage.statusName),
+    statusId: stage.statusId,
     statusName: stage.statusName,
     // 将 chargeDingUser 格式转换为 PersonSelector 期望的格式
     assignees: (stage.chargeDingUser || []).map(user => ({
@@ -306,7 +307,7 @@ const openStageDetail = stage => {
 
 const handleSaveStage = updatedStage => {
   // 更新stageListConfig中对应的阶段数据
-  const stageId = updatedStage.stageId || updatedStage.id;
+  const stageId = updatedStage.stageId;
   const stageIndex = stageListConfig.value.findIndex(
     s => s.stageId === stageId
   );

@@ -1,14 +1,14 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    :title="stage?.name"
+    :title="stage?.stateName"
     width="800px"
     :before-close="handleClose"
     class="stage-detail-modal"
   >
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <span class="text-xl font-medium">{{ stage?.name }}</span>
+        <span class="text-xl font-medium">{{ stage?.stateName }}</span>
         <div class="flex items-center gap-2">
           <el-button v-if="!isEditing" size="small" @click="startEdit">
             编辑
@@ -382,7 +382,7 @@ const handleSave = () => {
   const stageData = {
     ...editedStage.value,
     // 确保ID字段正确
-    stageId: editedStage.value.id || editedStage.value.stageId
+    stageId: editedStage.value.stageId
   };
   emit("save", stageData);
   isEditing.value = false;

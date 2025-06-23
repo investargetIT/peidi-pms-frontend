@@ -62,9 +62,12 @@
             >
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-medium">{{ stage.stateName }}</span>
-                <el-tag :type="getStageStatusType(stage.status)" size="small">
-                  {{ getStageStatusText(stage.status) }}
-                </el-tag>
+                <div
+                  :class="getStatusColor(stage.statusName)"
+                  class="status-badge"
+                >
+                  {{ stage.statusName }}
+                </div>
               </div>
 
               <!-- 负责人区域 -->
@@ -97,11 +100,7 @@
 
               <!-- 附件信息 -->
               <div
-                v-if="
-                  stage.fileUrlList &&
-                  stage.fileUrlList.length > 0 &&
-                  stage.fileUrlList[0] !== 'string'
-                "
+                v-if="stage.fileUrlList && stage.fileUrlList.length > 0"
                 class="flex items-center gap-1 mt-2"
               >
                 <el-icon class="text-gray-400"><Paperclip /></el-icon>
@@ -217,6 +216,29 @@ const getStatusFromName = statusName => {
     case "待开始":
     default:
       return "pending";
+  }
+};
+
+const getStatusColor = status => {
+  switch (status) {
+    case "开发中":
+    case "进行中":
+      return "status-developing";
+    case "已上市":
+    case "已完成":
+      return "status-listed";
+    case "待开始":
+      return "status-pending";
+    case "审核通过":
+      return "status-approved";
+    case "已上架":
+      return "status-listed";
+    case "已放弃":
+      return "status-abandoned";
+    case "延期":
+      return "status-delayed";
+    default:
+      return "status-default";
   }
 };
 
@@ -354,6 +376,52 @@ const getStatusNameFromCode = statusCode => {
   font-size: 12px;
   font-weight: 400;
   border-radius: 12px;
+}
+
+.status-badge {
+  display: inline-block;
+  min-width: 48px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+  border-radius: 12px;
+}
+
+.status-developing {
+  color: #1890ff;
+  background-color: #e6f4ff;
+}
+
+.status-listed {
+  color: #52c41a;
+  background-color: #f6ffed;
+}
+
+.status-pending {
+  color: #8c8c8c;
+  background-color: #f5f5f5;
+}
+
+.status-approved {
+  color: #52c41a;
+  background-color: #f6ffed;
+}
+
+.status-abandoned {
+  color: #ff4d4f;
+  background-color: #fff2f0;
+}
+
+.status-delayed {
+  color: #ff4d4f;
+  background-color: #fff2f0;
+}
+
+.status-default {
+  color: #8c8c8c;
+  background-color: #f5f5f5;
 }
 
 .stage-item {

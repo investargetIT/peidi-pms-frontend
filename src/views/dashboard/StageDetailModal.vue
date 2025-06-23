@@ -1,14 +1,14 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    :title="stage?.stateName"
+    :title="props.stage?.stateName"
     width="800px"
     :before-close="handleClose"
     class="stage-detail-modal"
   >
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <span class="text-xl font-medium">{{ stage?.stateName }}</span>
+        <span class="text-xl font-medium">{{ props.stage?.stateName }}</span>
         <div class="flex items-center gap-2">
           <el-button v-if="!isEditing" size="small" @click="startEdit">
             编辑
@@ -41,8 +41,12 @@
             <el-option label="已完成" value="completed" />
             <el-option label="延期" value="delayed" />
           </el-select>
-          <el-tag v-else :type="getStatusType(stage?.status)" size="default">
-            {{ getStatusText(stage?.status) }}
+          <el-tag
+            v-else
+            :type="getStatusType(props.stage?.status)"
+            size="default"
+          >
+            {{ getStatusText(props.stage?.status) }}
           </el-tag>
         </el-form-item>
       </div>
@@ -62,16 +66,18 @@
             />
             <div v-else class="flex items-center gap-2">
               <el-icon class="text-gray-400"><Calendar /></el-icon>
-              <span class="text-sm">{{ stage?.deadlineDate || "未设置" }}</span>
+              <span class="text-sm">{{
+                props.stage?.deadlineDate || "未设置"
+              }}</span>
             </div>
           </el-form-item>
         </div>
 
-        <div v-if="stage?.finishDate">
+        <div v-if="props.stage?.finishDate">
           <el-form-item label="完成日期">
             <div class="flex items-center gap-2">
               <el-icon class="text-green-500"><Calendar /></el-icon>
-              <span class="text-sm">{{ stage.finishDate }}</span>
+              <span class="text-sm">{{ props.stage.finishDate }}</span>
             </div>
           </el-form-item>
         </div>
@@ -183,7 +189,9 @@
             placeholder="添加备注信息..."
           />
           <div v-else class="p-3 bg-gray-50 rounded min-h-20">
-            <p v-if="stage?.remark" class="text-sm">{{ stage.remark }}</p>
+            <p v-if="props.stage?.remark" class="text-sm">
+              {{ props.stage.remark }}
+            </p>
             <p v-else class="text-sm text-gray-500">暂无备注</p>
           </div>
         </el-form-item>
@@ -232,15 +240,20 @@ const fileInputRef = ref(null);
 watch(
   () => props.visible,
   newVal => {
+    console.log("StageDetailModal visible changed:", newVal);
+    console.log("props.stage:", props.stage);
     dialogVisible.value = newVal;
     if (newVal && props.stage) {
       editedStage.value = JSON.parse(JSON.stringify(props.stage));
       isEditing.value = false;
+      console.log("editedStage set to:", editedStage.value);
     }
-  }
+  },
+  { immediate: true }
 );
 
 watch(dialogVisible, newVal => {
+  console.log("dialogVisible changed:", newVal);
   if (!newVal) {
     emit("update:visible", false);
     isEditing.value = false;

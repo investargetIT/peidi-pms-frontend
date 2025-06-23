@@ -312,8 +312,12 @@ const updateStageAssignees = (stageId, assignees) => {
 };
 
 const openStageDetail = stage => {
+  console.log("openStageDetail called with stage:", stage);
+  console.log("stageDialogVisible before:", stageDialogVisible.value);
   selectedStage.value = stage;
   stageDialogVisible.value = true;
+  console.log("stageDialogVisible after:", stageDialogVisible.value);
+  console.log("selectedStage:", selectedStage.value);
 };
 
 const handleSaveStage = updatedStage => {

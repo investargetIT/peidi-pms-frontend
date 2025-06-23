@@ -145,7 +145,7 @@
 import { ref, computed, watch } from "vue";
 import { Document } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
-import { getProjectTypeList } from "@/api/progress";
+import { getProjectTypeList, addProjectProgress } from "@/api/progress";
 import PersonSelector from "@/components/PersonSelector.vue";
 
 const props = defineProps({
@@ -295,26 +295,25 @@ const handleSave = async () => {
     await formRef.value.validate();
     saving.value = true;
 
-    // 生成新产品ID
-    const newProductId = `product_${Date.now()}`;
-
     // 创建新产品对象
     const newProduct = {
-      id: newProductId,
-      brandId: formData.value.brandId,
       seriesId: formData.value.seriesId,
       productName: formData.value.productName,
       expectedListingDate: formData.value.expectedListingDate,
       priorityId: formData.value.priorityId,
-      pmDingIds: formData.value.pmDingIds, // 直接使用数组
-      npdDingIds: formData.value.npdDingIds // 直接使用数组
+      pmDingIds: formData.value.pmDingIds?.map(item => item.emplId),
+      npdDingIds: formData.value.npdDingIds?.map(item => item.emplId)
     };
 
-    // 模拟API调用延迟
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    emit("save", newProduct);
-    handleClose();
+    addProjectProgress(newProduct).then(res => {
+      if (res?.code === 200) {
+        ElMessage.success("创建成功");
+        emit("save", newProduct);
+        handleClose();
+      } else {
+        ElMessage.error(res?.msg);
+      }
+    });
   } catch (error) {
     console.error("表单验证失败:", error);
   } finally {

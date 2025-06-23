@@ -7,7 +7,7 @@
           v-for="tag in normalizedPersons"
           :key="tag.emplId"
           :disable-transitions="false"
-          closable
+          :closable="!readonly"
           @close="removePerson(tag)"
           class="mr-2 person-tag"
           :class="{ 'with-avatar': showAvatar, [`size-${size}`]: true }"
@@ -26,7 +26,18 @@
             }}</span>
           </div>
         </el-tag>
-        <el-button class="add-person-btn" size="small" @click="choosePerson">
+        <div
+          v-if="normalizedPersons.length === 0 && readonly"
+          class="text-gray-500 text-sm"
+        >
+          暂无负责人
+        </div>
+        <el-button
+          v-if="!readonly"
+          class="add-person-btn"
+          size="small"
+          @click="choosePerson"
+        >
           + {{ label }}
         </el-button>
       </div>
@@ -70,6 +81,10 @@ const props = defineProps({
     type: String,
     default: "dingtalk", // dingtalk, system
     validator: value => ["dingtalk", "system"].includes(value)
+  },
+  readonly: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -108,6 +123,8 @@ const extractEmplId = users => {
 };
 
 const choosePerson = () => {
+  if (props.readonly) return;
+
   dd.biz.contact.choose({
     multiple: true,
     users: extractEmplId(normalizedPersons.value),
@@ -133,6 +150,8 @@ const choosePerson = () => {
 };
 
 const removePerson = tag => {
+  if (props.readonly) return;
+
   let newPersons;
 
   if (props.dataFormat === "system") {

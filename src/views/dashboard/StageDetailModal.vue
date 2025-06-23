@@ -79,93 +79,16 @@
 
       <!-- 负责人 -->
       <div>
-        <el-form-item label="负责人">
-          <div v-if="isEditing" class="assignee-editor">
-            <div class="flex flex-wrap gap-2 mb-2">
-              <el-tag
-                v-for="assignee in editedStage.chargeDingUser"
-                :key="assignee.dingId"
-                closable
-                @close="removeAssignee(assignee.dingId)"
-                class="assignee-tag"
-              >
-                <div class="flex items-center gap-1">
-                  <el-avatar
-                    :size="20"
-                    :src="assignee.avatarUrl"
-                    class="text-xs"
-                  >
-                    {{ assignee.userName.charAt(0) }}
-                  </el-avatar>
-                  {{ assignee.userName }}
-                </div>
-              </el-tag>
-            </div>
-            <el-popover placement="bottom-start" :width="300" trigger="click">
-              <template #reference>
-                <el-button size="small" type="primary" plain>
-                  <el-icon><Plus /></el-icon>
-                  添加负责人
-                </el-button>
-              </template>
-              <div class="assignee-selector">
-                <el-input
-                  v-model="searchKeyword"
-                  placeholder="搜索人员..."
-                  size="small"
-                  class="mb-2"
-                >
-                  <template #prefix>
-                    <el-icon><Search /></el-icon>
-                  </template>
-                </el-input>
-                <div class="max-h-48 overflow-y-auto">
-                  <div
-                    v-for="user in filteredUsers"
-                    :key="user.id"
-                    class="user-option flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
-                    @click="addAssignee(user)"
-                  >
-                    <el-avatar :size="24" class="text-xs">
-                      {{ user.name.charAt(0) }}
-                    </el-avatar>
-                    <div class="flex-1">
-                      <p class="text-sm font-medium">{{ user.name }}</p>
-                      <p class="text-xs text-gray-500">{{ user.email }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </el-popover>
-          </div>
-          <div v-else class="assignee-display">
-            <div
-              v-if="stage?.chargeDingUser && stage.chargeDingUser.length > 0"
-              class="flex flex-wrap gap-2"
-            >
-              <el-tag
-                v-for="assignee in stage.chargeDingUser"
-                :key="assignee.dingId"
-                class="assignee-tag"
-              >
-                <div class="flex items-center gap-1">
-                  <el-avatar
-                    :size="20"
-                    :src="assignee.avatarUrl"
-                    class="text-xs"
-                  >
-                    {{ assignee.userName.charAt(0) }}
-                  </el-avatar>
-                  {{ assignee.userName }}
-                </div>
-              </el-tag>
-            </div>
-            <span v-else class="text-gray-500 text-sm">暂无负责人</span>
-            <div class="mt-2 text-xs text-gray-500">
-              点击编辑按钮可修改负责人
-            </div>
-          </div>
-        </el-form-item>
+        <PersonSelector
+          label="负责人"
+          :model-value="editedStage.chargeDingUser || []"
+          @update:model-value="handleAssigneesChange"
+          :readonly="!isEditing"
+          :show-avatar="true"
+          size="default"
+          data-format="system"
+          class="stage-person-selector"
+        />
       </div>
 
       <!-- 附件 -->
@@ -283,6 +206,7 @@ import {
   Document
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
+import PersonSelector from "@/components/PersonSelector.vue";
 
 const props = defineProps({
   stage: {
@@ -304,14 +228,6 @@ const editedStage = ref(null);
 const searchKeyword = ref("");
 const fileInputRef = ref(null);
 
-// 模拟用户数据
-const mockUsers = ref([
-  { id: "u1", name: "张三", email: "zhang@company.com" },
-  { id: "u2", name: "李四", email: "li@company.com" },
-  { id: "u3", name: "王五", email: "wang@company.com" },
-  { id: "u4", name: "赵六", email: "zhao@company.com" }
-]);
-
 // 监听visible变化
 watch(
   () => props.visible,
@@ -329,17 +245,6 @@ watch(dialogVisible, newVal => {
     emit("update:visible", false);
     isEditing.value = false;
   }
-});
-
-// 计算属性
-const filteredUsers = computed(() => {
-  const assignedIds =
-    editedStage.value?.chargeDingUser?.map(a => a.dingId) || [];
-  return mockUsers.value.filter(
-    user =>
-      !assignedIds.includes(user.id) &&
-      user.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
-  );
 });
 
 // 方法
@@ -398,22 +303,9 @@ const handleClose = () => {
   dialogVisible.value = false;
 };
 
-const addAssignee = user => {
-  if (!editedStage.value.chargeDingUser) {
-    editedStage.value.chargeDingUser = [];
-  }
-  editedStage.value.chargeDingUser.push({
-    dingId: user.id,
-    userName: user.name,
-    avatarUrl: ""
-  });
-  searchKeyword.value = "";
-};
-
-const removeAssignee = dingId => {
-  editedStage.value.chargeDingUser = editedStage.value.chargeDingUser.filter(
-    a => a.dingId !== dingId
-  );
+const handleAssigneesChange = assignees => {
+  console.log("负责人变更:", assignees);
+  editedStage.value.chargeDingUser = assignees;
 };
 
 const triggerFileUpload = () => {
@@ -504,5 +396,9 @@ const getCurrentDate = () => {
 
 .min-h-20 {
   min-height: 5rem;
+}
+
+.stage-person-selector :deep(.person-selector-container) {
+  width: 100%;
 }
 </style>

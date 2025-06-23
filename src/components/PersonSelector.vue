@@ -4,7 +4,7 @@
       <div class="person-label">{{ label }}</div>
       <div class="person-tags flex-1 ml-4">
         <el-tag
-          v-for="tag in selectedPersons"
+          v-for="tag in normalizedPersons"
           :key="tag.emplId"
           :disable-transitions="false"
           closable
@@ -65,6 +65,11 @@ const props = defineProps({
     type: String,
     default: "default", // default, small
     validator: value => ["default", "small"].includes(value)
+  },
+  dataFormat: {
+    type: String,
+    default: "dingtalk", // dingtalk, system
+    validator: value => ["dingtalk", "system"].includes(value)
   }
 });
 
@@ -79,6 +84,25 @@ const emit = defineEmits(["update:modelValue"]);
 // 使用计算属性直接使用 props.modelValue，避免递归更新
 const selectedPersons = computed(() => props.modelValue);
 
+// 标准化数据格式的计算属性
+const normalizedPersons = computed(() => {
+  if (!selectedPersons.value || selectedPersons.value.length === 0) {
+    return [];
+  }
+
+  if (props.dataFormat === "system") {
+    // 系统格式: {dingId, userName, avatarUrl} -> 标准格式
+    return selectedPersons.value.map(user => ({
+      emplId: user.dingId,
+      name: user.userName,
+      avatar: user.avatarUrl
+    }));
+  } else {
+    // 钉钉格式: {emplId, name, avatar} -> 保持不变
+    return selectedPersons.value;
+  }
+});
+
 const extractEmplId = users => {
   return users.map(user => user.emplId);
 };
@@ -86,11 +110,21 @@ const extractEmplId = users => {
 const choosePerson = () => {
   dd.biz.contact.choose({
     multiple: true,
-    users: extractEmplId(selectedPersons.value),
+    users: extractEmplId(normalizedPersons.value),
     corpId: props.corpId,
     max: props.maxCount,
     onSuccess: function (data) {
-      emit("update:modelValue", data);
+      // 根据数据格式转换输出
+      let outputData = data;
+      if (props.dataFormat === "system") {
+        // 转换为系统格式
+        outputData = data.map(user => ({
+          dingId: user.emplId,
+          userName: user.name,
+          avatarUrl: user.avatar || ""
+        }));
+      }
+      emit("update:modelValue", outputData);
     },
     onFail: function (err) {
       console.error("选择人员失败:", err);
@@ -99,9 +133,20 @@ const choosePerson = () => {
 };
 
 const removePerson = tag => {
-  const newPersons = selectedPersons.value.filter(
-    item => item.emplId !== tag.emplId
-  );
+  let newPersons;
+
+  if (props.dataFormat === "system") {
+    // 系统格式：根据 dingId 匹配删除
+    newPersons = selectedPersons.value.filter(
+      item => item.dingId !== tag.emplId
+    );
+  } else {
+    // 钉钉格式：根据 emplId 匹配删除
+    newPersons = selectedPersons.value.filter(
+      item => item.emplId !== tag.emplId
+    );
+  }
+
   emit("update:modelValue", newPersons);
 };
 </script>

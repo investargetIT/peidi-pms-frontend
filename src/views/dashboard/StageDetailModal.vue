@@ -83,7 +83,7 @@
           <div v-if="isEditing" class="assignee-editor">
             <div class="flex flex-wrap gap-2 mb-2">
               <el-tag
-                v-for="assignee in editedStage.assignees"
+                v-for="assignee in editedStage.chargeDingUser"
                 :key="assignee.dingId"
                 closable
                 @close="removeAssignee(assignee.dingId)"
@@ -140,11 +140,11 @@
           </div>
           <div v-else class="assignee-display">
             <div
-              v-if="stage?.assignees && stage.assignees.length > 0"
+              v-if="stage?.chargeDingUser && stage.chargeDingUser.length > 0"
               class="flex flex-wrap gap-2"
             >
               <el-tag
-                v-for="assignee in stage.assignees"
+                v-for="assignee in stage.chargeDingUser"
                 :key="assignee.dingId"
                 class="assignee-tag"
               >
@@ -333,7 +333,8 @@ watch(dialogVisible, newVal => {
 
 // 计算属性
 const filteredUsers = computed(() => {
-  const assignedIds = editedStage.value?.assignees?.map(a => a.dingId) || [];
+  const assignedIds =
+    editedStage.value?.chargeDingUser?.map(a => a.dingId) || [];
   return mockUsers.value.filter(
     user =>
       !assignedIds.includes(user.id) &&
@@ -398,10 +399,10 @@ const handleClose = () => {
 };
 
 const addAssignee = user => {
-  if (!editedStage.value.assignees) {
-    editedStage.value.assignees = [];
+  if (!editedStage.value.chargeDingUser) {
+    editedStage.value.chargeDingUser = [];
   }
-  editedStage.value.assignees.push({
+  editedStage.value.chargeDingUser.push({
     dingId: user.id,
     userName: user.name,
     avatarUrl: ""
@@ -410,7 +411,7 @@ const addAssignee = user => {
 };
 
 const removeAssignee = dingId => {
-  editedStage.value.assignees = editedStage.value.assignees.filter(
+  editedStage.value.chargeDingUser = editedStage.value.chargeDingUser.filter(
     a => a.dingId !== dingId
   );
 };

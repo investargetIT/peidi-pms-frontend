@@ -72,13 +72,14 @@
                 <div class="flex items-center gap-1 flex-1">
                   <PersonSelector
                     label="负责人"
-                    :model-value="stage.assignees || []"
+                    :model-value="stage.chargeDingUser || []"
                     @update:model-value="
                       value => updateStageAssignees(stage.stageId, value)
                     "
                     :max-count="5"
                     :show-avatar="true"
                     size="small"
+                    data-format="system"
                     class="stage-person-selector"
                   />
                 </div>
@@ -182,7 +183,7 @@ const displayStages = computed(() => {
       stateName: stage.value,
       status: "pending",
       statusName: "待开始",
-      assignees: [],
+      chargeDingUser: [],
       fileUrlList: [],
       deadlineDate: null,
       finishDate: null,
@@ -196,12 +197,7 @@ const displayStages = computed(() => {
     status: getStatusFromName(stage.statusName),
     statusId: stage.statusId,
     statusName: stage.statusName,
-    // 将 chargeDingUser 格式转换为 PersonSelector 期望的格式
-    assignees: (stage.chargeDingUser || []).map(user => ({
-      emplId: user.dingId,
-      name: user.userName,
-      avatar: user.avatarUrl
-    })),
+    chargeDingUser: stage.chargeDingUser || [],
     fileUrlList: stage.fileUrlList || [],
     deadlineDate: stage.deadlineDate,
     finishDate: stage.finishDate,
@@ -283,19 +279,12 @@ const updateStageAssignees = (stageId, assignees) => {
   );
 
   if (stageIndex !== -1) {
-    // 将钉钉用户数据格式转换为系统需要的格式
-    const chargeDingUser = assignees.map(user => ({
-      dingId: user.emplId,
-      userName: user.name,
-      avatarUrl: user.avatar || ""
-    }));
-
-    stageListConfig.value[stageIndex].chargeDingUser = chargeDingUser;
+    stageListConfig.value[stageIndex].chargeDingUser = assignees;
 
     // 这里可以调用API保存数据
     console.log("保存阶段负责人数据:", {
       stageId,
-      chargeDingUser
+      chargeDingUser: assignees
     });
   }
 };
@@ -319,7 +308,7 @@ const handleSaveStage = updatedStage => {
       deadlineDate: updatedStage.deadlineDate,
       finishDate: updatedStage.finishDate,
       remark: updatedStage.remark,
-      chargeDingUser: updatedStage.assignees || [],
+      chargeDingUser: updatedStage.chargeDingUser || [],
       fileUrlList: updatedStage.fileUrlList || []
     };
   }

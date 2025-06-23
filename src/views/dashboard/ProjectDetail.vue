@@ -69,81 +69,16 @@
 
               <!-- 负责人区域 -->
               <div class="flex items-center justify-between mt-2">
-                <div class="flex items-center gap-1">
-                  <!-- 已有负责人 -->
-                  <div
-                    v-if="stage.assignees && stage.assignees.length > 0"
-                    class="flex flex-wrap gap-1"
-                  >
-                    <el-tag
-                      v-for="assignee in stage.assignees"
-                      :key="assignee.dingId"
-                      size="small"
-                      closable
-                      @close="removeAssignee(stage.id, assignee.dingId)"
-                      class="assignee-tag"
-                    >
-                      <div class="flex items-center gap-1">
-                        <el-avatar
-                          :size="16"
-                          :src="assignee.avatarUrl"
-                          class="text-xs"
-                        >
-                          {{ assignee.userName.charAt(0) }}
-                        </el-avatar>
-                        <span class="text-xs">{{ assignee.userName }}</span>
-                      </div>
-                    </el-tag>
-                  </div>
-                  <span v-else class="text-xs text-gray-500">暂无负责人</span>
-
-                  <!-- 添加负责人按钮 -->
-                  <el-popover
-                    placement="bottom-start"
-                    :width="250"
-                    trigger="click"
-                  >
-                    <template #reference>
-                      <el-button
-                        size="small"
-                        circle
-                        class="add-assignee-btn"
-                        @click.stop
-                      >
-                        <el-icon><Plus /></el-icon>
-                      </el-button>
-                    </template>
-                    <div class="assignee-selector">
-                      <el-input
-                        v-model="searchKeyword"
-                        placeholder="搜索人员..."
-                        size="small"
-                        class="mb-2"
-                      >
-                        <template #prefix>
-                          <el-icon><Search /></el-icon>
-                        </template>
-                      </el-input>
-                      <div class="max-h-48 overflow-y-auto">
-                        <div
-                          v-for="user in filteredUsers(stage)"
-                          :key="user.id"
-                          class="user-option flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
-                          @click="addAssignee(stage.id, user)"
-                        >
-                          <el-avatar :size="24" class="text-xs">
-                            {{ user.name.charAt(0) }}
-                          </el-avatar>
-                          <div class="flex-1">
-                            <p class="text-sm font-medium">{{ user.name }}</p>
-                            <p class="text-xs text-gray-500">
-                              {{ user.email }}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </el-popover>
+                <div class="flex items-center gap-1 flex-1">
+                  <PersonSelector
+                    label="负责人"
+                    :model-value="stage.assignees || []"
+                    @update:model-value="
+                      value => updateStageAssignees(stage.id, value)
+                    "
+                    :max-count="5"
+                    class="stage-person-selector"
+                  />
                 </div>
 
                 <!-- 查看详情按钮 -->
@@ -160,15 +95,15 @@
               <!-- 附件信息 -->
               <div
                 v-if="
-                  stage.attachments &&
-                  stage.attachments.length > 0 &&
-                  stage.attachments[0] !== 'string'
+                  stage.fileUrlList &&
+                  stage.fileUrlList.length > 0 &&
+                  stage.fileUrlList[0] !== 'string'
                 "
                 class="flex items-center gap-1 mt-2"
               >
                 <el-icon class="text-gray-400"><Paperclip /></el-icon>
                 <span class="text-xs text-gray-500"
-                  >{{ stage.attachments.length }} 个附件</span
+                  >{{ stage.fileUrlList.length }} 个附件</span
                 >
               </div>
             </div>
@@ -188,10 +123,11 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import { View, Plus, Search, Paperclip } from "@element-plus/icons-vue";
+import { View, Paperclip } from "@element-plus/icons-vue";
 import { AlertTriangle, Flag } from "lucide-vue-next";
 import { getProjectProgressList, getProjectStageList } from "@/api/progress";
 import StageDetailModal from "./StageDetailModal.vue";
+import PersonSelector from "@/components/PersonSelector.vue";
 
 const props = defineProps({
   selectedProject: {
@@ -205,7 +141,6 @@ const props = defineProps({
 });
 
 // 响应式数据
-const searchKeyword = ref("");
 const stageDialogVisible = ref(false);
 const selectedStage = ref(null);
 
@@ -230,14 +165,6 @@ watch(
   { immediate: true, deep: true }
 );
 
-// 模拟数据
-const mockUsers = ref([
-  { id: 1, name: "张三", email: "zhangsan@example.com" },
-  { id: 2, name: "李四", email: "lisi@example.com" },
-  { id: 3, name: "王五", email: "wangwu@example.com" },
-  { id: 4, name: "赵六", email: "zhaoliu@example.com" }
-]);
-
 // 阶段数据管理
 const stageData = ref({});
 
@@ -254,7 +181,7 @@ const displayStages = computed(() => {
       status: "pending",
       statusName: "待开始",
       assignees: [],
-      attachments: [],
+      fileUrlList: [],
       deadlineDate: null,
       finishDate: null,
       remark: ""
@@ -266,8 +193,13 @@ const displayStages = computed(() => {
     name: stage.stageName,
     status: getStatusFromName(stage.statusName),
     statusName: stage.statusName,
-    assignees: stage.chargeDingUser || [],
-    attachments: stage.fileUrlList || [],
+    // 将 chargeDingUser 格式转换为 PersonSelector 期望的格式
+    assignees: (stage.chargeDingUser || []).map(user => ({
+      emplId: user.dingId,
+      name: user.userName,
+      avatar: user.avatarUrl
+    })),
+    fileUrlList: stage.fileUrlList || [],
     deadlineDate: stage.deadlineDate,
     finishDate: stage.finishDate,
     remark: stage.remark
@@ -340,40 +272,28 @@ const getStageStatusText = status => {
   }
 };
 
-const filteredUsers = stage => {
-  const assignedIds = stage.assignees?.map(a => a.id) || [];
-  return mockUsers.value.filter(
-    user =>
-      !assignedIds.includes(user.id) &&
-      user.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
-  );
-};
+const updateStageAssignees = (stageId, assignees) => {
+  console.log("更新阶段负责人:", stageId, assignees);
 
-const addAssignee = (stageId, user) => {
   const stageIndex = stageListConfig.value.findIndex(
     s => s.stageId === stageId
   );
+
   if (stageIndex !== -1) {
-    if (!stageListConfig.value[stageIndex].chargeDingUser) {
-      stageListConfig.value[stageIndex].chargeDingUser = [];
-    }
-    stageListConfig.value[stageIndex].chargeDingUser.push({
-      dingId: user.id.toString(),
+    // 将钉钉用户数据格式转换为系统需要的格式
+    const chargeDingUser = assignees.map(user => ({
+      dingId: user.emplId,
       userName: user.name,
-      avatarUrl: user.avatarUrl || ""
-    });
-  }
-  searchKeyword.value = "";
-};
+      avatarUrl: user.avatar || ""
+    }));
 
-const removeAssignee = (stageId, assigneeDingId) => {
-  const stageIndex = stageListConfig.value.findIndex(
-    s => s.stageId === stageId
-  );
-  if (stageIndex !== -1 && stageListConfig.value[stageIndex].chargeDingUser) {
-    stageListConfig.value[stageIndex].chargeDingUser = stageListConfig.value[
-      stageIndex
-    ].chargeDingUser.filter(a => a.dingId !== assigneeDingId);
+    stageListConfig.value[stageIndex].chargeDingUser = chargeDingUser;
+
+    // 这里可以调用API保存数据
+    console.log("保存阶段负责人数据:", {
+      stageId,
+      chargeDingUser
+    });
   }
 };
 
@@ -397,7 +317,7 @@ const handleSaveStage = updatedStage => {
       finishDate: updatedStage.finishDate,
       remark: updatedStage.remark,
       chargeDingUser: updatedStage.assignees || [],
-      fileUrlList: updatedStage.attachments || []
+      fileUrlList: updatedStage.fileUrlList || []
     };
   }
 
@@ -477,5 +397,23 @@ const getStatusNameFromCode = statusCode => {
 .stage-detail {
   max-height: 60vh;
   overflow-y: auto;
+}
+
+.stage-person-selector {
+  flex: 1;
+}
+
+.stage-person-selector :deep(.person-label) {
+  display: none;
+}
+
+.stage-person-selector :deep(.person-tags) {
+  margin-left: 0;
+}
+
+.stage-person-selector :deep(.add-person-btn) {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
 }
 </style>

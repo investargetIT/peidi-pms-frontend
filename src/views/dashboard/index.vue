@@ -1,10 +1,10 @@
 <template>
-  <div class="dashboard-container p-6">
+  <div class="dashboard-container p-4">
     <!-- 页面头部 -->
-    <div class="page-header flex justify-between items-center mb-8">
+    <div class="page-header flex justify-between items-center mb-4">
       <div class="header-left">
         <h1 class="text-2xl font-semibold">项目进度管理系统</h1>
-        <p class="text-gray-500 mt-2 text-base">产品开发全流程跟踪与管理</p>
+        <p class="text-gray-500 mt-1 text-base">产品开发全流程跟踪与管理</p>
       </div>
       <div class="header-right flex items-center gap-3">
         <el-button class="flex items-center gap-2 px-4 h-9">
@@ -24,7 +24,7 @@
     </div>
 
     <!-- 统计面板 -->
-    <div class="statistics-panel grid grid-cols-3 gap-6 mb-8">
+    <div class="statistics-panel grid grid-cols-3 gap-6 mb-4">
       <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
         <div class="text-gray-500 text-base">总项目数</div>
         <div class="text-3xl font-semibold mt-2">{{ totalProjectCount }}</div>
@@ -65,11 +65,11 @@
     </div>
 
     <!-- 搜索区域 -->
-    <div class="search-area w-full bg-white rounded-lg shadow-sm mb-6">
+    <div class="search-area w-full bg-white rounded-lg shadow-sm mb-4">
       <div class="w-full p-4">
         <el-form :model="searchForm" :inline="true" class="search-form">
           <!-- 第一行：产品名称、品牌、状态 -->
-          <div class="search-row flex items-center gap-4 mb-4">
+          <div class="search-row flex items-center gap-4 mb-3">
             <el-form-item
               prop="productName"
               label="产品名称"
@@ -153,9 +153,9 @@
     </div>
 
     <!-- 主要内容区域 -->
-    <div class="main-content flex gap-6">
+    <div class="main-content flex gap-4">
       <!-- 左侧产品列表 -->
-      <div class="left-panel flex-1">
+      <div class="left-panel flex-1 panel-container">
         <productList
           ref="listRef"
           :searchInfo="searchForm"
@@ -166,12 +166,14 @@
       </div>
 
       <!-- 右侧项目详情 -->
-      <ProjectDetail
-        :selectedProject="selectedProject"
-        :stageList="stageList"
-        :stageStatusList="stageStatusList"
-        @refreshList="refreshList"
-      />
+      <div class="panel-container right-panel">
+        <ProjectDetail
+          :selectedProject="selectedProject"
+          :stageList="stageList"
+          :stageStatusList="stageStatusList"
+          @refreshList="refreshList"
+        />
+      </div>
     </div>
 
     <!-- 新增产品弹窗 -->
@@ -334,7 +336,6 @@ const listedCount = computed(() => {
 
 <style scoped>
 .dashboard-container {
-  min-height: 100vh;
   background-color: #f5f5f5;
 }
 
@@ -461,5 +462,36 @@ const listedCount = computed(() => {
   :deep(.el-button span) {
     font-size: 13px;
   }
+}
+
+.panel-container {
+  padding: 16px;
+  overflow: hidden;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 10%),
+    0 1px 2px -1px rgb(0 0 0 / 10%);
+}
+
+.panel-container :deep(.el-table) {
+  border-radius: 8px;
+}
+
+.panel-container :deep(.el-card) {
+  border-radius: 12px;
+}
+
+.left-panel :deep(.mt-3) {
+  margin-top: 0;
+}
+
+.right-panel {
+  padding: 0;
+}
+
+.right-panel :deep(.el-card) {
+  margin: 0;
+  border-radius: 12px;
 }
 </style>

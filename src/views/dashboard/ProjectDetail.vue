@@ -437,14 +437,6 @@ const handleSaveStage = async updatedStage => {
     ElMessage.error("保存过程中发生错误，请重试");
   }
 };
-
-const getStatusNameFromId = statusId => {
-  // 根据statusId从stageStatusList中找到对应的状态名称
-  const statusItem = props.stageStatusList.find(
-    item => item.value === statusId
-  );
-  return statusItem ? statusItem.label : "待开始";
-};
 </script>
 
 <style scoped>

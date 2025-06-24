@@ -268,7 +268,6 @@ const handleSave = () => {
   };
   emit("save", stageData);
   isEditing.value = false;
-  ElMessage.success("保存成功");
 };
 
 const handleClose = () => {

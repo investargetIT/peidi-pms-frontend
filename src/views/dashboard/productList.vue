@@ -1,6 +1,10 @@
 <template>
   <div class="mt-3 rounded-sm">
-    <el-table :data="tableData" style="width: 100%">
+    <el-table
+      :data="tableData"
+      style="width: 100%"
+      :row-class-name="getRowClassName"
+    >
       <el-table-column prop="productName" label="产品信息">
         <template #default="scope">
           <div>
@@ -235,6 +239,10 @@ const props = defineProps({
   statusList: {
     type: Array,
     default: () => []
+  },
+  selectedProject: {
+    type: Object,
+    default: () => null
   }
 });
 
@@ -355,6 +363,14 @@ const handleShowDetails = row => {
   emit("selectProject", row);
 };
 
+// 获取行的类名，用于高亮选中行
+const getRowClassName = ({ row, rowIndex }) => {
+  if (props.selectedProject && props.selectedProject.id === row.id) {
+    return "selected-row";
+  }
+  return "";
+};
+
 defineExpose({
   fetchProductList,
   tableData: readonly(tableData)
@@ -392,6 +408,16 @@ defineExpose({
 
 :deep(.el-table tbody tr:hover > td) {
   background-color: #f8fafc !important;
+}
+
+/* 选中行样式 */
+:deep(.el-table .selected-row > td) {
+  background-color: #dbeafe !important;
+  border-color: #93c5fd;
+}
+
+:deep(.el-table .selected-row:hover > td) {
+  background-color: #bfdbfe !important;
 }
 
 /* 表格整体样式 */

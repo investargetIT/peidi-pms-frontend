@@ -163,6 +163,7 @@
           ref="listRef"
           :searchInfo="searchForm"
           :statusList="statusList"
+          :selectedProject="selectedProject"
           @selectProject="handleSelectProject"
           @updateTableData="handleUpdateTableData"
         />

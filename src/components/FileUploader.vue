@@ -79,7 +79,7 @@
     </div>
 
     <!-- 加载状态 -->
-    <div v-if="loading" class="text-center py-4">
+    <div v-if="hasUploadingFiles" class="text-center py-4">
       <el-icon class="animate-spin text-blue-500"><Loading /></el-icon>
       <span class="ml-2 text-sm text-gray-600">上传中...</span>
     </div>
@@ -148,12 +148,30 @@ const emit = defineEmits([
 
 // 响应式数据
 const uploadRef = ref(null);
-const loading = ref(false);
 const sid = ref("");
 const postUrl = ref("/api/upload");
+const isUploading = ref(false);
 
 // 内部文件列表
 const fileList = ref([]);
+
+// 计算属性：检查是否有正在上传的文件
+const hasUploadingFiles = computed(() => {
+  // 优先使用简单的状态追踪
+  if (isUploading.value) {
+    return true;
+  }
+
+  // 检查 el-upload 组件的文件列表
+  if (uploadRef.value && uploadRef.value.uploadFiles) {
+    return uploadRef.value.uploadFiles.some(
+      file => file.status === "uploading"
+    );
+  }
+
+  // 备用检查我们自己的文件列表
+  return fileList.value.some(file => file.status === "uploading");
+});
 
 // 初始化上传服务
 onMounted(() => {
@@ -173,30 +191,6 @@ const initUploadService = async () => {
     postUrl.value = "/api/upload";
   }
 };
-
-// 监听 modelValue 变化
-watch(
-  () => props.modelValue,
-  newVal => {
-    if (newVal && Array.isArray(newVal)) {
-      fileList.value = formatFileList(newVal);
-    } else {
-      fileList.value = [];
-    }
-  },
-  { immediate: true, deep: true }
-);
-
-// 监听内部文件列表变化
-watch(
-  fileList,
-  newVal => {
-    const fileNames = getFileNames(newVal);
-    emit("update:modelValue", fileNames);
-    emit("change", fileNames);
-  },
-  { deep: true }
-);
 
 // 格式化文件列表为 el-upload 兼容格式
 const formatFileList = files => {
@@ -220,6 +214,40 @@ const formatFileList = files => {
       };
     }
     return item;
+  });
+};
+
+// 用于防止递归更新的标志
+let isInternalUpdate = false;
+
+// 监听 modelValue 变化，同步到内部文件列表
+watch(
+  () => props.modelValue,
+  newVal => {
+    // 如果是内部更新触发的，跳过
+    if (isInternalUpdate) return;
+
+    const formattedList =
+      newVal && Array.isArray(newVal) ? formatFileList(newVal) : [];
+    fileList.value = formattedList;
+    console.log("FileUploader: Updated from parent modelValue:", newVal);
+  },
+  { immediate: true }
+);
+
+// 内部方法：更新文件列表并通知父组件
+const updateFileList = newFileList => {
+  fileList.value = newFileList;
+  const fileNames = getFileNames(newFileList);
+
+  // 设置标志防止递归更新
+  isInternalUpdate = true;
+  emit("update:modelValue", fileNames);
+  emit("change", fileNames);
+
+  // 在下一个 tick 重置标志
+  nextTick(() => {
+    isInternalUpdate = false;
   });
 };
 
@@ -276,7 +304,7 @@ const handleChange = file => {
 
     // 更新文件状态
     file.status = "uploading";
-    loading.value = true;
+    isUploading.value = true; // 设置上传状态
 
     console.log("Starting manual upload for:", file.raw.name);
     console.log("Original file size:", (size / 1024 / 1024).toFixed(2) + "MB");
@@ -287,13 +315,17 @@ const handleChange = file => {
         uploadRef.value.submit();
       } else {
         console.error("Upload ref is not available");
-        loading.value = false;
+        // 重置文件状态
+        file.status = "ready";
+        isUploading.value = false;
         ElMessage.error("上传组件未就绪，请重试");
       }
     });
   } catch (error) {
     console.error("Error processing file for upload:", error);
-    loading.value = false;
+    // 重置文件状态
+    file.status = "ready";
+    isUploading.value = false;
     ElMessage.error("文件处理失败，请重试");
   }
 };
@@ -318,9 +350,24 @@ const beforeUpload = file => {
 };
 
 const uploadSuccess = (res, file) => {
-  loading.value = false;
   console.log("uploadSuccess called with response:", res);
   console.log("uploadSuccess called with file:", file);
+
+  // 调试：显示所有文件状态
+  console.log(
+    "Current fileList.value statuses:",
+    fileList.value.map(f => ({ uid: f.uid, status: f.status, name: f.name }))
+  );
+  if (uploadRef.value && uploadRef.value.uploadFiles) {
+    console.log(
+      "Current el-upload statuses:",
+      uploadRef.value.uploadFiles.map(f => ({
+        uid: f.uid,
+        status: f.status,
+        name: f.name
+      }))
+    );
+  }
 
   try {
     // 检查多种成功条件
@@ -334,12 +381,28 @@ const uploadSuccess = (res, file) => {
       // 上传成功，更新文件信息
       const fileIndex = fileList.value.findIndex(item => item.uid === file.uid);
       if (fileIndex !== -1) {
-        fileList.value[fileIndex].realFileName = file.raw?.name || file.name;
-        fileList.value[fileIndex].response = res;
-        fileList.value[fileIndex].status = "success";
-        fileList.value[fileIndex].url = res.url || res.data?.url || "";
+        const updatedList = [...fileList.value];
+        updatedList[fileIndex].realFileName = file.raw?.name || file.name;
+        updatedList[fileIndex].response = res;
+        updatedList[fileIndex].status = "success";
+        updatedList[fileIndex].url = res.url || res.data?.url || "";
 
-        console.log("Updated file info:", fileList.value[fileIndex]);
+        console.log("Updated file info:", updatedList[fileIndex]);
+        updateFileList(updatedList);
+      }
+
+      // 强制更新 el-upload 组件的文件状态
+      if (uploadRef.value && uploadRef.value.uploadFiles) {
+        const uploadFileIndex = uploadRef.value.uploadFiles.findIndex(
+          item => item.uid === file.uid
+        );
+        if (uploadFileIndex !== -1) {
+          uploadRef.value.uploadFiles[uploadFileIndex].status = "success";
+          uploadRef.value.uploadFiles[uploadFileIndex].response = res;
+          console.log(
+            "Force updated el-upload file status to success (partial)"
+          );
+        }
       }
 
       const fileName = file.raw?.name || file.name;
@@ -357,9 +420,11 @@ const uploadSuccess = (res, file) => {
           item => item.uid === file.uid
         );
         if (fileIndex !== -1) {
-          fileList.value[fileIndex].realFileName = file.raw?.name || file.name;
-          fileList.value[fileIndex].response = res;
-          fileList.value[fileIndex].status = "success";
+          const updatedList = [...fileList.value];
+          updatedList[fileIndex].realFileName = file.raw?.name || file.name;
+          updatedList[fileIndex].response = res;
+          updatedList[fileIndex].status = "success";
+          updateFileList(updatedList);
         }
 
         const fileName = file.raw?.name || file.name;
@@ -379,7 +444,9 @@ const uploadSuccess = (res, file) => {
           item => item.uid === file.uid
         );
         if (fileIndex !== -1) {
-          fileList.value.splice(fileIndex, 1);
+          const updatedList = [...fileList.value];
+          updatedList.splice(fileIndex, 1);
+          updateFileList(updatedList);
         }
 
         emit("upload-error", { file, error: res });
@@ -390,10 +457,18 @@ const uploadSuccess = (res, file) => {
     ElMessage.error("处理上传结果时发生错误");
     emit("upload-error", { file, error });
   }
+
+  // 检查是否还有其他文件正在上传
+  const hasOtherUploading = fileList.value.some(
+    f => f.uid !== file.uid && f.status === "uploading"
+  );
+  if (!hasOtherUploading) {
+    isUploading.value = false;
+    console.log("All uploads completed, reset isUploading to false");
+  }
 };
 
 const handleError = (error, file) => {
-  loading.value = false;
   console.error("Upload error:", error);
   console.error("Failed file:", file);
 
@@ -401,7 +476,9 @@ const handleError = (error, file) => {
   if (file) {
     const fileIndex = fileList.value.findIndex(item => item.uid === file.uid);
     if (fileIndex !== -1) {
-      fileList.value.splice(fileIndex, 1);
+      const updatedList = [...fileList.value];
+      updatedList.splice(fileIndex, 1);
+      updateFileList(updatedList);
     }
   }
 
@@ -410,6 +487,17 @@ const handleError = (error, file) => {
 
   ElMessage.error(`文件 "${fileName}" 上传失败: ${errorMessage}`);
   emit("upload-error", { file, error });
+
+  // 检查是否还有其他文件正在上传
+  const hasOtherUploading = fileList.value.some(
+    f => f.uid !== file?.uid && f.status === "uploading"
+  );
+  if (!hasOtherUploading) {
+    isUploading.value = false;
+    console.log(
+      "All uploads completed after error, reset isUploading to false"
+    );
+  }
 };
 
 const handlePreview = file => {
@@ -466,7 +554,9 @@ const downloadFile = file => {
 
 const removeFile = index => {
   if (fileList.value && fileList.value[index]) {
-    fileList.value.splice(index, 1);
+    const updatedList = [...fileList.value];
+    updatedList.splice(index, 1);
+    updateFileList(updatedList);
   }
 };
 
@@ -518,7 +608,7 @@ const getFileNames = files => {
 defineExpose({
   uploadRef,
   clearFiles: () => {
-    fileList.value = [];
+    updateFileList([]);
   },
   getFileNames: () => getFileNames(fileList.value)
 });

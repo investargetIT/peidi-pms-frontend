@@ -18,7 +18,7 @@
             :key="item.dingId"
             class="userContainer"
           >
-            <img :src="item.avatarUrl" class="userIcon" />
+            <img v-if="item.avatarUrl" :src="item.avatarUrl" class="userIcon" />
             <span>{{ item.userName }}</span>
           </div>
         </template>
@@ -30,7 +30,7 @@
             :key="item.dingId"
             class="userContainer"
           >
-            <img :src="item.avatarUrl" class="userIcon" />
+            <img v-if="item.avatarUrl" :src="item.avatarUrl" class="userIcon" />
             <span>{{ item.userName }}</span>
           </div>
         </template>
@@ -300,7 +300,7 @@ const fetchProductList = () => {
   console.log("searchArr:", searchArr);
   commonInfo.searchStr = JSON.stringify(searchArr);
   getProjectProgressList(commonInfo).then(res => {
-    tableData.value = res?.data?.records || [];
+    tableData.value = res?.data || [];
     // pagination.value.total = res.data.total;
   });
 };

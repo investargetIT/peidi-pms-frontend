@@ -288,7 +288,7 @@ const fetchProductList = () => {
       searchParams.searchName = keyMap[key] || key;
       searchParams.searchType = "like";
       if (validKey.includes(key)) {
-        searchParams.searValue = extractEmplId(props.searchInfo[key]).join(
+        searchParams.searchValue = extractEmplId(props.searchInfo[key]).join(
           "&#&"
         );
       } else {

@@ -16,10 +16,25 @@
           <div
             v-for="item in scope.row.pmDingUser"
             :key="item.dingId"
-            class="userContainer"
+            class="flex items-center gap-2 mb-2"
           >
-            <img :src="item.avatarUrl || Avatar" class="userIcon" />
-            <span>{{ item.userName }}</span>
+            <span
+              class="relative flex shrink-0 overflow-hidden rounded-full w-6 h-6"
+            >
+              <img
+                v-if="item.avatarUrl"
+                :src="item.avatarUrl"
+                class="flex h-full w-full items-center justify-center rounded-full object-cover"
+                :alt="item.userName"
+              />
+              <span
+                v-else
+                class="flex h-full w-full items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600"
+              >
+                {{ item.userName ? item.userName.charAt(0) : "?" }}
+              </span>
+            </span>
+            <span class="text-sm text-gray-900">{{ item.userName }}</span>
           </div>
         </template>
       </el-table-column>
@@ -28,10 +43,25 @@
           <div
             v-for="item in scope.row.npdDingUser"
             :key="item.dingId"
-            class="userContainer"
+            class="flex items-center gap-2 mb-2"
           >
-            <img :src="item.avatarUrl || Avatar" class="userIcon" />
-            <span>{{ item.userName }}</span>
+            <span
+              class="relative flex shrink-0 overflow-hidden rounded-full w-6 h-6"
+            >
+              <img
+                v-if="item.avatarUrl"
+                :src="item.avatarUrl"
+                class="flex h-full w-full items-center justify-center rounded-full object-cover"
+                :alt="item.userName"
+              />
+              <span
+                v-else
+                class="flex h-full w-full items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600"
+              >
+                {{ item.userName ? item.userName.charAt(0) : "?" }}
+              </span>
+            </span>
+            <span class="text-sm text-gray-900">{{ item.userName }}</span>
           </div>
         </template>
       </el-table-column>
@@ -333,20 +363,6 @@ defineExpose({
 <style scoped>
 .hhh {
   color: red;
-}
-
-.userContainer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 10px;
-
-  .userIcon {
-    width: 30px;
-    height: 30px;
-    margin-right: 5px;
-    border-radius: 50%;
-  }
 }
 
 .priority-badge {

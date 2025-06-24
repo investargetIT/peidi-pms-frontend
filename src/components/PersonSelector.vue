@@ -368,8 +368,10 @@ const removePerson = tag => {
 .person-selector {
   .person-label {
     min-width: 80px;
+    padding-top: 5px;
     font-size: 14px;
-    color: #666;
+    font-weight: 700;
+    color: #606266;
     white-space: nowrap;
   }
 

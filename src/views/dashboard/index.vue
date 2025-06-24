@@ -162,6 +162,7 @@
         :selectedProject="selectedProject"
         :stageList="stageList"
         :stageStatusList="stageStatusList"
+        @refreshList="refreshList"
       />
     </div>
 

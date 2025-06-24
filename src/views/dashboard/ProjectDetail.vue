@@ -168,6 +168,8 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(["refreshList"]);
+
 // 响应式数据
 const stageDialogVisible = ref(false);
 const selectedStage = ref(null);
@@ -413,6 +415,9 @@ const handleSaveStage = async updatedStage => {
         stageDialogVisible.value = false;
 
         console.log("阶段数据保存成功:", updatedStage);
+
+        // 触发事件通知父组件更新列表数据
+        emit("refreshList");
       } else {
         // API返回错误
         ElMessage.error(res?.msg || "保存失败，请重试");

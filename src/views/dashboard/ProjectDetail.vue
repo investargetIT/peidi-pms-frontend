@@ -61,7 +61,7 @@
               @click="openStageDetail(stage)"
             >
               <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium">{{ stage.stateName }}</span>
+                <span class="text-sm font-medium">{{ stage.stageName }}</span>
                 <div
                   :class="getStatusColor(stage.statusName)"
                   class="status-badge"
@@ -217,10 +217,10 @@ const displayStages = computed(() => {
 
   return stageListConfig.value.map(stage => ({
     stageId: stage.stageId,
-    stateName: stage.stateName,
-    status: getStatusFromName(stage.statusName),
+    stageName: stage.stageName,
+    status: getStatusFromName(stage.statusName || "待开始"),
     statusId: stage.statusId,
-    statusName: stage.statusName,
+    statusName: stage.statusName || "待开始",
     chargeDingUser: stage.chargeDingUser || [],
     fileUrlList: stage.fileUrlList || [],
     deadlineDate: stage.deadlineDate,

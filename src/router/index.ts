@@ -51,16 +51,17 @@ const Layout = () => import("@/layout/index.vue");
 const routes = [
   {
     path: "/classify",
-    name: "category",
-    component: () => import("@/views/classify/index.vue"),
+    name: "classify",
+    redirect: "/classify/index",
+    component: Layout,
     meta: {
       title: "产品维护列表",
       icon: "prime:book"
     },
     children: [
       {
-        path: "/fighting/index",
-        name: "Fighting",
+        path: "/classify/index",
+        name: "classify",
         component: () => import("@/views/classify/index.vue"),
         meta: {
           title: "产品维护列表"

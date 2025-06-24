@@ -83,6 +83,7 @@
                     :show-avatar="true"
                     size="small"
                     data-format="system"
+                    display-mode="tag"
                     class="stage-person-selector"
                   />
                 </div>

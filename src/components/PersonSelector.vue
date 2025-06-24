@@ -3,39 +3,170 @@
     <div class="person-row flex items-center">
       <div class="person-label">{{ label }}</div>
       <div class="person-tags flex-1 ml-4">
-        <div
-          v-for="tag in normalizedPersons"
-          :key="tag.emplId"
-          class="flex items-center gap-2 mb-2 mr-3"
-        >
-          <span
-            class="relative flex shrink-0 overflow-hidden rounded-full"
-            :class="size === 'small' ? 'w-5 h-5' : 'w-6 h-6'"
-          >
-            <img
-              v-if="showAvatar && tag.avatar"
-              :src="tag.avatar"
-              class="flex h-full w-full items-center justify-center rounded-full object-cover"
-              :alt="tag.name"
-            />
-            <span
-              v-else
-              class="flex h-full w-full items-center justify-center rounded-full bg-gray-100 text-gray-600"
-              :class="size === 'small' ? 'text-xs' : 'text-xs'"
+        <!-- 标签卡片模式 -->
+        <template v-if="displayMode === 'tag'">
+          <div class="flex items-center gap-1">
+            <div class="flex flex-wrap gap-1 items-center">
+              <div
+                v-for="tag in normalizedPersons"
+                :key="tag.emplId"
+                class="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 transition-all duration-300 opacity-100 scale-100"
+              >
+                <span
+                  class="relative flex shrink-0 overflow-hidden rounded-full w-4 h-4"
+                >
+                  <img
+                    v-if="showAvatar && tag.avatar"
+                    :src="tag.avatar"
+                    class="flex h-full w-full items-center justify-center rounded-full object-cover"
+                    :alt="tag.name"
+                  />
+                  <span
+                    v-else
+                    class="flex h-full w-full items-center justify-center rounded-full text-[10px] bg-blue-500 text-white"
+                  >
+                    {{ tag.name ? tag.name.charAt(0) : "?" }}
+                  </span>
+                </span>
+                <span class="text-xs text-blue-900">{{ tag.name }}</span>
+                <button
+                  v-if="!readonly"
+                  @click="removePerson(tag)"
+                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:text-accent-foreground h-4 w-4 p-0 rounded-full transition-all duration-200 hover:bg-red-100"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-3 h-3 transition-colors duration-200 text-red-500"
+                  >
+                    <path d="M5 12h14"></path>
+                  </svg>
+                </button>
+              </div>
+              <!-- 暂无负责人提示 -->
+              <span
+                v-if="normalizedPersons.length === 0"
+                class="text-xs text-gray-500"
+              >
+                暂无负责人
+              </span>
+            </div>
+            <button
+              v-if="!readonly"
+              @click="choosePerson"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:text-accent-foreground h-5 w-5 p-0 rounded-full border border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+              type="button"
             >
-              {{ tag.name ? tag.name.charAt(0) : "?" }}
-            </span>
-          </span>
-          <span
-            :class="size === 'small' ? 'text-xs' : 'text-sm'"
-            class="text-gray-900"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-3 h-3 text-gray-500 hover:text-blue-600"
+              >
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+            </button>
+          </div>
+        </template>
+
+        <!-- 列表模式（原有逻辑） -->
+        <template v-else>
+          <div
+            v-for="tag in normalizedPersons"
+            :key="tag.emplId"
+            class="flex items-center gap-2 mb-2 mr-3"
           >
-            {{ tag.name }}
-          </span>
+            <span
+              class="relative flex shrink-0 overflow-hidden rounded-full"
+              :class="size === 'small' ? 'w-5 h-5' : 'w-6 h-6'"
+            >
+              <img
+                v-if="showAvatar && tag.avatar"
+                :src="tag.avatar"
+                class="flex h-full w-full items-center justify-center rounded-full object-cover"
+                :alt="tag.name"
+              />
+              <span
+                v-else
+                class="flex h-full w-full items-center justify-center rounded-full bg-gray-100 text-gray-600"
+                :class="size === 'small' ? 'text-xs' : 'text-xs'"
+              >
+                {{ tag.name ? tag.name.charAt(0) : "?" }}
+              </span>
+            </span>
+            <span
+              :class="size === 'small' ? 'text-xs' : 'text-sm'"
+              class="text-gray-900"
+            >
+              {{ tag.name }}
+            </span>
+            <button
+              v-if="!readonly"
+              @click="removePerson(tag)"
+              class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 text-gray-500 hover:text-red-600 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 6L6 18"></path>
+                <path d="M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div
+            v-if="normalizedPersons.length === 0"
+            class="flex items-center gap-1"
+          >
+            <span class="text-xs text-gray-500">暂无负责人</span>
+            <button
+              v-if="!readonly"
+              @click="choosePerson"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-5 w-5 p-0 rounded-full border border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+              type="button"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-3 h-3 text-gray-500 hover:text-blue-600"
+              >
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+            </button>
+          </div>
           <button
-            v-if="!readonly"
-            @click="removePerson(tag)"
-            class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 text-gray-500 hover:text-red-600 transition-colors"
+            v-if="!readonly && normalizedPersons.length > 0"
+            @click="choosePerson"
+            class="inline-flex items-center gap-1 px-2 py-1 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -48,60 +179,12 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M18 6L6 18"></path>
-              <path d="M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-        <div
-          v-if="normalizedPersons.length === 0"
-          class="flex items-center gap-1"
-        >
-          <span class="text-xs text-gray-500">暂无负责人</span>
-          <button
-            v-if="!readonly"
-            @click="choosePerson"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-5 w-5 p-0 rounded-full border border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50"
-            type="button"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-3 h-3 text-gray-500 hover:text-blue-600"
-            >
               <path d="M5 12h14"></path>
               <path d="M12 5v14"></path>
             </svg>
+            {{ label }}
           </button>
-        </div>
-        <button
-          v-if="!readonly && normalizedPersons.length > 0"
-          @click="choosePerson"
-          class="inline-flex items-center gap-1 px-2 py-1 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M5 12h14"></path>
-            <path d="M12 5v14"></path>
-          </svg>
-          {{ label }}
-        </button>
+        </template>
       </div>
     </div>
   </div>
@@ -143,6 +226,11 @@ const props = defineProps({
     type: String,
     default: "dingtalk", // dingtalk, system
     validator: value => ["dingtalk", "system"].includes(value)
+  },
+  displayMode: {
+    type: String,
+    default: "list", // list, tag
+    validator: value => ["list", "tag"].includes(value)
   },
   readonly: {
     type: Boolean,

@@ -3,29 +3,56 @@
     <div class="person-row flex items-center">
       <div class="person-label">{{ label }}</div>
       <div class="person-tags flex-1 ml-4">
-        <el-tag
+        <div
           v-for="tag in normalizedPersons"
           :key="tag.emplId"
-          :disable-transitions="false"
-          :closable="!readonly"
-          @close="removePerson(tag)"
-          class="mr-2 person-tag"
-          :class="{ 'with-avatar': showAvatar, [`size-${size}`]: true }"
+          class="flex items-center gap-2 mb-2 mr-3"
         >
-          <div class="flex items-center gap-1">
-            <el-avatar
-              v-if="showAvatar"
-              :size="size === 'small' ? 16 : 20"
+          <span
+            class="relative flex shrink-0 overflow-hidden rounded-full"
+            :class="size === 'small' ? 'w-5 h-5' : 'w-6 h-6'"
+          >
+            <img
+              v-if="showAvatar && tag.avatar"
               :src="tag.avatar"
-              class="text-xs"
+              class="flex h-full w-full items-center justify-center rounded-full object-cover"
+              :alt="tag.name"
+            />
+            <span
+              v-else
+              class="flex h-full w-full items-center justify-center rounded-full bg-gray-100 text-gray-600"
+              :class="size === 'small' ? 'text-xs' : 'text-xs'"
             >
-              {{ tag.name.charAt(0) }}
-            </el-avatar>
-            <span :class="size === 'small' ? 'text-xs' : 'text-sm'">{{
-              tag.name
-            }}</span>
-          </div>
-        </el-tag>
+              {{ tag.name ? tag.name.charAt(0) : "?" }}
+            </span>
+          </span>
+          <span
+            :class="size === 'small' ? 'text-xs' : 'text-sm'"
+            class="text-gray-900"
+          >
+            {{ tag.name }}
+          </span>
+          <button
+            v-if="!readonly"
+            @click="removePerson(tag)"
+            class="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-200 hover:bg-red-100 text-gray-500 hover:text-red-600 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 6L6 18"></path>
+              <path d="M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
         <div
           v-if="normalizedPersons.length === 0"
           class="flex items-center gap-1"
@@ -54,14 +81,27 @@
             </svg>
           </button>
         </div>
-        <el-button
+        <button
           v-if="!readonly && normalizedPersons.length > 0"
-          class="add-person-btn"
-          size="small"
           @click="choosePerson"
+          class="inline-flex items-center gap-1 px-2 py-1 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
         >
-          + {{ label }}
-        </el-button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14"></path>
+            <path d="M12 5v14"></path>
+          </svg>
+          {{ label }}
+        </button>
       </div>
     </div>
   </div>
@@ -202,61 +242,13 @@ const removePerson = tag => {
   }
 
   .person-row {
-    align-items: center;
+    align-items: flex-start;
   }
 
   .person-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .add-person-btn {
-    height: 28px;
-    padding: 0 12px;
-    font-size: 12px;
-    color: #666;
-    background: transparent;
-    border: 1px dashed #d9d9d9;
-
-    &:hover {
-      color: #1890ff;
-      border-color: #1890ff;
-    }
-  }
-
-  .person-tag {
-    &.with-avatar {
-      padding: 2px 8px 2px 4px;
-
-      :deep(.el-tag__content) {
-        display: flex;
-        align-items: center;
-      }
-    }
-
-    &.size-small {
-      height: 24px;
-      padding: 2px 6px;
-      font-size: 11px;
-      line-height: 20px;
-
-      &.with-avatar {
-        padding: 2px 6px 2px 2px;
-      }
-    }
-
-    &.size-default {
-      height: 28px;
-      padding: 2px 8px;
-      font-size: 13px;
-      line-height: 24px;
-
-      &.with-avatar {
-        padding: 2px 8px 2px 4px;
-      }
-    }
+    align-items: flex-start;
   }
 }
 </style>

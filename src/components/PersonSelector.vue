@@ -393,7 +393,6 @@ const removePerson = tag => {
 .person-selector {
   .person-label {
     min-width: 80px;
-    padding-top: 5px;
     font-size: 14px;
     font-weight: 700;
     color: #606266;
@@ -401,13 +400,13 @@ const removePerson = tag => {
   }
 
   .person-row {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .person-tags {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .simple-mode {

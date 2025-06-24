@@ -156,6 +156,9 @@
     <div class="main-content flex gap-4">
       <!-- 左侧产品列表 -->
       <div class="left-panel flex-1 panel-container">
+        <div class="panel-header">
+          <h3 class="panel-title">产品进度列表</h3>
+        </div>
         <productList
           ref="listRef"
           :searchInfo="searchForm"
@@ -493,5 +496,16 @@ const listedCount = computed(() => {
 .right-panel :deep(.el-card) {
   margin: 0;
   border-radius: 12px;
+}
+
+.panel-header {
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
 }
 </style>

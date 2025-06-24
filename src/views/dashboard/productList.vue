@@ -158,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, readonly } from "vue";
 import { Badge } from "lucide-vue-next";
 import { getProjectProgressList } from "@/api/progress";
 import { ElMessage } from "element-plus";
@@ -208,7 +208,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(["selectProject"]);
+const emit = defineEmits(["selectProject", "updateTableData"]);
 
 interface IQueryParams {
   pageNo: number;
@@ -303,6 +303,9 @@ const fetchProductList = () => {
   getProjectProgressList(commonInfo).then(res => {
     tableData.value = res?.data || [];
     // pagination.value.total = res.data.total;
+
+    // 将数据传递给父组件
+    emit("updateTableData", tableData.value);
   });
 };
 
@@ -323,7 +326,8 @@ const handleShowDetails = row => {
 };
 
 defineExpose({
-  fetchProductList
+  fetchProductList,
+  tableData: readonly(tableData)
 });
 </script>
 <style scoped>

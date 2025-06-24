@@ -102,9 +102,9 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item prop="status" label="状态" class="flex-1 mb-0">
+            <el-form-item prop="statusId" label="状态" class="flex-1 mb-0">
               <el-select
-                v-model="searchForm.status"
+                v-model="searchForm.statusId"
                 placeholder="全部状态"
                 clearable
                 class="custom-select"
@@ -141,6 +141,7 @@
           :searchInfo="searchForm"
           :statusList="statusList"
           @selectProject="handleSelectProject"
+          @updateTableData="handleUpdateTableData"
         />
       </div>
 
@@ -199,11 +200,12 @@ const infoList = ref([]);
 const brandList = ref([]);
 const listRef = ref(null);
 const selectedProject = ref(null);
+const tableData = ref([]);
 const searchForm = ref({
   productName: "",
   brandId: "",
   keyword: "",
-  status: "",
+  statusId: "",
   productNo: "",
   pmUserName: [],
   npdUserName: []
@@ -288,6 +290,11 @@ const refreshList = () => {
 const handleSelectProject = project => {
   selectedProject.value = project;
   console.log("选中的项目:", project);
+};
+
+const handleUpdateTableData = data => {
+  tableData.value = data;
+  console.log("接收到的表格数据:", data);
 };
 </script>
 

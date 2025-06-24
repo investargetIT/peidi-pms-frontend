@@ -83,6 +83,50 @@
           </div>
         </template>
 
+        <!-- Simple 模式（仿照参考代码的样式） -->
+        <template v-else-if="displayMode === 'simple'">
+          <div class="simple-mode">
+            <button
+              v-if="!readonly"
+              @click="choosePerson"
+              :disabled="readonly"
+              class="el-button el-button--default button-new-tag"
+              type="button"
+            >
+              <span>+ {{ label }}</span>
+            </button>
+            <div class="helpers mt-2" v-if="normalizedPersons.length > 0">
+              <p
+                v-for="(item, index) in normalizedPersons"
+                :key="item.emplId"
+                class="help-item flex items-center justify-between py-1"
+              >
+                <span class="text-sm text-gray-900">{{ item.name }}</span>
+                <button
+                  v-if="!readonly"
+                  @click="removePerson(item)"
+                  class="ml-2 inline-flex items-center justify-center w-4 h-4 text-gray-400 hover:text-red-600 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </p>
+            </div>
+          </div>
+        </template>
+
         <!-- 列表模式（原有逻辑） -->
         <template v-else>
           <div
@@ -229,8 +273,8 @@ const props = defineProps({
   },
   displayMode: {
     type: String,
-    default: "list", // list, tag
-    validator: value => ["list", "tag"].includes(value)
+    default: "list", // list, tag, simple
+    validator: value => ["list", "tag", "simple"].includes(value)
   },
   readonly: {
     type: Boolean,
@@ -337,6 +381,74 @@ const removePerson = tag => {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
+  }
+
+  .simple-mode {
+    .helpers {
+      .help-item {
+        padding: 4px 0;
+        border-bottom: 1px solid #f0f0f0;
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+    }
+
+    .el-button {
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 32px;
+      padding: 8px 15px;
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1;
+      color: #606266;
+      text-align: center;
+      text-decoration: none;
+      white-space: nowrap;
+      vertical-align: middle;
+      appearance: none;
+      cursor: pointer;
+      user-select: none;
+      background-color: #fff;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      outline: none;
+      transition: 0.1s;
+
+      &:hover {
+        color: #409eff;
+        background-color: #ecf5ff;
+        border-color: #c6e2ff;
+      }
+
+      &:focus {
+        color: #409eff;
+        border-color: #409eff;
+      }
+
+      &:active {
+        color: #3a8ee6;
+        border-color: #3a8ee6;
+        outline: none;
+      }
+
+      &:disabled {
+        color: #c0c4cc;
+        cursor: not-allowed;
+        background-color: #fff;
+        background-image: none;
+        border-color: #ebeef5;
+      }
+
+      span {
+        display: inline-block;
+      }
+    }
   }
 }
 </style>

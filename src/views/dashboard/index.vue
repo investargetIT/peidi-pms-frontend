@@ -126,12 +126,14 @@
               <PersonSelector
                 label="PM负责人"
                 v-model="searchForm.pmUserName"
+                display-mode="simple"
               />
             </div>
             <div class="flex-1">
               <PersonSelector
                 label="NPD负责人"
                 v-model="searchForm.npdUserName"
+                display-mode="simple"
               />
             </div>
             <div class="flex-1">

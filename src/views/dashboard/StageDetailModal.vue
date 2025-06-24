@@ -190,6 +190,14 @@ watch(
       // 默认状态为待开始
       editedStage.value.statusId = props.stage.statusId ?? 115;
 
+      // 转换为 system 格式 {dingId, userName, avatarUrl}
+      editedStage.value.chargeIds =
+        props.stage?.chargeDingUser?.map(item => ({
+          dingId: item?.dingId,
+          userName: item?.userName,
+          avatarUrl: item?.avatarUrl || ""
+        })) || [];
+
       // 确保 fileUrlList 是数组
       if (!Array.isArray(editedStage.value.fileUrlList)) {
         editedStage.value.fileUrlList = [];
@@ -280,6 +288,7 @@ const handleClose = () => {
 
 const handleAssigneesChange = assignees => {
   console.log("负责人变更:", assignees);
+  // assignees 已经是 system 格式 {dingId, userName, avatarUrl}
   editedStage.value.chargeIds = assignees;
 };
 

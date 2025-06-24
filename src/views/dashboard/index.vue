@@ -219,8 +219,6 @@ const handleSaveProject = newProject => {
 
   // 刷新列表
   refreshList();
-
-  ElMessage.success("项目创建成功");
 };
 
 const getTypeList = () => {

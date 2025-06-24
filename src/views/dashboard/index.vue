@@ -43,11 +43,9 @@
         </div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
-            class="w-6 h-6 rounded-full bg-blue-50/50 flex items-center justify-center"
+            class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
           >
-            <el-icon class="text-blue-400" style="font-size: 14px"
-              ><Loading
-            /></el-icon>
+            <div class="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -58,11 +56,9 @@
         </div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
-            class="w-6 h-6 rounded-full bg-green-50/50 flex items-center justify-center"
+            class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
           >
-            <el-icon class="text-green-400" style="font-size: 14px"
-              ><Check
-            /></el-icon>
+            <div class="w-3 h-3 bg-green-600 rounded-full"></div>
           </div>
         </div>
       </div>

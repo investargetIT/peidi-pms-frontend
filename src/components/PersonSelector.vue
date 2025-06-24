@@ -27,13 +27,35 @@
           </div>
         </el-tag>
         <div
-          v-if="normalizedPersons.length === 0 && readonly"
-          class="text-gray-500 text-sm"
+          v-if="normalizedPersons.length === 0"
+          class="flex items-center gap-1"
         >
-          暂无负责人
+          <span class="text-xs text-gray-500">暂无负责人</span>
+          <button
+            v-if="!readonly"
+            @click="choosePerson"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-5 w-5 p-0 rounded-full border border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+            type="button"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-3 h-3 text-gray-500 hover:text-blue-600"
+            >
+              <path d="M5 12h14"></path>
+              <path d="M12 5v14"></path>
+            </svg>
+          </button>
         </div>
         <el-button
-          v-if="!readonly"
+          v-if="!readonly && normalizedPersons.length > 0"
           class="add-person-btn"
           size="small"
           @click="choosePerson"

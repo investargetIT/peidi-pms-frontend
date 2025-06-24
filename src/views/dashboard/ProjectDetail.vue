@@ -88,14 +88,29 @@
                 </div>
 
                 <!-- 查看详情按钮 -->
-                <el-button
-                  size="small"
-                  text
+                <button
                   @click.stop="openStageDetail(stage)"
+                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 h-6 px-2 text-xs bg-transparent"
                 >
-                  <el-icon><View /></el-icon>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="w-3 h-3 mr-1"
+                  >
+                    <path
+                      d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"
+                    ></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
                   详情
-                </el-button>
+                </button>
               </div>
 
               <!-- 附件信息 -->

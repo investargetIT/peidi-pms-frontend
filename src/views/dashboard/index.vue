@@ -122,11 +122,21 @@
 
           <!-- 第二行：PM负责人和NPD负责人 -->
           <div class="search-row flex items-start gap-4">
-            <PersonSelector label="PM负责人" v-model="searchForm.pmUserName" />
-            <PersonSelector
-              label="NPD负责人"
-              v-model="searchForm.npdUserName"
-            />
+            <div class="flex-1">
+              <PersonSelector
+                label="PM负责人"
+                v-model="searchForm.pmUserName"
+              />
+            </div>
+            <div class="flex-1">
+              <PersonSelector
+                label="NPD负责人"
+                v-model="searchForm.npdUserName"
+              />
+            </div>
+            <div class="flex-1">
+              <!-- 预留第三列位置，保持布局对称 -->
+            </div>
           </div>
         </el-form>
       </div>

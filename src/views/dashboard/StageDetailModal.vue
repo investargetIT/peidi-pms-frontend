@@ -187,6 +187,8 @@ watch(
     dialogVisible.value = newVal;
     if (newVal && props.stage) {
       editedStage.value = JSON.parse(JSON.stringify(props.stage));
+      // 默认状态为待开始
+      editedStage.value.statusId = props.stage.statusId ?? 115;
 
       // 确保 fileUrlList 是数组
       if (!Array.isArray(editedStage.value.fileUrlList)) {

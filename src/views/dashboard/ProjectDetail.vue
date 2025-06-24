@@ -400,40 +400,40 @@ const handleSaveStage = async updatedStage => {
       console.log("保存阶段数据请求:", requestData);
 
       // 调用API保存数据
-      // const res = await updateProjectStateProgress(requestData);
+      const res = await updateProjectStateProgress(requestData);
 
-      // if (res?.code === 200) {
-      //   // API调用成功，更新本地数据
-      //   const stageIndex = stageListConfig.value.findIndex(
-      //     s => s.stageId === updatedStage.stageId
-      //   );
+      if (res?.code === 200) {
+        // API调用成功，更新本地数据
+        const stageIndex = stageListConfig.value.findIndex(
+          s => s.stageId === updatedStage.stageId
+        );
 
-      //   if (stageIndex !== -1) {
-      //     // 更新阶段配置
-      //     stageListConfig.value[stageIndex] = {
-      //       ...stageListConfig.value[stageIndex],
-      //       statusId: updatedStage.statusId,
-      //       statusName: getStatusNameFromId(updatedStage.statusId),
-      //       deadlineDate: updatedStage.deadlineDate,
-      //       finishDate: updatedStage.finishDate,
-      //       remark: updatedStage.remark,
-      //       chargeIds: updatedStage.chargeIds || [],
-      //       fileUrlList: updatedStage.fileUrlList || []
-      //     };
-      //   }
+        if (stageIndex !== -1) {
+          // 更新阶段配置
+          stageListConfig.value[stageIndex] = {
+            ...stageListConfig.value[stageIndex],
+            statusId: updatedStage.statusId,
+            statusName: getStatusNameFromId(updatedStage.statusId),
+            deadlineDate: updatedStage.deadlineDate,
+            finishDate: updatedStage.finishDate,
+            remark: updatedStage.remark,
+            chargeIds: updatedStage.chargeIds || [],
+            fileUrlList: updatedStage.fileUrlList || []
+          };
+        }
 
-      //   // 显示成功消息
-      //   ElMessage.success("保存成功");
+        // 显示成功消息
+        ElMessage.success("保存成功");
 
-      //   // 关闭弹窗
-      //   stageDialogVisible.value = false;
+        // 关闭弹窗
+        stageDialogVisible.value = false;
 
-      //   console.log("阶段数据保存成功:", updatedStage);
-      // } else {
-      //   // API返回错误
-      //   ElMessage.error(res?.msg || "保存失败，请重试");
-      //   console.error("保存阶段数据失败:", res);
-      // }
+        console.log("阶段数据保存成功:", updatedStage);
+      } else {
+        // API返回错误
+        ElMessage.error(res?.msg || "保存失败，请重试");
+        console.error("保存阶段数据失败:", res);
+      }
     } catch (apiError) {
       // API调用异常
       console.error("保存阶段数据API调用失败:", apiError);

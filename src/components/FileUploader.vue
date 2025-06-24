@@ -9,10 +9,7 @@
         v-model:file-list="fileList"
         class="upload-demo"
         :action="postUrl"
-        :data="{
-          path: default_upload_url,
-          create_parents: false
-        }"
+        :data="getUploadData"
         :before-remove="handleRemove"
         :with-credentials="false"
         :accept="accept"
@@ -20,7 +17,7 @@
         :on-error="handleError"
         :before-upload="beforeUpload"
         :on-success="uploadSuccess"
-        :auto-upload="false"
+        :auto-upload="true"
         :on-preview="handlePreview"
         list-type="text"
         :show-file-list="false"
@@ -155,6 +152,31 @@ const isUploading = ref(false);
 // 内部文件列表
 const fileList = ref([]);
 
+// 上传数据函数
+const getUploadData = file => {
+  // 生成唯一文件名
+  if (file && file.name) {
+    const dotIndex = file.name.lastIndexOf(".");
+    const fileNameWithoutExtension = file.name.slice(0, dotIndex);
+    const fileExtension = file.name.slice(dotIndex);
+    const timestamp = Date.now();
+    const uniqueFileName = `${fileNameWithoutExtension}_${timestamp}${fileExtension}`;
+
+    console.log("Upload data - renamed file:", file.name, "->", uniqueFileName);
+
+    return {
+      path: default_upload_url,
+      create_parents: false,
+      filename: uniqueFileName
+    };
+  }
+
+  return {
+    path: default_upload_url,
+    create_parents: false
+  };
+};
+
 // 计算属性：检查是否有正在上传的文件
 const hasUploadingFiles = computed(() => {
   // 优先使用简单的状态追踪
@@ -270,64 +292,37 @@ const handleChange = file => {
     return;
   }
 
-  // 如果文件状态不是ready，说明已经在上传过程中或已处理
-  if (file.status !== "ready") {
-    console.log("File status is not ready, current status:", file.status);
-    return;
-  }
-
   // 检查文件数量限制
   if (fileList.value.length >= props.maxCount) {
     ElMessage.warning(`最多只能上传 ${props.maxCount} 个文件`);
     return;
   }
 
-  console.log("Processing file for upload:", file.name);
-
-  try {
-    const { name, type, size, lastModified } = file;
-
-    // 生成唯一文件名，避免重名冲突
-    const dotIndex = file.name.lastIndexOf(".");
-    const fileNameWithoutExtension = file.name.slice(0, dotIndex);
-    const fileExtension = file.name.slice(dotIndex);
-    const timestamp = Date.now();
-    let fileName = `${fileNameWithoutExtension}_${timestamp}${fileExtension}`;
-
-    // 创建新的文件对象
-    let f = new File([file.raw], fileName, {
-      type: type,
-      lastModified: lastModified
-    });
-    f.uid = file.uid;
-    file.raw = f;
-
-    // 更新文件状态
-    file.status = "uploading";
-    isUploading.value = true; // 设置上传状态
-
-    console.log("Starting manual upload for:", file.raw.name);
-    console.log("Original file size:", (size / 1024 / 1024).toFixed(2) + "MB");
-
-    // 使用 nextTick 确保文件信息更新后再上传
-    nextTick(() => {
-      if (uploadRef.value) {
-        uploadRef.value.submit();
-      } else {
-        console.error("Upload ref is not available");
-        // 重置文件状态
-        file.status = "ready";
-        isUploading.value = false;
-        ElMessage.error("上传组件未就绪，请重试");
-      }
-    });
-  } catch (error) {
-    console.error("Error processing file for upload:", error);
-    // 重置文件状态
-    file.status = "ready";
-    isUploading.value = false;
-    ElMessage.error("文件处理失败，请重试");
+  // 当文件状态变为 uploading 时，设置全局上传状态
+  if (file.status === "uploading") {
+    isUploading.value = true;
+    console.log("File uploading detected, set isUploading to true");
   }
+
+  // 当文件上传完成时，检查是否还有其他文件在上传
+  if (file.status === "success" || file.status === "fail") {
+    const hasOtherUploading =
+      uploadRef.value?.uploadFiles?.some(
+        f => f.uid !== file.uid && f.status === "uploading"
+      ) || false;
+
+    if (!hasOtherUploading) {
+      isUploading.value = false;
+      console.log("All uploads completed in handleChange");
+    }
+  }
+
+  console.log(
+    "File processed in handleChange:",
+    file.name,
+    "status:",
+    file.status
+  );
 };
 
 const beforeUpload = file => {

@@ -121,24 +121,32 @@
           </div>
 
           <!-- 第二行：PM负责人和NPD负责人 -->
-          <div class="search-row flex items-start gap-4">
-            <div class="flex-1">
+          <div class="search-row flex items-center gap-4">
+            <el-form-item
+              prop="pmUserName"
+              label="PM负责人"
+              class="flex-1 mb-0 person-form-item"
+            >
               <PersonSelector
                 label="PM负责人"
                 v-model="searchForm.pmUserName"
                 display-mode="simple"
               />
-            </div>
-            <div class="flex-1">
+            </el-form-item>
+            <el-form-item
+              prop="npdUserName"
+              label="NPD负责人"
+              class="flex-1 mb-0 person-form-item"
+            >
               <PersonSelector
                 label="NPD负责人"
                 v-model="searchForm.npdUserName"
                 display-mode="simple"
               />
-            </div>
-            <div class="flex-1">
+            </el-form-item>
+            <el-form-item class="flex-1 mb-0">
               <!-- 预留第三列位置，保持布局对称 -->
-            </div>
+            </el-form-item>
           </div>
         </el-form>
       </div>
@@ -410,6 +418,48 @@ const listedCount = computed(() => {
 
   :deep(.el-input) {
     height: 40px;
+  }
+}
+
+.person-form-item {
+  :deep(.el-form-item__label) {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    line-height: 1;
+  }
+
+  :deep(.el-form-item__content) {
+    display: flex;
+    align-items: center;
+    height: 40px;
+  }
+
+  :deep(.person-label) {
+    display: none;
+  }
+
+  :deep(.person-tags) {
+    margin-left: 0;
+  }
+
+  :deep(.person-selector) {
+    width: 100%;
+  }
+
+  :deep(.person-row) {
+    align-items: center;
+    min-height: 40px;
+  }
+
+  :deep(.el-button) {
+    height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  :deep(.el-button span) {
+    font-size: 13px;
   }
 }
 </style>

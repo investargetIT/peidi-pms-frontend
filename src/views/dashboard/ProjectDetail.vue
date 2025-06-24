@@ -72,18 +72,26 @@
 
               <!-- 负责人区域 -->
               <div class="flex items-center justify-between mt-2">
-                <div class="flex items-center gap-1 flex-1">
+                <div class="flex items-center gap-1 flex-1" @click.stop>
                   <PersonSelector
                     label="负责人"
                     :model-value="stage.chargeDingUser || []"
-                    @update:model-value="
-                      value => updateStageAssignees(stage.stageId, value)
-                    "
+                    @auto-save="handleAutoSaveStageAssignees"
                     :max-count="5"
                     :show-avatar="true"
                     size="small"
                     data-format="system"
                     display-mode="tag"
+                    :auto-save="true"
+                    :save-params="{
+                      infoId: selectedProject.id,
+                      stageId: stage.stageId,
+                      statusId: stage.statusId,
+                      deadlineDate: stage.deadlineDate,
+                      finishDate: stage.finishDate,
+                      remark: stage.remark,
+                      fileUrlList: stage.fileUrlList || []
+                    }"
                     class="stage-person-selector"
                   />
                 </div>
@@ -295,50 +303,6 @@ const getPriorityIcon = priority => {
   }
 };
 
-const getStageStatusType = status => {
-  switch (status) {
-    case "completed":
-      return "success";
-    case "in-progress":
-      return "primary";
-    case "delayed":
-      return "danger";
-    default:
-      return "info";
-  }
-};
-
-const getStageStatusText = status => {
-  switch (status) {
-    case "completed":
-      return "已完成";
-    case "in-progress":
-      return "进行中";
-    case "delayed":
-      return "延期";
-    default:
-      return "待开始";
-  }
-};
-
-const updateStageAssignees = (stageId, assignees) => {
-  console.log("更新阶段负责人:", stageId, assignees);
-
-  const stageIndex = stageListConfig.value.findIndex(
-    s => s.stageId === stageId
-  );
-
-  if (stageIndex !== -1) {
-    stageListConfig.value[stageIndex].chargeDingUser = assignees;
-
-    // 这里可以调用API保存数据
-    console.log("保存阶段负责人数据:", {
-      stageId,
-      chargeDingUser: assignees
-    });
-  }
-};
-
 const openStageDetail = stage => {
   console.log("openStageDetail called with stage:", stage);
   console.log("stageDialogVisible before:", stageDialogVisible.value);
@@ -346,19 +310,6 @@ const openStageDetail = stage => {
   stageDialogVisible.value = true;
   console.log("stageDialogVisible after:", stageDialogVisible.value);
   console.log("selectedStage:", selectedStage.value);
-};
-
-const getFileName = arr => {
-  let names = [];
-  arr.map(item => {
-    if (item.response.success) {
-      names.push(item.raw.name);
-    }
-    if (!item.response.success && item.response?.error?.code == 414) {
-      names.push(item.raw.name);
-    }
-  });
-  return names;
 };
 
 const handleSaveStage = async updatedStage => {
@@ -435,6 +386,66 @@ const handleSaveStage = async updatedStage => {
     // 其他异常
     console.error("保存阶段数据异常:", error);
     ElMessage.error("保存过程中发生错误，请重试");
+  }
+};
+
+const handleAutoSaveStageAssignees = async saveData => {
+  try {
+    // 验证必要字段
+    if (!saveData.stageId) {
+      ElMessage.error("阶段ID不能为空");
+      return;
+    }
+
+    if (!saveData.infoId) {
+      ElMessage.error("项目信息不完整");
+      return;
+    }
+    console.log("saveData", saveData);
+
+    // 构建API请求数据，参考handleSaveStage的格式
+    const requestData = {
+      infoId: saveData.infoId,
+      stageId: saveData.stageId,
+      statusId: saveData.statusId,
+      deadlineDate: saveData.deadlineDate,
+      remark: saveData.remark,
+      // 处理负责人数据，提取emplId或dingId
+      chargeIds:
+        saveData.assignees?.map(user => user.emplId || user.dingId) || [],
+      // 处理文件列表数据
+      fileUrlList: saveData.fileUrlList || []
+    };
+
+    if (saveData.finishDate) {
+      requestData.finishDate = saveData.finishDate;
+    }
+
+    console.log("自动保存阶段负责人数据请求:", requestData);
+
+    // 调用API保存数据
+    const res = await updateProjectStateProgress(requestData);
+
+    if (res?.code === 200) {
+      // API调用成功，重新获取最新数据
+      await fetchStageConfigList();
+
+      // 显示成功消息
+      ElMessage.success("负责人更新成功");
+
+      console.log("阶段负责人数据保存成功:", saveData);
+
+      // 触发事件通知父组件更新列表数据
+      emit("refreshList");
+    } else {
+      // API返回错误
+      ElMessage.error(res?.msg || "负责人更新失败，请重试");
+      console.error("保存阶段负责人数据失败:", res);
+    }
+  } catch (error) {
+    // API调用异常
+    console.error("保存阶段负责人数据异常:", error);
+    ElMessage.error("网络错误，请检查网络连接后重试");
   }
 };
 </script>

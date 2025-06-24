@@ -279,6 +279,15 @@ const props = defineProps({
   readonly: {
     type: Boolean,
     default: false
+  },
+  // 自动保存相关配置
+  autoSave: {
+    type: Boolean,
+    default: false
+  },
+  saveParams: {
+    type: Object,
+    default: () => ({})
   }
 });
 
@@ -288,7 +297,7 @@ setTimeout(() => {
 }, 100);
 ddAuthFun();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "autoSave"]);
 
 // 使用计算属性直接使用 props.modelValue，避免递归更新
 const selectedPersons = computed(() => props.modelValue);
@@ -336,6 +345,14 @@ const choosePerson = () => {
         }));
       }
       emit("update:modelValue", outputData);
+
+      // 如果开启自动保存，触发保存事件
+      if (props.autoSave) {
+        emit("autoSave", {
+          ...props.saveParams,
+          assignees: outputData
+        });
+      }
     },
     onFail: function (err) {
       console.error("选择人员失败:", err);
@@ -361,6 +378,14 @@ const removePerson = tag => {
   }
 
   emit("update:modelValue", newPersons);
+
+  // 如果开启自动保存，触发保存事件
+  if (props.autoSave) {
+    emit("autoSave", {
+      ...props.saveParams,
+      assignees: newPersons
+    });
+  }
 };
 </script>
 

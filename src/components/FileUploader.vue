@@ -17,7 +17,7 @@
         :on-error="handleError"
         :before-upload="beforeUpload"
         :on-success="uploadSuccess"
-        :auto-upload="true"
+        :auto-upload="false"
         :on-preview="handlePreview"
         list-type="text"
         :show-file-list="false"
@@ -153,28 +153,9 @@ const isUploading = ref(false);
 const fileList = ref([]);
 
 // 上传数据函数
-const getUploadData = file => {
-  // 生成唯一文件名
-  if (file && file.name) {
-    const dotIndex = file.name.lastIndexOf(".");
-    const fileNameWithoutExtension = file.name.slice(0, dotIndex);
-    const fileExtension = file.name.slice(dotIndex);
-    const timestamp = Date.now();
-    const uniqueFileName = `${fileNameWithoutExtension}_${timestamp}${fileExtension}`;
-
-    console.log("Upload data - renamed file:", file.name, "->", uniqueFileName);
-
-    return {
-      path: default_upload_url,
-      create_parents: false,
-      filename: uniqueFileName
-    };
-  }
-
-  return {
-    path: default_upload_url,
-    create_parents: false
-  };
+const getUploadData = {
+  path: default_upload_url,
+  create_parents: false
 };
 
 // 计算属性：检查是否有正在上传的文件
@@ -283,12 +264,8 @@ const handleRemove = (uploadFile, uploadFiles) => {
 
 const handleChange = file => {
   console.log("handleChange called with file:", file);
-  console.log("File status:", file.status);
-  console.log("File response:", file.response);
 
-  // 如果文件已经有响应（已上传），则不处理
   if (file.response) {
-    console.log("File already has response, skipping");
     return;
   }
 
@@ -298,201 +275,43 @@ const handleChange = file => {
     return;
   }
 
-  // 当文件状态变为 uploading 时，设置全局上传状态
-  if (file.status === "uploading") {
-    isUploading.value = true;
-    console.log("File uploading detected, set isUploading to true");
-  }
+  const { name, type, size, lastModified } = file;
+  const dotIndex = file.name.lastIndexOf(".");
+  const fileNameWithoutExtension = file.name.slice(0, dotIndex);
+  const fileExtension = file.name.slice(dotIndex);
+  let fileName = `${fileNameWithoutExtension}_${Date.now()}${fileExtension}`;
 
-  // 当文件上传完成时，检查是否还有其他文件在上传
-  if (file.status === "success" || file.status === "fail") {
-    const hasOtherUploading =
-      uploadRef.value?.uploadFiles?.some(
-        f => f.uid !== file.uid && f.status === "uploading"
-      ) || false;
+  let f = new File([file.raw], fileName, {
+    type: type,
+    lastModified: lastModified
+  });
+  f.uid = file.uid;
+  file.raw = f;
 
-    if (!hasOtherUploading) {
-      isUploading.value = false;
-      console.log("All uploads completed in handleChange");
-    }
-  }
+  uploadRef.value.submit();
+  isUploading.value = true;
 
-  console.log(
-    "File processed in handleChange:",
-    file.name,
-    "status:",
-    file.status
-  );
+  console.log(file.raw);
 };
 
 const beforeUpload = file => {
   console.log("beforeUpload called for file:", file.name);
-  console.log("File size:", (file.size / 1024 / 1024).toFixed(2) + "MB");
-
-  // 基本文件检查
-  if (!file) {
-    ElMessage.error("文件不存在");
-    return false;
-  }
-
-  if (!file.name) {
-    ElMessage.error("文件名不能为空");
-    return false;
-  }
-
-  console.log("File validation passed, proceeding with upload");
   return true;
 };
 
-const uploadSuccess = (res, file) => {
-  console.log("uploadSuccess called with response:", res);
-  console.log("uploadSuccess called with file:", file);
+const uploadSuccess = res => {
+  isUploading.value = false;
+  console.log("uploadSuccess", res, fileList.value);
 
-  // 调试：显示所有文件状态
-  console.log(
-    "Current fileList.value statuses:",
-    fileList.value.map(f => ({ uid: f.uid, status: f.status, name: f.name }))
-  );
-  if (uploadRef.value && uploadRef.value.uploadFiles) {
-    console.log(
-      "Current el-upload statuses:",
-      uploadRef.value.uploadFiles.map(f => ({
-        uid: f.uid,
-        status: f.status,
-        name: f.name
-      }))
-    );
-  }
+  fileList.value.map(item => {
+    item.realFileName = item.raw.name;
+  });
 
-  try {
-    // 检查多种成功条件
-    const isSuccess =
-      res &&
-      (res.success ||
-        res.code === 200 ||
-        (!res.error && !res.success === false));
-
-    if (isSuccess) {
-      // 上传成功，更新文件信息
-      const fileIndex = fileList.value.findIndex(item => item.uid === file.uid);
-      if (fileIndex !== -1) {
-        const updatedList = [...fileList.value];
-        updatedList[fileIndex].realFileName = file.raw?.name || file.name;
-        updatedList[fileIndex].response = res;
-        updatedList[fileIndex].status = "success";
-        updatedList[fileIndex].url = res.url || res.data?.url || "";
-
-        console.log("Updated file info:", updatedList[fileIndex]);
-        updateFileList(updatedList);
-      }
-
-      // 强制更新 el-upload 组件的文件状态
-      if (uploadRef.value && uploadRef.value.uploadFiles) {
-        const uploadFileIndex = uploadRef.value.uploadFiles.findIndex(
-          item => item.uid === file.uid
-        );
-        if (uploadFileIndex !== -1) {
-          uploadRef.value.uploadFiles[uploadFileIndex].status = "success";
-          uploadRef.value.uploadFiles[uploadFileIndex].response = res;
-          console.log(
-            "Force updated el-upload file status to success (partial)"
-          );
-        }
-      }
-
-      const fileName = file.raw?.name || file.name;
-      ElMessage.success(`文件 "${fileName}" 上传成功`);
-      console.log("File uploaded successfully:", fileName);
-
-      emit("upload-success", { file, response: res });
-    } else {
-      // 上传失败，但仍然有一些错误码可能表示部分成功
-      const isPartialSuccess = res?.error?.code === 414;
-
-      if (isPartialSuccess) {
-        // 部分成功情况的处理
-        const fileIndex = fileList.value.findIndex(
-          item => item.uid === file.uid
-        );
-        if (fileIndex !== -1) {
-          const updatedList = [...fileList.value];
-          updatedList[fileIndex].realFileName = file.raw?.name || file.name;
-          updatedList[fileIndex].response = res;
-          updatedList[fileIndex].status = "success";
-          updateFileList(updatedList);
-        }
-
-        const fileName = file.raw?.name || file.name;
-        ElMessage.warning(`文件 "${fileName}" 上传完成（有警告）`);
-        console.log("File uploaded with warning:", fileName, res);
-
-        emit("upload-success", { file, response: res, warning: true });
-      } else {
-        // 完全失败
-        const errorMessage =
-          res?.error?.message || res?.msg || res?.message || "文件上传失败";
-        ElMessage.error(errorMessage);
-        console.error("File upload failed:", res);
-
-        // 移除失败的文件
-        const fileIndex = fileList.value.findIndex(
-          item => item.uid === file.uid
-        );
-        if (fileIndex !== -1) {
-          const updatedList = [...fileList.value];
-          updatedList.splice(fileIndex, 1);
-          updateFileList(updatedList);
-        }
-
-        emit("upload-error", { file, error: res });
-      }
-    }
-  } catch (error) {
-    console.error("Error in uploadSuccess:", error);
-    ElMessage.error("处理上传结果时发生错误");
-    emit("upload-error", { file, error });
-  }
-
-  // 检查是否还有其他文件正在上传
-  const hasOtherUploading = fileList.value.some(
-    f => f.uid !== file.uid && f.status === "uploading"
-  );
-  if (!hasOtherUploading) {
-    isUploading.value = false;
-    console.log("All uploads completed, reset isUploading to false");
-  }
+  const { success, error } = res;
 };
 
-const handleError = (error, file) => {
-  console.error("Upload error:", error);
-  console.error("Failed file:", file);
-
-  // 移除失败的文件
-  if (file) {
-    const fileIndex = fileList.value.findIndex(item => item.uid === file.uid);
-    if (fileIndex !== -1) {
-      const updatedList = [...fileList.value];
-      updatedList.splice(fileIndex, 1);
-      updateFileList(updatedList);
-    }
-  }
-
-  const fileName = file?.raw?.name || file?.name || "未知文件";
-  const errorMessage = error?.message || error?.msg || "网络错误或服务器异常";
-
-  ElMessage.error(`文件 "${fileName}" 上传失败: ${errorMessage}`);
-  emit("upload-error", { file, error });
-
-  // 检查是否还有其他文件正在上传
-  const hasOtherUploading = fileList.value.some(
-    f => f.uid !== file?.uid && f.status === "uploading"
-  );
-  if (!hasOtherUploading) {
-    isUploading.value = false;
-    console.log(
-      "All uploads completed after error, reset isUploading to false"
-    );
-  }
+const handleError = () => {
+  ElMessage.error("上传失败");
 };
 
 const handlePreview = file => {
@@ -555,48 +374,17 @@ const removeFile = index => {
   }
 };
 
-const getFileNames = files => {
-  if (!files || !Array.isArray(files)) {
-    console.log("getFileNames: Invalid fileList", files);
-    return [];
-  }
-
-  console.log("getFileNames: Processing fileList", files);
-
-  return files
-    .filter(item => {
-      // 过滤成功上传的文件，包括多种成功条件
-      const isSuccess =
-        item.response?.success ||
-        item.response?.code === 200 ||
-        item.status === "success" ||
-        item.response?.error?.code === 414;
-
-      console.log("getFileNames: File filter result", {
-        fileName: item.realFileName || item.raw?.name || item.name,
-        isSuccess,
-        response: item.response,
-        status: item.status
-      });
-
-      return isSuccess;
-    })
-    .map(item => {
-      // 提取文件名，优先使用 realFileName
-      const fileName = item.realFileName || item.raw?.name || item.name;
-      console.log("getFileNames: Extracted fileName", fileName);
-      return fileName;
-    })
-    .filter(name => {
-      // 过滤无效文件名
-      const isValid =
-        name &&
-        typeof name === "string" &&
-        name.trim() !== "" &&
-        name !== "string";
-      console.log("getFileNames: FileName validation", { name, isValid });
-      return isValid;
-    });
+const getFileNames = arr => {
+  let names = [];
+  arr.map(item => {
+    if (item.response.success) {
+      names.push(item.raw.name);
+    }
+    if (!item.response.success && item.response?.error?.code == 414) {
+      names.push(item.raw.name);
+    }
+  });
+  return names;
 };
 
 // 暴露方法给父组件

@@ -30,7 +30,7 @@
         <div class="text-3xl font-semibold mt-2">{{ totalProjectCount }}</div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
-            class="w-15 h-15 rounded-full bg-blue-50/50 flex items-center justify-center"
+            class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
           >
             <LucideCalendar class="w-4 h-4 text-blue-600" />
           </div>

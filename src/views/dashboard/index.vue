@@ -27,7 +27,7 @@
     <div class="statistics-panel grid grid-cols-3 gap-6 mb-8">
       <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
         <div class="text-gray-500 text-base">总项目数</div>
-        <div class="text-3xl font-semibold mt-2">3</div>
+        <div class="text-3xl font-semibold mt-2">{{ totalProjectCount }}</div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
             class="w-15 h-15 rounded-full bg-blue-50/50 flex items-center justify-center"
@@ -38,7 +38,9 @@
       </div>
       <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
         <div class="text-gray-500 text-base">开发中</div>
-        <div class="text-3xl font-semibold mt-2 text-blue-500">2</div>
+        <div class="text-3xl font-semibold mt-2 text-blue-500">
+          {{ developingCount }}
+        </div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
             class="w-6 h-6 rounded-full bg-blue-50/50 flex items-center justify-center"
@@ -51,7 +53,9 @@
       </div>
       <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
         <div class="text-gray-500 text-base">已上市</div>
-        <div class="text-3xl font-semibold mt-2 text-green-500">1</div>
+        <div class="text-3xl font-semibold mt-2 text-green-500">
+          {{ listedCount }}
+        </div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <div
             class="w-6 h-6 rounded-full bg-green-50/50 flex items-center justify-center"
@@ -175,7 +179,7 @@ import {
   AlertTriangle,
   Flag
 } from "lucide-vue-next";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 import { fetchStatusList } from "@/api/pmApi.ts";
 
@@ -296,6 +300,19 @@ const handleUpdateTableData = data => {
   tableData.value = data;
   console.log("接收到的表格数据:", data);
 };
+
+// 计算项目统计数据
+const totalProjectCount = computed(() => {
+  return tableData.value?.length || 0;
+});
+
+const developingCount = computed(() => {
+  return tableData.value.filter(item => item.statusId === 113)?.length || 0;
+});
+
+const listedCount = computed(() => {
+  return tableData.value.filter(item => item.statusId === 114).length;
+});
 </script>
 
 <style scoped>

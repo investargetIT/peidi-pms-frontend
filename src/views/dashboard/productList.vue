@@ -18,7 +18,7 @@
             :key="item.dingId"
             class="userContainer"
           >
-            <img v-if="item.avatarUrl" :src="item.avatarUrl" class="userIcon" />
+            <img :src="item.avatarUrl || Avatar" class="userIcon" />
             <span>{{ item.userName }}</span>
           </div>
         </template>
@@ -30,7 +30,7 @@
             :key="item.dingId"
             class="userContainer"
           >
-            <img v-if="item.avatarUrl" :src="item.avatarUrl" class="userIcon" />
+            <img :src="item.avatarUrl || Avatar" class="userIcon" />
             <span>{{ item.userName }}</span>
           </div>
         </template>
@@ -166,6 +166,7 @@ import { getProductList, deleteProduct } from "@/api/pmApi.ts";
 import UpdateDialog from "./UpdateDialog.vue";
 import { reverseMapping, mapping } from "./utils";
 import { debounce, storageLocal } from "@pureadmin/utils";
+import Avatar from "@/assets/user.jpg";
 const tableData = ref([]);
 const pagination = ref({
   pageNo: 1,

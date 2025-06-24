@@ -387,9 +387,8 @@ const handleSaveStage = async updatedStage => {
         deadlineDate: updatedStage.deadlineDate,
         remark: updatedStage.remark,
         // 处理负责人数据，提取emplId
-        chargeDingIds:
-          updatedStage.chargeDingIds?.map(user => user.emplId || user.dingId) ||
-          [],
+        chargeIds:
+          updatedStage.chargeIds?.map(user => user.emplId || user.dingId) || [],
         // 处理文件列表数据
         fileUrlList: updatedStage.fileUrlList || []
       };

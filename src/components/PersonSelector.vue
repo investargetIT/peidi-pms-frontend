@@ -292,10 +292,15 @@ const props = defineProps({
 });
 
 const DINGTALK_CORP_ID = "dingfc722e531a4125b735c2f4657eb6378f";
-setTimeout(() => {
-  initDingH5RemoteDebug();
-}, 100);
-ddAuthFun();
+
+// 全局标记，确保钉钉授权只执行一次
+if (!window.__DD_AUTH_INITIALIZED__) {
+  window.__DD_AUTH_INITIALIZED__ = true;
+  setTimeout(() => {
+    initDingH5RemoteDebug();
+  }, 100);
+  ddAuthFun();
+}
 
 const emit = defineEmits(["update:modelValue", "autoSave"]);
 

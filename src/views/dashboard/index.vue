@@ -498,7 +498,7 @@ const listedCount = computed(() => {
 }
 
 .right-panel {
-  width: 500px; /* 设置右侧面板固定宽度 */
+  width: 320px; /* 设置右侧面板固定宽度 */
   height: fit-content; /* 高度自适应内容 */
   padding: 0;
 }

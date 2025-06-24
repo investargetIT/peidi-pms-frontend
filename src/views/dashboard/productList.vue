@@ -365,6 +365,59 @@ defineExpose({
   color: red;
 }
 
+/* 表格表头样式 */
+:deep(.el-table thead) {
+  background-color: #f9fafb;
+}
+
+:deep(.el-table th.el-table__cell) {
+  padding: 16px;
+  font-weight: 500;
+  color: #111827;
+  text-align: left;
+  background-color: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+:deep(.el-table th .cell) {
+  font-weight: 500;
+  color: #111827;
+}
+
+/* 表格行样式优化 */
+:deep(.el-table td.el-table__cell) {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+:deep(.el-table tbody tr:hover > td) {
+  background-color: #f8fafc !important;
+}
+
+/* 表格整体样式 */
+:deep(.el-table) {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+:deep(.el-table__inner-wrapper::before) {
+  display: none;
+}
+
+:deep(.el-table::before) {
+  display: none;
+}
+
+/* 表格头部圆角 */
+:deep(.el-table thead th:first-child) {
+  border-top-left-radius: 8px;
+}
+
+:deep(.el-table thead th:last-child) {
+  border-top-right-radius: 8px;
+}
+
 .priority-badge {
   display: inline-flex;
   align-items: center;

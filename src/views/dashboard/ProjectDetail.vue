@@ -185,8 +185,6 @@ const selectedStage = ref(null);
 const stageListConfig = ref([]);
 
 const fetchStageConfigList = async () => {
-  console.log("==fetchStageConfigList==");
-  console.log(props.selectedProject);
   if (!props.selectedProject?.id) return;
   getProjectStageList({ infoId: props.selectedProject.id }).then(res => {
     if (res?.code === 200) {

@@ -332,6 +332,8 @@ const handleSaveStage = async updatedStage => {
       background: "rgba(0, 0, 0, 0.7)"
     });
 
+    console.log("updatedStage", updatedStage);
+
     try {
       // 构建API请求数据
       const requestData = {

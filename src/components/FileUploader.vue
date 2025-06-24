@@ -303,9 +303,16 @@ const uploadSuccess = res => {
   isUploading.value = false;
   console.log("uploadSuccess", res, fileList.value);
 
+  // 更新文件的 realFileName 和 response
   fileList.value.map(item => {
-    item.realFileName = item.raw.name;
+    if (item.raw && item.raw.name) {
+      item.realFileName = item.raw.name;
+      item.response = res;
+    }
   });
+
+  // 更新文件列表并通知父组件
+  updateFileList([...fileList.value]);
 
   const { success, error } = res;
 };
@@ -377,11 +384,11 @@ const removeFile = index => {
 const getFileNames = arr => {
   let names = [];
   arr.map(item => {
-    if (item.response.success) {
-      names.push(item.raw.name);
+    if (item.response?.success) {
+      names.push(item.raw?.name || item.realFileName || item.name);
     }
-    if (!item.response.success && item.response?.error?.code == 414) {
-      names.push(item.raw.name);
+    if (!item.response?.success && item.response?.error?.code == 414) {
+      names.push(item.raw?.name || item.realFileName || item.name);
     }
   });
   return names;

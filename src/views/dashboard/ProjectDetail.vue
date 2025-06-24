@@ -402,24 +402,8 @@ const handleSaveStage = async updatedStage => {
       const res = await updateProjectStateProgress(requestData);
 
       if (res?.code === 200) {
-        // API调用成功，更新本地数据
-        const stageIndex = stageListConfig.value.findIndex(
-          s => s.stageId === updatedStage.stageId
-        );
-
-        if (stageIndex !== -1) {
-          // 更新阶段配置
-          stageListConfig.value[stageIndex] = {
-            ...stageListConfig.value[stageIndex],
-            statusId: updatedStage.statusId,
-            statusName: getStatusNameFromId(updatedStage.statusId),
-            deadlineDate: updatedStage.deadlineDate,
-            finishDate: updatedStage.finishDate,
-            remark: updatedStage.remark,
-            chargeIds: updatedStage.chargeIds || [],
-            fileUrlList: updatedStage.fileUrlList || []
-          };
-        }
+        // API调用成功，重新获取最新数据
+        await fetchStageConfigList();
 
         // 显示成功消息
         ElMessage.success("保存成功");

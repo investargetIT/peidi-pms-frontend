@@ -153,7 +153,7 @@
     </div>
 
     <!-- 主要内容区域 -->
-    <div class="main-content flex gap-4">
+    <div class="main-content flex gap-4 items-start">
       <!-- 左侧产品列表 -->
       <div class="left-panel flex-1 panel-container">
         <div class="panel-header">
@@ -477,6 +477,14 @@ const listedCount = computed(() => {
     0 1px 2px -1px rgb(0 0 0 / 10%);
 }
 
+.left-panel {
+  align-self: flex-start; /* 高度自适应内容，不随右侧变化 */
+}
+
+.main-content {
+  align-items: flex-start !important;
+}
+
 .panel-container :deep(.el-table) {
   border-radius: 8px;
 }
@@ -490,6 +498,8 @@ const listedCount = computed(() => {
 }
 
 .right-panel {
+  width: 500px; /* 设置右侧面板固定宽度 */
+  height: fit-content; /* 高度自适应内容 */
   padding: 0;
 }
 

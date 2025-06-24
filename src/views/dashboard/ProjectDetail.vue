@@ -1,5 +1,5 @@
 <template>
-  <div class="right-panel w-80">
+  <div class="right-panel w-96">
     <el-card class="project-detail-card">
       <template #header>
         <div class="card-header">

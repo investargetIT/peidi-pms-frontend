@@ -373,7 +373,7 @@ const listedCount = computed(() => {
 
 .custom-search-input {
   :deep(.el-input__wrapper) {
-    height: 40px;
+    height: 32px;
     padding: 4px 12px;
     background-color: white;
     border: 1px solid #f0f0f0;

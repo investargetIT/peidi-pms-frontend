@@ -330,11 +330,12 @@ const totalProjectCount = computed(() => {
 });
 
 const developingCount = computed(() => {
-  return tableData.value.filter(item => item.statusId === 113)?.length || 0;
+  return tableData.value.filter(item => item.statusId == 113)?.length || 0;
 });
 
 const listedCount = computed(() => {
-  return tableData.value.filter(item => item.statusId === 114).length;
+  // 兼容id字符与整型
+  return tableData.value.filter(item => item.statusId == 114).length;
 });
 </script>
 

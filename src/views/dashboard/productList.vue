@@ -1,11 +1,11 @@
 <template>
-  <div class="mt-3 rounded-sm">
+  <div class="mt-3 rounded-sm table-container">
     <el-table
       :data="tableData"
-      style="width: 100%"
+      style="width: 100%; min-width: 1200px"
       :row-class-name="getRowClassName"
     >
-      <el-table-column prop="productName" label="产品信息">
+      <el-table-column prop="productName" label="产品信息" min-width="200">
         <template #default="scope">
           <div>
             <div class="text-base font-medium text-gray-900">
@@ -15,7 +15,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="pmDingUser" label="PM负责人">
+      <el-table-column prop="pmDingUser" label="PM负责人" min-width="150">
         <template #default="scope">
           <div
             v-for="item in scope.row.pmDingUser"
@@ -42,7 +42,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="npdDingUser" label="NPD负责人">
+      <el-table-column prop="npdDingUser" label="NPD负责人" min-width="150">
         <template #default="scope">
           <div
             v-for="item in scope.row.npdDingUser"
@@ -69,7 +69,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="statusName" label="状态">
+      <el-table-column prop="statusName" label="状态" min-width="100">
         <template #default="scope">
           <div
             :class="getStatusColor(scope.row.statusName)"
@@ -79,7 +79,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="priorityName" label="优先级">
+      <el-table-column prop="priorityName" label="优先级" min-width="100">
         <template #default="scope">
           <div
             :class="getPriorityColor(scope.row.priorityName)"
@@ -146,7 +146,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="progress" label="进度">
+      <el-table-column prop="progress" label="进度" min-width="120">
         <template #default="scope">
           <el-progress :percentage="scope.row.progress" />
         </template>
@@ -154,8 +154,9 @@
       <el-table-column
         prop="expectedListingDate"
         label="预计上市"
+        min-width="120"
       ></el-table-column>
-      <el-table-column label="操作">
+      <el-table-column label="操作" width="80" fixed="right">
         <template #default="scope">
           <button
             @click="handleShowDetails(scope.row)"
@@ -379,6 +380,30 @@ defineExpose({
 <style scoped>
 .hhh {
   color: red;
+}
+
+/* 表格容器横向滚动 */
+.table-container {
+  overflow: auto visible;
+}
+
+/* 滚动条样式优化 */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 /* 表格表头样式 */

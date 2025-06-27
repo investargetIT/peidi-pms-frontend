@@ -157,7 +157,7 @@
         label="预计上市"
         min-width="160"
       ></el-table-column>
-      <el-table-column label="操作" width="80" fixed="right">
+      <el-table-column label="操作" width="100" fixed="right">
         <template #default="scope">
           <button
             @click="handleShowDetails(scope.row)"

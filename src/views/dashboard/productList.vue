@@ -147,7 +147,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="progress" label="进度" min-width="120">
+      <el-table-column prop="progress" label="进度" min-width="160">
         <template #default="scope">
           <el-progress :percentage="scope.row.progress" />
         </template>
@@ -155,7 +155,7 @@
       <el-table-column
         prop="expectedListingDate"
         label="预计上市"
-        min-width="120"
+        min-width="160"
       ></el-table-column>
       <el-table-column label="操作" width="80" fixed="right">
         <template #default="scope">

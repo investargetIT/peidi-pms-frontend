@@ -1,5 +1,21 @@
 <template>
   <div class="dashboard-container p-4">
+    <!-- 调试信息 -->
+    <div
+      style="
+        display: none;
+        padding: 6px 12px;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #fff;
+        background: #222;
+        border-radius: 6px;
+      "
+    >
+      <strong>调试：</strong> isMobile =
+      {{ isMobile ? "true (移动端)" : "false (桌面端)" }}，screenWidth =
+      {{ screenWidth }}px
+    </div>
     <!-- 页面头部 -->
     <div class="page-header flex justify-between items-center mb-4">
       <div class="header-left">
@@ -24,8 +40,12 @@
     </div>
 
     <!-- 统计面板 -->
-    <div class="statistics-panel grid grid-cols-3 gap-6 mb-4">
-      <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
+    <div
+      class="statistics-panel flex flex-col gap-2 mb-4 md:grid md:grid-cols-3 md:gap-6"
+    >
+      <div
+        class="stat-card w-full mb-2 md:mb-0 bg-white rounded-lg p-4 shadow-sm"
+      >
         <div class="text-gray-500 text-base">总项目数</div>
         <div class="text-3xl font-semibold mt-2">{{ totalProjectCount }}</div>
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
@@ -36,7 +56,9 @@
           </div>
         </div>
       </div>
-      <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
+      <div
+        class="stat-card w-full mb-2 md:mb-0 bg-white rounded-lg p-4 shadow-sm"
+      >
         <div class="text-gray-500 text-base">开发中</div>
         <div class="text-3xl font-semibold mt-2 text-blue-500">
           {{ developingCount }}
@@ -49,7 +71,7 @@
           </div>
         </div>
       </div>
-      <div class="stat-card bg-white rounded-lg p-4 flex-1 shadow-sm">
+      <div class="stat-card w-full bg-white rounded-lg p-4 shadow-sm">
         <div class="text-gray-500 text-base">已上市</div>
         <div class="text-3xl font-semibold mt-2 text-green-500">
           {{ listedCount }}
@@ -65,91 +87,89 @@
     </div>
 
     <!-- 搜索区域 -->
-    <div class="search-area w-full bg-white rounded-lg shadow-sm mb-4">
-      <div class="w-full p-4">
-        <el-form :model="searchForm" :inline="true" class="search-form">
-          <!-- 第一行：产品名称、品牌、状态 -->
-          <div class="search-row flex items-center gap-4 mb-3">
-            <el-form-item
-              prop="productName"
-              label="产品名称"
-              class="flex-1 mb-0"
+    <div class="search-area px-4 py-3 rounded-xl bg-gray-50 shadow-sm mb-4">
+      <el-form :model="searchForm" :inline="true" class="search-form">
+        <!-- 第一行：产品名称、品牌、状态 -->
+        <div
+          class="search-row flex flex-col gap-2 md:grid md:grid-cols-3 md:gap-4 mb-3"
+        >
+          <el-form-item prop="productName" label="产品名称" class="w-full mb-0">
+            <el-input
+              v-model="searchForm.productName"
+              class="custom-search-input"
+              placeholder="产品名称"
+              clearable
             >
-              <el-input
-                v-model="searchForm.productName"
-                class="custom-search-input"
-                placeholder="产品名称"
-                clearable
-              >
-                <template #prefix>
-                  <el-icon class="text-gray-400"><Search /></el-icon>
-                </template>
-              </el-input>
-            </el-form-item>
-            <el-form-item prop="brand" label="品牌" class="flex-1 mb-0">
-              <el-select
-                v-model="searchForm.brandId"
-                class="custom-select"
-                placeholder="品牌"
-                clearable
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="item in brandList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item prop="statusId" label="状态" class="flex-1 mb-0">
-              <el-select
-                v-model="searchForm.statusId"
-                placeholder="全部状态"
-                clearable
-                class="custom-select"
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="item in infoList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </el-form-item>
-          </div>
+              <template #prefix>
+                <el-icon class="text-gray-400"><Search /></el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+          <el-form-item prop="brand" label="品牌" class="w-full mb-0">
+            <el-select
+              v-model="searchForm.brandId"
+              class="custom-select"
+              placeholder="品牌"
+              clearable
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in brandList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item prop="statusId" label="状态" class="w-full mb-0">
+            <el-select
+              v-model="searchForm.statusId"
+              placeholder="全部状态"
+              clearable
+              class="custom-select"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in infoList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+        </div>
 
-          <!-- 第二行：PM负责人和NPD负责人 -->
-          <div class="search-row flex items-center gap-4">
-            <el-form-item
-              prop="pmUserName"
+        <!-- 第二行：PM负责人和NPD负责人 -->
+        <div
+          class="search-row flex flex-col gap-2 md:grid md:grid-cols-3 md:gap-4"
+        >
+          <el-form-item
+            prop="pmUserName"
+            label="PM负责人"
+            class="w-full mb-0 person-form-item"
+          >
+            <PersonSelector
               label="PM负责人"
-              class="flex-1 mb-0 person-form-item"
-            >
-              <PersonSelector
-                label="PM负责人"
-                v-model="searchForm.pmUserName"
-                display-mode="simple"
-              />
-            </el-form-item>
-            <el-form-item
-              prop="npdUserName"
+              v-model="searchForm.pmUserName"
+              display-mode="simple"
+            />
+          </el-form-item>
+          <el-form-item
+            prop="npdUserName"
+            label="NPD负责人"
+            class="w-full mb-0 person-form-item"
+          >
+            <PersonSelector
               label="NPD负责人"
-              class="flex-1 mb-0 person-form-item"
-            >
-              <PersonSelector
-                label="NPD负责人"
-                v-model="searchForm.npdUserName"
-                display-mode="simple"
-              />
-            </el-form-item>
-            <el-form-item class="flex-1 mb-0">
-              <!-- 预留第三列位置，保持布局对称 -->
-            </el-form-item>
-          </div>
-        </el-form>
-      </div>
+              v-model="searchForm.npdUserName"
+              display-mode="simple"
+            />
+          </el-form-item>
+          <el-form-item class="w-full mb-0">
+            <!-- 预留第三列位置，保持布局对称 -->
+          </el-form-item>
+        </div>
+      </el-form>
     </div>
 
     <!-- 主要内容区域 -->
@@ -338,8 +358,10 @@ const listedCount = computed(() => {
 });
 
 const isMobile = ref(false);
+const screenWidth = ref(window.innerWidth);
 function checkMobile() {
   isMobile.value = window.innerWidth <= 768;
+  screenWidth.value = window.innerWidth;
 }
 onMounted(() => {
   checkMobile();

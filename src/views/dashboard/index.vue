@@ -245,7 +245,6 @@ const handleAddProduct = () => {
 const handleSaveProject = newProject => {
   // 这里可以调用API保存项目数据
   console.log("保存新项目:", newProject);
-
   // 刷新列表
   refreshList();
 };

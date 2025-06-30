@@ -476,75 +476,143 @@ onUnmounted(() => {
 <style scoped>
 /* 移动端响应式设计 */
 @media (width <= 768px) {
-  .hidden-mobile {
-    position: absolute !important;
-    left: -9999px !important;
-    display: none !important;
-    pointer-events: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-  }
-
-  .main-content {
-    flex-direction: column;
-  }
-
-  .left-panel {
-    align-self: stretch;
-    width: 100%;
-  }
-
-  .statistics-panel {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .search-area .search-row {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .search-area .el-form-item {
-    width: 100%;
+  .dashboard-container {
+    padding: 8px !important;
   }
 
   .page-header {
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     align-items: flex-start;
-  }
-
-  .header-right {
-    justify-content: flex-start;
-    width: 100%;
-  }
-}
-
-@media (width <= 480px) {
-  .dashboard-container {
-    padding: 12px;
-  }
-
-  .statistics-panel .stat-card {
-    padding: 12px;
-  }
-
-  .panel-container {
-    padding: 12px;
+    margin-bottom: 12px !important;
   }
 
   .page-header h1 {
-    font-size: 20px;
+    margin-bottom: 2px;
+    font-size: 18px !important;
   }
 
   .page-header p {
-    font-size: 14px;
+    margin-bottom: 0;
+    font-size: 13px !important;
+  }
+
+  .header-right {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
   }
 
   .header-right .el-button {
+    width: 100%;
+    min-width: 0;
     height: 36px;
-    padding: 8px 12px;
+    padding: 0;
     font-size: 13px;
+  }
+
+  .statistics-panel {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .stat-card {
+    position: static !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 48px !important;
+    padding: 10px !important;
+  }
+
+  .stat-card .text-3xl {
+    margin: 0 !important;
+    font-size: 22px !important;
+    line-height: 1;
+  }
+
+  .stat-card > .absolute {
+    position: static !important;
+    margin-left: 8px !important;
+    transform: none !important;
+  }
+
+  .stat-card .w-8.h-8 {
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+  }
+
+  .stat-card .w-4.h-4,
+  .stat-card .w-3.h-3 {
+    width: 16px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+  }
+
+  .search-area {
+    padding: 0 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .search-form {
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  .search-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .el-form-item {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+  }
+
+  .el-form-item__label {
+    display: block !important;
+    padding-bottom: 2px !important;
+    margin-bottom: 2px !important;
+    font-size: 13px !important;
+    text-align: left !important;
+  }
+
+  .el-form-item__content {
+    width: 100% !important;
+  }
+
+  .person-form-item :deep(.el-button) {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .main-content {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .panel-container {
+    width: 100% !important;
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 8px 0 rgb(0 0 0 / 6%) !important;
+  }
+
+  .panel-header {
+    margin-bottom: 10px !important;
+  }
+
+  .panel-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
   }
 }
 

@@ -170,7 +170,7 @@
       </div>
 
       <!-- 右侧项目详情 -->
-      <div class="panel-container right-panel">
+      <div class="panel-container right-panel hidden-mobile">
         <ProjectDetail
           :selectedProject="selectedProject"
           :stageList="stageList"
@@ -340,6 +340,77 @@ const listedCount = computed(() => {
 </script>
 
 <style scoped>
+
+
+/* 移动端响应式设计 */
+@media (width <= 768px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  .main-content {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    align-self: stretch;
+    width: 100%;
+  }
+
+  .statistics-panel {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .search-area .search-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-area .el-form-item {
+    width: 100%;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
+@media (width <= 480px) {
+  .dashboard-container {
+    padding: 12px;
+  }
+
+  .statistics-panel .stat-card {
+    padding: 12px;
+  }
+
+  .panel-container {
+    padding: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+  }
+
+  .header-right .el-button {
+    height: 36px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
 .dashboard-container {
   background-color: #f5f5f5;
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-3 rounded-sm">
+  <div class="mt-3 rounded-sm table-container">
     <el-table
       :data="tableData"
       style="width: 100%"
@@ -37,7 +37,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="statusName" label="状态" min-width="100">
+      <el-table-column prop="statusName" label="状态">
         <template #default="scope">
           <div
             :class="getStatusColor(scope.row.statusName)"
@@ -47,7 +47,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="priorityName" label="优先级" min-width="100">
+      <el-table-column prop="priorityName" label="优先级">
         <template #default="scope">
           <div
             :class="getPriorityColor(scope.row.priorityName)"
@@ -123,7 +123,6 @@
       <el-table-column
         prop="expectedListingDate"
         label="预计上市"
-        width="160"
       ></el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
@@ -377,8 +376,6 @@ defineExpose({
 });
 </script>
 <style scoped>
-
-
 /* 手机端适配 */
 @media (width <= 768px) {
   :deep(.el-table th.el-table__cell),
@@ -390,12 +387,14 @@ defineExpose({
   :deep(.el-table th .cell),
   :deep(.el-table td .cell) {
     padding: 0;
+    word-break: break-word;
+    white-space: normal;
   }
 
   /* 调整徽章在小屏幕上的显示 */
   .status-badge,
   .priority-badge {
-    padding: 2px 8px;
+    padding: 1px 6px;
     font-size: 10px;
   }
 
@@ -430,6 +429,11 @@ defineExpose({
   color: red;
 }
 
+.table-container {
+  width: 100%;
+  overflow: hidden;
+}
+
 /* 表格表头样式 */
 :deep(.el-table thead) {
   background-color: #f9fafb;
@@ -455,17 +459,18 @@ defineExpose({
   border-bottom: 1px solid #f3f4f6;
 }
 
-/* 确保表格列内容不换行 */
+/* 表格列内容处理 */
 :deep(.el-table .cell) {
-  overflow: visible;
-  text-overflow: initial;
-  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 /* 状态和优先级列特殊处理 */
 :deep(.el-table td .status-badge),
 :deep(.el-table td .priority-badge) {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   white-space: nowrap;
 }
@@ -486,9 +491,20 @@ defineExpose({
 
 /* 表格整体样式 */
 :deep(.el-table) {
+  width: 100%;
   overflow: hidden;
+  table-layout: fixed;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
+}
+
+/* 禁用横向滚动 */
+:deep(.el-table__body-wrapper) {
+  overflow-x: hidden !important;
+}
+
+:deep(.el-table__header-wrapper) {
+  overflow-x: hidden !important;
 }
 
 :deep(.el-table__inner-wrapper::before) {
@@ -510,10 +526,10 @@ defineExpose({
 
 .priority-badge {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  min-width: fit-content;
-  padding: 0 12px;
-  font-size: 12px;
+  padding: 0 8px;
+  font-size: 11px;
   font-weight: 400;
   white-space: nowrap;
   cursor: default;
@@ -524,10 +540,9 @@ defineExpose({
 
 .status-badge {
   display: inline-block;
-  width: fit-content;
-  min-width: 48px;
-  padding: 4px 12px;
-  font-size: 12px;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 11px;
   font-weight: 400;
   line-height: 1.4;
   text-align: center;

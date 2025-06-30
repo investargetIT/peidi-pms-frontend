@@ -381,8 +381,17 @@ onUnmounted(() => {
   }
 
   .statistics-panel {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .statistics-panel .stat-card {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
   .search-area .search-row {
@@ -435,8 +444,8 @@ onUnmounted(() => {
 }
 
 @media (width <= 768px) {
-  .statistics-panel,
-  .mobile-statistics-panel {
+  /* 统计卡片竖排，每行一个 */
+  .statistics-panel {
     display: flex !important;
     flex-direction: column !important;
     grid-template-columns: none !important;
@@ -444,75 +453,48 @@ onUnmounted(() => {
     margin-bottom: 12px !important;
   }
 
-  .stat-card {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    justify-content: flex-start !important;
-    min-height: 70px !important;
-    padding: 12px !important;
-  }
-
-  .stat-content {
-    flex-direction: column !important;
-    gap: 0 !important;
-    align-items: flex-start !important;
-  }
-
-  .stat-label {
-    margin-bottom: 0 !important;
-    font-size: 14px !important;
-  }
-
-  .stat-value {
-    margin-top: 2px !important;
-    font-size: 22px !important;
-  }
-
-  .stat-icon-abs {
-    top: 50% !important;
-    right: 16px !important;
-    font-size: 20px !important;
-    transform: translateY(-50%) !important;
-  }
-}
-
-/* 移动端响应式设计 */
-@media (width <= 768px) {
-  .search-area {
-    padding: 10px 8px 8px !important;
-    margin-bottom: 10px !important;
-    background: #fafbfc !important;
-    border-radius: 16px !important;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 3%) !important;
-  }
-
-  .search-form {
-    flex-direction: column !important;
-    gap: 0 !important;
+  .statistics-panel .stat-card {
+    box-sizing: border-box !important;
     width: 100% !important;
+    min-width: 0 !important;
   }
 
+  /* 筛选区表单项横向排列，label和输入框/按钮同一行 */
+  .search-form,
   .search-row {
     flex-direction: column !important;
-    gap: 6px !important;
-    margin-bottom: 0 !important;
-  }
-
-  .el-form-item {
+    gap: 0 !important;
     width: 100% !important;
-    padding-bottom: 6px !important;
-    margin-bottom: 0 !important;
   }
 
-  .el-form-item__label {
+  .search-area .el-form-item {
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    width: 100% !important;
     padding-bottom: 0 !important;
-    margin-bottom: 2px !important;
-    font-size: 13px !important;
-    color: #6b7280 !important;
+    margin-bottom: 8px !important;
   }
 
-  .el-form-item__content {
+  .search-area .el-form-item__label {
+    flex: 0 0 80px !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    color: #222 !important;
+    text-align: left !important;
+  }
+
+  .search-area .el-form-item__content {
+    display: flex !important;
+    flex: 1 1 0%;
+    gap: 0 !important;
+    align-items: center !important;
     width: 100% !important;
+    margin-left: 8px !important;
   }
 
   .custom-search-input :deep(.el-input__wrapper),
@@ -530,19 +512,25 @@ onUnmounted(() => {
     line-height: 28px !important;
   }
 
+  .person-form-item {
+    margin-bottom: 0 !important;
+  }
+
   .person-form-item :deep(.el-button) {
-    width: 100% !important;
+    float: right;
+    width: auto !important;
     min-width: 0 !important;
-    height: 32px !important;
-    padding: 0 !important;
+    height: 28px !important;
+    padding: 0 10px !important;
     margin-top: 0 !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 0 !important;
+    margin-left: 8px !important;
     font-size: 13px !important;
     border-radius: 8px !important;
   }
 
-  .person-form-item {
-    margin-bottom: 0 !important;
+  .person-form-item .el-form-item__content {
+    justify-content: flex-end !important;
   }
 }
 

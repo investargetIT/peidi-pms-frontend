@@ -170,7 +170,7 @@
       </div>
 
       <!-- 右侧项目详情 -->
-      <div class="panel-container right-panel hidden-mobile">
+      <div v-if="!isMobile" class="panel-container right-panel hidden-mobile">
         <ProjectDetail
           :selectedProject="selectedProject"
           :stageList="stageList"
@@ -202,7 +202,7 @@ import {
   AlertTriangle,
   Flag
 } from "lucide-vue-next";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 import { fetchStatusList } from "@/api/pmApi.ts";
 
@@ -237,6 +237,101 @@ const searchForm = ref({
   pmUserName: [],
   npdUserName: []
 });
+
+// 移动端检测
+const isMobile = ref(false);
+const screenWidth = ref(0);
+
+// 立即执行一次检测，确保初始状态正确
+if (typeof window !== "undefined") {
+  isMobile.value = window.innerWidth <= 768;
+  screenWidth.value = window.innerWidth;
+}
+// 检测设备类型的辅助函数
+const getDeviceInfo = () => {
+  const ua = navigator.userAgent.toLowerCase();
+  const isAndroid = ua.includes("android");
+  const isIOS = /iphone|ipad|ipod/.test(ua);
+  const isMobileUA =
+    /mobile|android|iphone|ipad|phone|blackberry|opera mini|iemobile/.test(ua);
+  const isTablet = /ipad|android(?!.*mobile)|tablet/.test(ua);
+
+  return {
+    isAndroid,
+    isIOS,
+    isMobileUA,
+    isTablet,
+    isMobileDevice: isAndroid || isIOS || isMobileUA,
+    deviceType: isTablet
+      ? "tablet"
+      : isAndroid || isIOS || isMobileUA
+        ? "mobile"
+        : "desktop"
+  };
+};
+
+// 检测是否为移动端
+const checkMobile = () => {
+  screenWidth.value = window.innerWidth;
+  const previousMobile = isMobile.value;
+  isMobile.value = window.innerWidth <= 768;
+
+  const deviceInfo = getDeviceInfo();
+
+  // 添加日志
+  console.log("=== 移动端检测日志 ===");
+  console.log("当前屏幕宽度:", screenWidth.value);
+  console.log("CSS媒体查询判断 (<=768px):", isMobile.value);
+  console.log("用户代理判断:", deviceInfo.isMobileDevice);
+  console.log("设备类型:", deviceInfo.deviceType);
+  console.log("设备详情:", {
+    isAndroid: deviceInfo.isAndroid,
+    isIOS: deviceInfo.isIOS,
+    isTablet: deviceInfo.isTablet,
+    isMobileUA: deviceInfo.isMobileUA
+  });
+
+  if (previousMobile !== isMobile.value) {
+    console.log(
+      "设备类型发生变化:",
+      previousMobile ? "移动端 -> 桌面端" : "桌面端 -> 移动端"
+    );
+    console.log("右侧详情面板显示状态:", isMobile.value ? "隐藏" : "显示");
+  }
+
+  // 额外的设备信息
+  console.log("用户代理:", navigator.userAgent);
+  console.log("是否为触摸设备:", "ontouchstart" in window);
+  console.log("设备像素比:", window.devicePixelRatio);
+  console.log("屏幕信息:", {
+    screen: {
+      width: window.screen.width,
+      height: window.screen.height,
+      availWidth: window.screen.availWidth,
+      availHeight: window.screen.availHeight
+    },
+    viewport: {
+      innerWidth: window.innerWidth,
+      innerHeight: window.innerHeight,
+      outerWidth: window.outerWidth,
+      outerHeight: window.outerHeight
+    }
+  });
+
+  // 方向信息
+  if (window.screen.orientation) {
+    console.log("屏幕方向:", {
+      angle: window.screen.orientation.angle,
+      type: window.screen.orientation.type
+    });
+  }
+
+  console.log("最终判断结果:", {
+    cssMediaQuery: isMobile.value,
+    userAgent: deviceInfo.isMobileDevice,
+    recommendation: isMobile.value ? "使用移动端布局" : "使用桌面端布局"
+  });
+};
 
 const handleAddProduct = () => {
   showModal.value = true;
@@ -337,15 +432,57 @@ const listedCount = computed(() => {
   // 兼容id字符与整型
   return tableData.value.filter(item => item.statusId == 114).length;
 });
+
+// 生命周期钩子
+onMounted(() => {
+  console.log("Dashboard 页面已挂载");
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+
+  // 监听方向变化（移动端）
+  if (window.screen && window.screen.orientation) {
+    window.screen.orientation.addEventListener("change", () => {
+      console.log("屏幕方向发生变化:", window.screen.orientation.angle);
+      setTimeout(checkMobile, 100); // 延迟检测，等待布局完成
+    });
+  }
+
+  // 监听视口变化
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      console.log("视口大小变化:", {
+        width: window.visualViewport.width,
+        height: window.visualViewport.height
+      });
+      checkMobile();
+    });
+  }
+});
+
+onUnmounted(() => {
+  console.log("Dashboard 页面即将卸载");
+  window.removeEventListener("resize", checkMobile);
+
+  if (window.screen && window.screen.orientation) {
+    window.screen.orientation.removeEventListener("change", checkMobile);
+  }
+
+  if (window.visualViewport) {
+    window.visualViewport.removeEventListener("resize", checkMobile);
+  }
+});
 </script>
 
 <style scoped>
-
-
 /* 移动端响应式设计 */
 @media (width <= 768px) {
   .hidden-mobile {
+    position: absolute !important;
+    left: -9999px !important;
     display: none !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
   }
 
   .main-content {
@@ -590,5 +727,20 @@ const listedCount = computed(() => {
   font-size: 18px;
   font-weight: 600;
   color: #1f2937;
+}
+
+/* 调试相关样式 */
+.debug-info {
+  padding: 4px 8px;
+  font-family: "Courier New", monospace;
+  background-color: rgb(0 0 0 / 5%);
+  border-left: 3px solid #10b981;
+  border-radius: 4px;
+}
+
+.debug-btn {
+  color: white !important;
+  background-color: #f59e0b !important;
+  border-color: #f59e0b !important;
 }
 </style>

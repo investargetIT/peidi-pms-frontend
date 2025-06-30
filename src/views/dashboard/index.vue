@@ -352,7 +352,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 #2563eb44;
@@ -474,6 +473,76 @@ onUnmounted(() => {
     right: 16px !important;
     font-size: 20px !important;
     transform: translateY(-50%) !important;
+  }
+}
+
+/* 移动端响应式设计 */
+@media (width <= 768px) {
+  .search-area {
+    padding: 10px 8px 8px !important;
+    margin-bottom: 10px !important;
+    background: #fafbfc !important;
+    border-radius: 16px !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 3%) !important;
+  }
+
+  .search-form {
+    flex-direction: column !important;
+    gap: 0 !important;
+    width: 100% !important;
+  }
+
+  .search-row {
+    flex-direction: column !important;
+    gap: 6px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .el-form-item {
+    width: 100% !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .el-form-item__label {
+    padding-bottom: 0 !important;
+    margin-bottom: 2px !important;
+    font-size: 13px !important;
+    color: #6b7280 !important;
+  }
+
+  .el-form-item__content {
+    width: 100% !important;
+  }
+
+  .custom-search-input :deep(.el-input__wrapper),
+  .custom-select :deep(.el-input__wrapper) {
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 2px 8px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+  }
+
+  .custom-select :deep(.el-input__inner) {
+    height: 28px !important;
+    font-size: 14px !important;
+    line-height: 28px !important;
+  }
+
+  .person-form-item :deep(.el-button) {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+  }
+
+  .person-form-item {
+    margin-bottom: 0 !important;
   }
 }
 
@@ -741,6 +810,4 @@ onUnmounted(() => {
   font-weight: 600;
   color: #1f2937;
 }
-
-/* 移动端响应式设计 */
 </style>

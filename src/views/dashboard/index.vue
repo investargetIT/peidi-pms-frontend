@@ -1,5 +1,19 @@
 <template>
   <div class="dashboard-container p-4">
+    <!-- 调试信息 -->
+    <div
+      style="
+        padding: 6px 12px;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #fff;
+        background: #222;
+        border-radius: 6px;
+      "
+    >
+      <strong>调试：</strong> isMobile =
+      {{ isMobile ? "true (移动端)" : "false (桌面端)" }}
+    </div>
     <!-- 页面头部 -->
     <div class="page-header flex justify-between items-center mb-4">
       <div class="header-left">

@@ -427,6 +427,11 @@ onUnmounted(() => {
     justify-content: flex-start;
     width: 100%;
   }
+
+  :deep(.search-area) {
+    padding-right: 16px !important;
+    padding-left: 20px !important;
+  }
 }
 
 @media (width <= 480px) {

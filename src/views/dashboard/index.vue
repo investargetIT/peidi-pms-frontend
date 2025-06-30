@@ -1,7 +1,5 @@
 <template>
   <div class="dashboard-container p-4">
-    <!-- 调试信息 -->
-
     <!-- 页面头部 -->
     <div class="page-header flex justify-between items-center mb-4">
       <div class="header-left">

@@ -169,8 +169,8 @@
         />
       </div>
 
-      <!-- 右侧项目详情 -->
-      <div class="panel-container right-panel hidden-mobile">
+      <!-- 右侧项目详情（仅桌面端显示） -->
+      <div v-if="!isMobile" class="panel-container right-panel hidden-mobile">
         <ProjectDetail
           :selectedProject="selectedProject"
           :stageList="stageList"
@@ -202,7 +202,7 @@ import {
   AlertTriangle,
   Flag
 } from "lucide-vue-next";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 import { fetchStatusList } from "@/api/pmApi.ts";
 
@@ -337,10 +337,36 @@ const listedCount = computed(() => {
   // 兼容id字符与整型
   return tableData.value.filter(item => item.statusId == 114).length;
 });
+
+const isMobile = ref(false);
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768;
+}
+onMounted(() => {
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+});
+onUnmounted(() => {
+  window.removeEventListener("resize", checkMobile);
+});
 </script>
 
 <style scoped>
-/* 移动端响应式设计 */
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 #2563eb44;
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px #2563eb00;
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 #2563eb00;
+  }
+}
+
 @media (width <= 768px) {
   .hidden-mobile {
     display: none !important;
@@ -409,6 +435,48 @@ const listedCount = computed(() => {
   }
 }
 
+@media (width <= 768px) {
+  .statistics-panel,
+  .mobile-statistics-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .stat-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    min-height: 70px !important;
+    padding: 12px !important;
+  }
+
+  .stat-content {
+    flex-direction: column !important;
+    gap: 0 !important;
+    align-items: flex-start !important;
+  }
+
+  .stat-label {
+    margin-bottom: 0 !important;
+    font-size: 14px !important;
+  }
+
+  .stat-value {
+    margin-top: 2px !important;
+    font-size: 22px !important;
+  }
+
+  .stat-icon-abs {
+    top: 50% !important;
+    right: 16px !important;
+    font-size: 20px !important;
+    transform: translateY(-50%) !important;
+  }
+}
+
 .dashboard-container {
   background-color: #f5f5f5;
 }
@@ -420,16 +488,100 @@ const listedCount = computed(() => {
 }
 
 .statistics-panel {
-  .stat-card {
-    position: relative;
-    border: 1px solid #eee;
-    transition: all 0.3s ease;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
 
-    &:hover {
-      box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
-      transform: translateY(-2px);
-    }
-  }
+.stat-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 90px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 10%),
+    0 1px 2px -1px rgb(0 0 0 / 10%);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stat-label {
+  margin-bottom: 2px;
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.stat-value {
+  margin-top: 2px;
+  font-size: 28px;
+  font-weight: 600;
+  color: #222;
+}
+
+.stat-value.developing {
+  color: #2563eb;
+}
+
+.stat-value.listed {
+  color: #22c55e;
+}
+
+.stat-icon-abs {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transform: translateY(-50%);
+}
+
+.stat-dot {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: #e0e7ff;
+  border-radius: 50%;
+}
+
+.stat-dot.blue::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: block;
+  width: 10px;
+  height: 10px;
+  content: "";
+  background: #2563eb;
+  border-radius: 50%;
+  animation: pulse 1.2s infinite;
+}
+
+.stat-dot.green {
+  background: #bbf7d0;
+}
+
+.stat-dot.green::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: block;
+  width: 10px;
+  height: 10px;
+  content: "";
+  background: #22c55e;
+  border-radius: 50%;
 }
 
 .container {
@@ -589,4 +741,6 @@ const listedCount = computed(() => {
   font-weight: 600;
   color: #1f2937;
 }
+
+/* 移动端响应式设计 */
 </style>

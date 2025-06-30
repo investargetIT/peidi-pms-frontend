@@ -1,12 +1,11 @@
 <template>
-  <div class="mt-3 rounded-sm table-container">
+  <div class="mt-3 rounded-sm">
     <el-table
       :data="tableData"
       style="width: 100%"
       :row-class-name="getRowClassName"
-      :scrollbar-always-on="true"
     >
-      <el-table-column prop="productName" label="产品信息" min-width="200">
+      <el-table-column prop="productName" label="产品信息">
         <template #default="scope">
           <div>
             <div class="text-base font-medium text-gray-900">
@@ -16,14 +15,14 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="pmDingUser" label="PM负责人" min-width="160">
+      <el-table-column prop="pmDingUser" label="PM负责人">
         <template #default="scope">
           <div
             v-for="item in scope.row.pmDingUser"
             :key="item.dingId"
             class="flex items-center gap-2 mb-2"
           >
-            <span
+            <!-- <span
               class="relative flex shrink-0 overflow-hidden rounded-full w-6 h-6"
             >
               <img
@@ -38,19 +37,19 @@
               >
                 {{ item.userName ? item.userName.charAt(0) : "?" }}
               </span>
-            </span>
+            </span> -->
             <span class="text-sm text-gray-900">{{ item.userName }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="npdDingUser" label="NPD负责人" min-width="160">
+      <el-table-column prop="npdDingUser" label="NPD负责人">
         <template #default="scope">
           <div
             v-for="item in scope.row.npdDingUser"
             :key="item.dingId"
             class="flex items-center gap-2 mb-2"
           >
-            <span
+            <!-- <span
               class="relative flex shrink-0 overflow-hidden rounded-full w-6 h-6"
             >
               <img
@@ -65,12 +64,12 @@
               >
                 {{ item.userName ? item.userName.charAt(0) : "?" }}
               </span>
-            </span>
+            </span> -->
             <span class="text-sm text-gray-900">{{ item.userName }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="statusName" label="状态" min-width="120">
+      <el-table-column prop="statusName" label="状态" width="120">
         <template #default="scope">
           <div
             :class="getStatusColor(scope.row.statusName)"
@@ -80,7 +79,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="priorityName" label="优先级" min-width="100">
+      <el-table-column prop="priorityName" label="优先级">
         <template #default="scope">
           <div
             :class="getPriorityColor(scope.row.priorityName)"
@@ -147,17 +146,18 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="progress" label="进度" min-width="160">
+      <el-table-column prop="progress" label="进度">
         <template #default="scope">
-          <el-progress :percentage="scope.row.progress" />
+          <!-- <el-progress :percentage="scope.row.progress" /> -->
+          <span>{{ `${scope.row.progress}%` }}</span>
         </template>
       </el-table-column>
       <el-table-column
         prop="expectedListingDate"
         label="预计上市"
-        min-width="160"
+        width="160"
       ></el-table-column>
-      <el-table-column label="操作" width="100" fixed="right">
+      <el-table-column label="操作">
         <template #default="scope">
           <button
             @click="handleShowDetails(scope.row)"
@@ -203,7 +203,6 @@ import UpdateDialog from "./UpdateDialog.vue";
 import { reverseMapping, mapping } from "./utils";
 import { debounce, storageLocal } from "@pureadmin/utils";
 import Avatar from "@/assets/user.jpg";
-import { tr } from "element-plus/es/locale/index.mjs";
 const tableData = ref([]);
 const pagination = ref({
   pageNo: 1,
@@ -384,12 +383,6 @@ defineExpose({
   color: red;
 }
 
-/* 表格容器样式 */
-.table-container {
-  width: 100%;
-  border-radius: 8px;
-}
-
 /* 表格表头样式 */
 :deep(.el-table thead) {
   background-color: #f9fafb;
@@ -431,47 +424,9 @@ defineExpose({
 
 /* 表格整体样式 */
 :deep(.el-table) {
+  overflow: hidden;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-}
-
-/* 表格横向滚动样式 */
-:deep(.el-table__body-wrapper) {
-  overflow-x: auto !important;
-}
-
-:deep(.el-table__header-wrapper) {
-  overflow-x: hidden !important;
-}
-
-/* 自定义滚动条样式 */
-:deep(.el-scrollbar__bar.is-horizontal) {
-  bottom: 0;
-  height: 8px;
-}
-
-:deep(.el-scrollbar__thumb) {
-  background-color: #c1c1c1;
-  border-radius: 4px;
-}
-
-:deep(.el-scrollbar__thumb:hover) {
-  background-color: #a8a8a8;
-}
-
-:deep(.el-scrollbar__track) {
-  background-color: #f1f1f1;
-  border-radius: 4px;
-}
-
-/* 确保固定列正常工作 */
-:deep(.el-table__fixed-right) {
-  right: 0 !important;
-  z-index: 10;
-}
-
-:deep(.el-table__fixed-right-patch) {
-  right: 0 !important;
 }
 
 :deep(.el-table__inner-wrapper::before) {

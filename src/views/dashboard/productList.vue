@@ -20,25 +20,9 @@
           <div
             v-for="item in scope.row.pmDingUser"
             :key="item.dingId"
-            class="flex items-center gap-2 mb-2"
+            class="text-sm text-gray-900 mb-1"
           >
-            <!-- <span
-              class="relative flex shrink-0 overflow-hidden rounded-full w-6 h-6"
-            >
-              <img
-                v-if="item.avatarUrl"
-                :src="item.avatarUrl"
-                class="flex h-full w-full items-center justify-center rounded-full object-cover"
-                :alt="item.userName"
-              />
-              <span
-                v-else
-                class="flex h-full w-full items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600"
-              >
-                {{ item.userName ? item.userName.charAt(0) : "?" }}
-              </span>
-            </span> -->
-            <span class="text-sm text-gray-900">{{ item.userName }}</span>
+            {{ item.userName }}
           </div>
         </template>
       </el-table-column>
@@ -47,29 +31,13 @@
           <div
             v-for="item in scope.row.npdDingUser"
             :key="item.dingId"
-            class="flex items-center gap-2 mb-2"
+            class="text-sm text-gray-900 mb-1"
           >
-            <!-- <span
-              class="relative flex shrink-0 overflow-hidden rounded-full w-6 h-6"
-            >
-              <img
-                v-if="item.avatarUrl"
-                :src="item.avatarUrl"
-                class="flex h-full w-full items-center justify-center rounded-full object-cover"
-                :alt="item.userName"
-              />
-              <span
-                v-else
-                class="flex h-full w-full items-center justify-center rounded-full bg-gray-100 text-xs text-gray-600"
-              >
-                {{ item.userName ? item.userName.charAt(0) : "?" }}
-              </span>
-            </span> -->
-            <span class="text-sm text-gray-900">{{ item.userName }}</span>
+            {{ item.userName }}
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="statusName" label="状态" width="120">
+      <el-table-column prop="statusName" label="状态" min-width="100">
         <template #default="scope">
           <div
             :class="getStatusColor(scope.row.statusName)"
@@ -79,7 +47,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="priorityName" label="优先级">
+      <el-table-column prop="priorityName" label="优先级" min-width="100">
         <template #default="scope">
           <div
             :class="getPriorityColor(scope.row.priorityName)"
@@ -300,6 +268,36 @@ const getPriorityColor = (priority: string) => {
   }
 };
 
+const getStatusType = (status: string) => {
+  switch (status) {
+    case "开发中":
+      return "primary";
+    case "已上市":
+    case "已上架":
+    case "审核通过":
+      return "success";
+    case "待开始":
+      return "info";
+    case "已放弃":
+      return "danger";
+    default:
+      return "";
+  }
+};
+
+const getPriorityType = (priority: string) => {
+  switch (priority) {
+    case "高":
+      return "danger";
+    case "中":
+      return "warning";
+    case "低":
+      return "success";
+    default:
+      return "";
+  }
+};
+
 function extractEmplId(arr) {
   const result = [];
   for (const item of arr) {
@@ -379,6 +377,55 @@ defineExpose({
 });
 </script>
 <style scoped>
+
+
+/* 手机端适配 */
+@media (width <= 768px) {
+  :deep(.el-table th.el-table__cell),
+  :deep(.el-table td.el-table__cell) {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+
+  :deep(.el-table th .cell),
+  :deep(.el-table td .cell) {
+    padding: 0;
+  }
+
+  /* 调整徽章在小屏幕上的显示 */
+  .status-badge,
+  .priority-badge {
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+
+  .priority-badge svg {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+@media (width <= 480px) {
+  :deep(.el-table th.el-table__cell),
+  :deep(.el-table td.el-table__cell) {
+    padding: 6px 2px;
+    font-size: 11px;
+  }
+
+  /* 在极小屏幕上进一步缩小徽章 */
+  .status-badge,
+  .priority-badge {
+    padding: 1px 6px;
+    font-size: 9px;
+  }
+
+  .priority-badge svg {
+    width: 8px;
+    height: 8px;
+    margin-right: 2px;
+  }
+}
+
 .hhh {
   color: red;
 }
@@ -406,6 +453,21 @@ defineExpose({
 :deep(.el-table td.el-table__cell) {
   padding: 16px;
   border-bottom: 1px solid #f3f4f6;
+}
+
+/* 确保表格列内容不换行 */
+:deep(.el-table .cell) {
+  overflow: visible;
+  text-overflow: initial;
+  white-space: nowrap;
+}
+
+/* 状态和优先级列特殊处理 */
+:deep(.el-table td .status-badge),
+:deep(.el-table td .priority-badge) {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
 :deep(.el-table tbody tr:hover > td) {
@@ -449,9 +511,11 @@ defineExpose({
 .priority-badge {
   display: inline-flex;
   align-items: center;
+  min-width: fit-content;
   padding: 0 12px;
   font-size: 12px;
   font-weight: 400;
+  white-space: nowrap;
   cursor: default;
   border: 1px solid transparent;
   border-radius: 12px;
@@ -460,12 +524,14 @@ defineExpose({
 
 .status-badge {
   display: inline-block;
+  width: fit-content;
   min-width: 48px;
   padding: 4px 12px;
   font-size: 12px;
   font-weight: 400;
   line-height: 1.4;
   text-align: center;
+  white-space: nowrap;
   border-radius: 12px;
 }
 

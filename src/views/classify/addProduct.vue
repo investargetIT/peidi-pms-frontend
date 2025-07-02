@@ -401,11 +401,13 @@
           :on-exceed="handleExceed"
           :before-upload="beforeUpload"
           :on-preview="handlePreview"
+          accept=".jpg,.png,.jpeg,.gif,.pdf"
         >
           <el-button>选择文件</el-button>
           <template #tip>
             <div class="el-upload__tip">
-              上传文件支持jpg、png、jpeg、gif格式,大小不超过2M，且最多上传5张。
+              上传文件支持 jpg、png、jpeg、gif、pdf
+              格式,大小不超过10M，且最多上传5份。
             </div>
           </template>
         </el-upload>
@@ -424,11 +426,13 @@
           :on-exceed="handleExceed"
           :before-upload="beforeUpload"
           :on-preview="handlePreview"
+          accept=".jpg,.png,.jpeg,.gif,.pdf"
         >
           <el-button>选择文件</el-button>
           <template #tip>
             <div class="el-upload__tip">
-              上传图片支持jpg、png、jpeg、gif格式,大小不超过2M，且最多上传5张。
+              上传文件支持 jpg、png、jpeg、gif、pdf
+              格式,大小不超过10M，且最多上传5份。
             </div>
           </template>
         </el-upload>
@@ -447,11 +451,13 @@
           :on-exceed="handleExceed"
           :before-upload="beforeUpload"
           :on-preview="handlePreview"
+          accept=".jpg,.png,.jpeg,.gif,.pdf"
         >
           <el-button>选择文件</el-button>
           <template #tip>
             <div class="el-upload__tip">
-              上传图片支持jpg、png、jpeg、gif格式,大小不超过2M，且最多上传5张。
+              上传文件支持 jpg、png、jpeg、gif、pdf
+              格式,大小不超过10M，且最多上传5份。
             </div>
           </template>
         </el-upload>
@@ -470,11 +476,13 @@
           :on-exceed="handleExceed"
           :before-upload="beforeUpload"
           :on-preview="handlePreview"
+          accept=".jpg,.png,.jpeg,.gif,.pdf"
         >
           <el-button>选择文件</el-button>
           <template #tip>
             <div class="el-upload__tip">
-              上传图片支持jpg、png、jpeg、gif格式,大小不超过2M，且最多上传5张。
+              上传文件支持 jpg、png、jpeg、gif、pdf
+              格式,大小不超过10M，且最多上传5份。
             </div>
           </template>
         </el-upload>
@@ -497,7 +505,8 @@
           <el-button>选择文件</el-button>
           <template #tip>
             <div class="el-upload__tip">
-              上传图片支持jpg、png、jpeg、gif格式,大小不超过2M，且最多上传5张。
+              上传文件支持 jpg、png、jpeg、gif、pdf
+              格式,大小不超过2M，且最多上传5份。
             </div>
           </template>
         </el-upload>
@@ -560,19 +569,19 @@ const rules = {
     { required: false, message: "请输入工艺说明", trigger: "blur" }
   ],
   "onSiteEvaluation.factoryName": [
-    { required: true, message: "请选择工厂名称", trigger: "change" }
+    { required: false, message: "请选择工厂名称", trigger: "change" }
   ],
   "onSiteEvaluation.address": [
-    { required: true, message: "请输入地址", trigger: "blur" }
+    { required: false, message: "请输入地址", trigger: "blur" }
   ],
   "onSiteEvaluation.factoryIntroduction": [
     { required: false, message: "请输入工厂简介", trigger: "blur" }
   ],
   productPicture: [
-    { required: true, message: "请上传产品图片", trigger: "change" }
+    { required: false, message: "请上传产品图片", trigger: "change" }
   ],
   productDetails: [
-    { required: true, message: "请上传产品详情", trigger: "change" }
+    { required: false, message: "请上传产品详情", trigger: "change" }
   ],
   factoryPicture: [
     { required: false, message: "请上传工厂照片", trigger: "change" }
@@ -580,7 +589,9 @@ const rules = {
   productionProcessDrawing: [
     { required: false, message: "请上传生产工艺图", trigger: "change" }
   ],
-  sellingPoint: [{ required: true, message: "请输入核心卖点", trigger: "blur" }]
+  sellingPoint: [
+    { required: false, message: "请输入核心卖点", trigger: "blur" }
+  ]
 };
 
 // 是否展示默认信息
@@ -798,16 +809,18 @@ const saveProduct = () => {
 };
 
 const beforeUpload = file => {
-  const isImage = ["image/jpeg", "image/png", "image/gif"].includes(file.type);
+  const isImage = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/jpg"
+  ].includes(file.type);
   const isLt10M = file.size / 1024 / 1024 < 2;
 
-  if (!isImage) {
-    ElMessage.error("上传图片支持jpg、png、jpeg、gif格式");
-  }
   if (!isLt10M) {
-    ElMessage.error("上传图片大小不超过10M");
+    ElMessage.error("上传文件大小不超过10M");
   }
-  return isImage && isLt10M;
+  return isLt10M;
 };
 
 const handleExceed = () => {
@@ -821,8 +834,12 @@ const handlePreview = file => {
     .then(res => {
       const { code, msg, data } = res;
       if (code === 200) {
-        dialogImageUrl.value = res.data;
-        dialogVisible.value = true;
+        if (file.raw.type.includes("image")) {
+          dialogImageUrl.value = res.data;
+          dialogVisible.value = true;
+        } else {
+          window.open(res.data, "_blank");
+        }
       } else {
         message("图片预览失败--" + msg, { type: "error" });
       }

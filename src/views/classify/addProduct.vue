@@ -506,7 +506,7 @@
           <template #tip>
             <div class="el-upload__tip">
               上传文件支持 jpg、png、jpeg、gif、pdf
-              格式,大小不超过2M，且最多上传5份。
+              格式,大小不超过10M，且最多上传5份。
             </div>
           </template>
         </el-upload>

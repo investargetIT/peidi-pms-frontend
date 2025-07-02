@@ -554,10 +554,10 @@ const rules = {
   productNo: [{ required: true, message: "请输入产品号", trigger: "blur" }],
   productName: [{ required: true, message: "请输入产品名称", trigger: "blur" }],
   "productProduction.productionTechnology": [
-    { required: true, message: "请输入生产工艺", trigger: "blur" }
+    { required: false, message: "请输入生产工艺", trigger: "blur" }
   ],
   "productProduction.productionProcess": [
-    { required: true, message: "请输入工艺说明", trigger: "blur" }
+    { required: false, message: "请输入工艺说明", trigger: "blur" }
   ],
   "onSiteEvaluation.factoryName": [
     { required: true, message: "请选择工厂名称", trigger: "change" }
@@ -566,7 +566,7 @@ const rules = {
     { required: true, message: "请输入地址", trigger: "blur" }
   ],
   "onSiteEvaluation.factoryIntroduction": [
-    { required: true, message: "请输入工厂简介", trigger: "blur" }
+    { required: false, message: "请输入工厂简介", trigger: "blur" }
   ],
   productPicture: [
     { required: true, message: "请上传产品图片", trigger: "change" }
@@ -575,10 +575,10 @@ const rules = {
     { required: true, message: "请上传产品详情", trigger: "change" }
   ],
   factoryPicture: [
-    { required: true, message: "请上传工厂照片", trigger: "change" }
+    { required: false, message: "请上传工厂照片", trigger: "change" }
   ],
   productionProcessDrawing: [
-    { required: true, message: "请上传生产工艺图", trigger: "change" }
+    { required: false, message: "请上传生产工艺图", trigger: "change" }
   ],
   sellingPoint: [{ required: true, message: "请输入核心卖点", trigger: "blur" }]
 };

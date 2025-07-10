@@ -501,6 +501,7 @@
           :on-exceed="handleExceed"
           :before-upload="beforeUpload"
           :on-preview="handlePreview"
+          accept=".jpg,.png,.jpeg,.gif,.pdf"
         >
           <el-button>选择文件</el-button>
           <template #tip>
@@ -809,18 +810,25 @@ const saveProduct = () => {
 };
 
 const beforeUpload = file => {
-  const isImage = [
+  const allowedTypes = [
     "image/jpeg",
     "image/png",
     "image/gif",
-    "image/jpg"
-  ].includes(file.type);
-  const isLt10M = file.size / 1024 / 1024 < 2;
+    "image/jpg",
+    "application/pdf"
+  ];
+  const isAllowedType = allowedTypes.includes(file.type);
+  const isLte10M = file.size / 1024 / 1024 <= 10;
 
-  if (!isLt10M) {
+  if (!isAllowedType) {
+    ElMessage.error("上传文件格式不正确，支持 jpg、png、jpeg、gif、pdf 格式");
+  }
+
+  if (!isLte10M) {
     ElMessage.error("上传文件大小不超过10M");
   }
-  return isLt10M;
+
+  return isAllowedType && isLte10M;
 };
 
 const handleExceed = () => {

@@ -842,18 +842,19 @@ const handlePreview = file => {
     .then(res => {
       const { code, msg, data } = res;
       if (code === 200) {
-        if (file.raw.type.includes("image")) {
+        const fileExtension = file.name?.split(".")?.pop()?.toLowerCase() || "";
+        if (["jpg", "jpeg", "png", "gif"].includes(fileExtension)) {
           dialogImageUrl.value = res.data;
           dialogVisible.value = true;
         } else {
           window.open(res.data, "_blank");
         }
       } else {
-        message("图片预览失败--" + msg, { type: "error" });
+        ElMessage.error("图片预览失败--" + msg);
       }
     })
     .catch(err => {
-      message("图片预览失败", { type: "error" });
+      ElMessage.error("图片预览失败");
     });
 };
 </script>

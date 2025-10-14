@@ -25,6 +25,9 @@ import Lock from "@iconify-icons/ri/lock-fill";
 import User from "@iconify-icons/ri/user-3-fill";
 import * as dd from "dingtalk-jsapi";
 import { useRoute } from "vue-router";
+import { useAuthStoreHook } from "@/store/modules/auth";
+import { updateProductMaintainList } from "../../utils/permission";
+import { storageLocal } from "@pureadmin/utils";
 const route = useRoute();
 
 const DINGTALK_CORP_ID = "dingfc722e531a4125b735c2f4657eb6378f";
@@ -56,7 +59,10 @@ const ruleForm = reactive({
   password: "",
   site: ""
 });
-const onLogin = async (formEl: FormInstance | undefined) => {
+const onLogin = async (
+  formEl: FormInstance | undefined,
+  isDingTalkLogin: boolean = true
+) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
     if (valid) {
@@ -69,6 +75,14 @@ const onLogin = async (formEl: FormInstance | undefined) => {
         })
         .then(res => {
           if (res.success) {
+            //#region 检查是否是产品研发中心或产品市场PM
+            if (storageLocal().getItem("ddUserInfo") || isDingTalkLogin) {
+              if (updateProductMaintainList()) {
+                useAuthStoreHook().setIsAdmin(true);
+              }
+            }
+            //#endregion
+
             // 获取后端路由
             if (route.query.tabName == "worker") {
               return initRouter().then(() => {
@@ -212,7 +226,7 @@ ddLogin();
 /** 使用公共函数，避免`removeEventListener`失效 */
 function onkeypress({ code }: KeyboardEvent) {
   if (["Enter", "NumpadEnter"].includes(code)) {
-    onLogin(ruleFormRef.value);
+    onLogin(ruleFormRef.value, false);
   }
 }
 
@@ -320,7 +334,7 @@ onBeforeUnmount(() => {
                 size="default"
                 type="primary"
                 :loading="loading"
-                @click="onLogin(ruleFormRef)"
+                @click="onLogin(ruleFormRef, false)"
               >
                 登录
               </el-button>

@@ -2,7 +2,12 @@
   <el-dialog v-model="visible" :title="isEdit ? '修改记录' : '新增记录'">
     <div>
       <!-- 新增记录的表单内容 -->
-      <el-form :model="form" :rules="rules" ref="formRef">
+      <el-form
+        :model="form"
+        :rules="rules"
+        ref="formRef"
+        :disabled="!useAuthStoreHook().isAdmin"
+      >
         <el-form-item label="批号">
           <el-input
             :disabled="true"
@@ -244,7 +249,11 @@
       <el-button type="primary" v-if="!isEdit" @click="submitRecord"
         >提交</el-button
       >
-      <el-button type="primary" v-if="isEdit" @click="updateRecord"
+      <el-button
+        type="primary"
+        v-if="isEdit"
+        @click="updateRecord"
+        :disabled="!useAuthStoreHook().isAdmin"
         >更新</el-button
       >
     </div>
@@ -276,6 +285,7 @@ import {
   Star
 } from "@element-plus/icons-vue";
 import { is } from "@pureadmin/utils";
+import { useAuthStoreHook } from "@/store/modules/auth";
 const emit = defineEmits(["close"]);
 const rules = {
   batchNo: [{ required: true, message: "批号不能为空", trigger: "blur" }],

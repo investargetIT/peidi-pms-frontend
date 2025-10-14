@@ -29,7 +29,11 @@
           clearable
         />
       </div>
-      <el-button type="primary" color="#161718" @click="handleAddProduct"
+      <el-button
+        type="primary"
+        color="#161718"
+        @click="handleAddProduct"
+        :disabled="!useAuthStoreHook().isAdmin"
         >新增产品</el-button
       >
     </div>
@@ -57,6 +61,7 @@ import { ElMessage } from "element-plus";
 import factories from "./const";
 import addProduct from "./addProduct.vue";
 import productList from "./productList.vue";
+import { useAuthStoreHook } from "@/store/modules/auth";
 const showModal = ref(false);
 const statusList = ref([]);
 const listRef = ref(null);

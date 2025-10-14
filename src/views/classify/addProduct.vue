@@ -14,6 +14,7 @@
       :model="newProduct"
       :rules="rules"
       ref="productForm"
+      :disabled="!useAuthStoreHook().isAdmin"
     >
       <!-- 工厂名称选择 -->
       <el-form-item
@@ -365,7 +366,7 @@
         <el-input
           v-model="newProduct.productProduction.productionProcess"
         ></el-input>
-        <div style="margin-top: 4px">
+        <div style="margin-top: 4px" v-if="useAuthStoreHook().isAdmin">
           <el-tag
             type="primary"
             @click="setProductionProcess('低温风干')"
@@ -514,8 +515,13 @@
       </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
-      <el-button @click="showModal = false">取消</el-button>
-      <el-button type="primary" @click="saveProduct">保存</el-button>
+      <el-button @click="visible = false">取消</el-button>
+      <el-button
+        type="primary"
+        @click="saveProduct"
+        :disabled="!useAuthStoreHook().isAdmin"
+        >保存</el-button
+      >
     </span>
   </el-dialog>
   <el-dialog v-model="dialogVisible">
@@ -531,6 +537,7 @@ import { newTask, updateProduct, getFileDownLoadPath } from "@/api/pmApi.ts";
 import { getToken, formatToken } from "@/utils/auth";
 import { mapping, downloadFileFun } from "./utils";
 // import { getTaskUnassigned } from "@/api/task";
+import { useAuthStoreHook } from "@/store/modules/auth";
 const visible = defineModel("visible");
 const productForm = ref(null);
 // 接受props的isEdit，默认是false

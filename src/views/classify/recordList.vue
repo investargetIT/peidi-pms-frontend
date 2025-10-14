@@ -53,6 +53,7 @@
                 type="danger"
                 class="absolute right-0 top-0"
                 @click.stop="deleteRecord(record)"
+                :disabled="!useAuthStoreHook().isAdmin"
                 >删除</el-button
               >
             </div>
@@ -76,7 +77,11 @@
         "
       ></el-pagination>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="openAddRecord">新增记录</el-button>
+        <el-button
+          @click="openAddRecord"
+          :disabled="!useAuthStoreHook().isAdmin"
+          >新增记录</el-button
+        >
       </span>
     </el-dialog>
     <!-- 新增记录弹窗 -->
@@ -101,6 +106,7 @@ import { ElMessage } from "element-plus";
 import dayjs from "dayjs";
 import { debounce, storageLocal } from "@pureadmin/utils";
 import { reverseMappingRecord } from "./utils";
+import { useAuthStoreHook } from "@/store/modules/auth";
 const emits = defineEmits(["refresh"]);
 
 const searchInfo = ref({

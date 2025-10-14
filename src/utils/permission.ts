@@ -186,3 +186,24 @@ export const updatePrivorty = data => {
   // return isInArr(userId, [{ userId }])
   return isInArr(userId, workerAds);
 };
+
+// 是否可以修改产品维护列表
+export const updateProductMaintainList = () => {
+  // 新产品研发中心NPD -854426504; 产品市场PM -982315056
+  const admin_ids = [854426504, 982315056];
+  let ddUserInfo = localStorage.getItem("ddUserInfo");
+  if (ddUserInfo) {
+    ddUserInfo = JSON.parse(ddUserInfo);
+  } else {
+    return false;
+  }
+  if (ddUserInfo?.dept_id_list && ddUserInfo.dept_id_list.length > 0) {
+    for (const item of ddUserInfo.dept_id_list) {
+      if (admin_ids.includes(item)) {
+        return true;
+      }
+    }
+  } else {
+    return false;
+  }
+};

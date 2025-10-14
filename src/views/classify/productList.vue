@@ -39,7 +39,10 @@
       <el-table-column label="操作">
         <template #default="scope">
           <el-button @click="showDetails(scope.row)">详情</el-button>
-          <el-button @click="deleteProductFun(scope.row)" type="danger"
+          <el-button
+            @click="deleteProductFun(scope.row)"
+            type="danger"
+            :disabled="!useAuthStoreHook().isAdmin"
             >删除</el-button
           >
         </template>
@@ -80,6 +83,7 @@ import { debounce, storageLocal } from "@pureadmin/utils";
 import addProduct from "./addProduct.vue";
 import recordList from "./recordList.vue";
 import { status } from "nprogress";
+import { useAuthStoreHook } from "@/store/modules/auth";
 const tableData = ref([]);
 const pagination = ref({
   pageNo: 1,

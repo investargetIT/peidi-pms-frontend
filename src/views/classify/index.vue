@@ -55,13 +55,14 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { fetchStatusList } from "@/api/pmApi.ts";
 import { ElMessage } from "element-plus";
 import factories from "./const";
 import addProduct from "./addProduct.vue";
 import productList from "./productList.vue";
 import { useAuthStoreHook } from "@/store/modules/auth";
+import { updateProductMaintainList } from "@/utils/permission";
 const showModal = ref(false);
 const statusList = ref([]);
 const listRef = ref(null);
@@ -103,6 +104,16 @@ const saveProduct = () => {
 const refreshList = () => {
   listRef.value.fetchProductList();
 };
+
+onMounted(() => {
+  try {
+    if (updateProductMaintainList()) {
+      useAuthStoreHook().setIsAdmin(true);
+    }
+  } catch (error) {
+    console.error("更新产品维护列表权限失败:", error);
+  }
+});
 </script>
 
 <style scoped>

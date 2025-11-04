@@ -28,7 +28,7 @@ import { jsonp } from "vue-jsonp";
 
 const testResults: any = [];
 // let uploadUrl = "http://9vx396nm1505.vicp.fun:6001";
-let uploadUrl = "http://pms.peidigroup.cn/nas";
+let uploadUrl = "https://pms.peidigroup.cn/nas";
 
 const testIPWithJsonp = ip => {
   return new Promise((resolve, reject) => {

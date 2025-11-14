@@ -86,6 +86,10 @@
       </style>
       <div class="loader"></div>
     </div>
+    <script>
+      // bi放在当前域名下，每次从pms进入需要移除bi标识
+      localStorage.removeItem("peidibi");
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

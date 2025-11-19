@@ -35,16 +35,15 @@
           ></el-option>
         </el-select>
       </el-form-item>
+      <!-- :disabled="isEdit -->
       <el-form-item prop="productNo" label="产品号/货号">
-        <el-input :disabled="isEdit" v-model="newProduct.productNo"></el-input>
+        <el-input :disabled="false" v-model="newProduct.productNo"></el-input>
       </el-form-item>
+      <!-- :disabled="isEdit -->
       <el-form-item prop="productName" label="产品名称">
-        <el-input
-          :disabled="isEdit"
-          v-model="newProduct.productName"
-        ></el-input>
+        <el-input :disabled="false" v-model="newProduct.productName"></el-input>
       </el-form-item>
-      <el-tag v-show="showDefaultInfo" type="info" class="mb-3">登陆</el-tag>
+      <el-tag v-show="showDefaultInfo" type="info" class="mb-3">登录</el-tag>
       <el-form-item v-show="showDefaultInfo" label="登录网站">
         <el-input
           :disabled="true"

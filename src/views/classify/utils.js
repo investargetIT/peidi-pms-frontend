@@ -144,7 +144,13 @@ export const reverseMapping = postData => {
       sellingPointFile: postData.sellingPointFile
         ? JSON.parse(postData.sellingPointFile)
         : [],
-      createAt: postData.createAt // 创建时间
+      createAt: postData.createAt, // 创建时间
+      spu: {
+        spuId: postData.spuId,
+        spuName: postData.spuName,
+        suiteNo: postData.suiteNo,
+        u9Name: postData.u9Name
+      }
     }
   };
   console.log("newProduct", newProduct);
@@ -222,7 +228,11 @@ export const mapping = newProduct => {
       newProduct.productionProcessDrawing
     ),
     sellingPoint: newProduct.sellingPoint,
-    sellingPointFile: JSON.stringify(newProduct.sellingPointFile)
+    sellingPointFile: JSON.stringify(newProduct.sellingPointFile),
+    spuId: newProduct.spu.spuId,
+    spuName: newProduct.spu.spuName,
+    suiteNo: newProduct.spu.suiteNo,
+    u9Name: newProduct.spu.u9Name
   };
   return postData;
 };

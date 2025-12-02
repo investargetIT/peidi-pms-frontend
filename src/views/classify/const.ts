@@ -1,3 +1,74 @@
+// 空的工厂模板对象，用于解构赋值创建新工厂
+const emptyFactoryTemplate = {
+  login: {
+    website: "",
+    username: "",
+    password: ""
+  },
+  entryPage: "",
+  onSiteEvaluation: {
+    add: "",
+    batchNumber: {
+      description: "",
+      rules: [],
+      examples: []
+    },
+    selectedProduct: "",
+    factoryName: "",
+    address: "",
+    factoryIntroduction: "",
+    factoryDisplay: "",
+    save: ""
+  },
+  rawMaterialPurchase: {
+    entry: "",
+    materialName: "",
+    materialSource: "",
+    supplier: "",
+    inspectionReport: "",
+    purchaseBatchNumber: "",
+    save: ""
+  },
+  productProduction: {
+    entry: "",
+    productionProcess: "",
+    productionDate: "",
+    productionBatchNumber: "",
+    save: ""
+  },
+  finishedProductControl: {
+    entry: "",
+    inspectionResult: "",
+    inspectionReport: "",
+    save: ""
+  },
+  afterSalesService: {
+    entry: "",
+    contactAddress: "",
+    hotline: "",
+    save: ""
+  },
+  traceabilityIdentification: {
+    entry: "",
+    traceabilityType: "",
+    identificationType: "",
+    identificationFunction: "",
+    verificationMode: "",
+    save: ""
+  },
+  cciStatement: {
+    entry: "",
+    traceabilityType: "",
+    consumerService: "",
+    authenticityStatement: "",
+    infringementStatement: "",
+    save: ""
+  },
+  traceabilityBatchCoding: {
+    entry: ""
+  }
+};
+
 // 工厂溯源信息配置模板数组，包含两个工厂的完整配置
 const factories = [
   {
@@ -50,9 +121,10 @@ const factories = [
         "点击左侧的 '产品生产'默认显示未录入批次，点击右侧的 '录入' 进入录入页面", // 产品生产入口说明
       productionProcess: "点击 '+', 上传 '江苏康贝肉制品生产工艺' 照片", // 生产工艺图片上传说明
       productionDate: "选择生产日期", // 生产日期选择说明
-      productionBatchNumber: "输入产品批次号" // 生产批次号填写说明
+      productionBatchNumber: "输入产品批次号", // 生产批次号填写说明
       // productionTechnology: "", // 生产工艺（预留字段）
       // technologyDescription: "" // 工艺说明（预留字段）
+      save: "点击下方 '保存'" // 保存操作说明
     },
     // 成品控制模块配置
     finishedProductControl: {
@@ -228,5 +300,27 @@ const factories = [
     // product_details: "" // 产品详情
   }
 ];
+
+// 工厂名称数组
+const factoryNames = [
+  "上海比瑞吉宠物用品股份有限公司",
+  "山西星萌科技有限公司",
+  "青岛康大长荣进出口有限公司",
+  "高乔宠物食品（浙江）有限公司",
+  "广东好顺欧迪斯科技科技股份有限公司",
+  "内蒙古宁宇膨润土科技有限公司"
+];
+
+// 使用数组映射创建新工厂
+const newFactories = factoryNames.map(factoryName => ({
+  ...emptyFactoryTemplate,
+  onSiteEvaluation: {
+    ...emptyFactoryTemplate.onSiteEvaluation,
+    factoryName
+  }
+}));
+
+// 将新工厂添加到现有的factories数组中
+factories.push(...newFactories);
 
 export default factories;

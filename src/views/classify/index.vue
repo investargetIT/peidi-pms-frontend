@@ -28,6 +28,18 @@
           placeholder="请输入产品名称"
           clearable
         />
+        <el-select
+          style="width: 240px"
+          v-model="searchInfo.spuId"
+          placeholder="请选择SPU"
+          clearable
+        >
+          <el-option
+            v-for="item in spuList"
+            :label="item.value"
+            :value="item.id"
+          />
+        </el-select>
       </div>
       <el-button
         type="primary"
@@ -55,8 +67,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { fetchStatusList } from "@/api/pmApi.ts";
+import { ref, onMounted, provide } from "vue";
+import { fetchStatusList, getEnumList } from "@/api/pmApi.ts";
 import { ElMessage } from "element-plus";
 import factories from "./const";
 import addProduct from "./addProduct.vue";
@@ -105,7 +117,33 @@ const refreshList = () => {
   listRef.value.fetchProductList();
 };
 
+//#region SPU相关
+const spuList = ref([]);
+//#endregion
+
+//#region 请求逻辑
+// 获取枚举列表
+const fetchEnumList = type => {
+  getEnumList({ type })
+    .then(res => {
+      if (res.code === 200) {
+        spuList.value = res.data || [];
+      } else {
+        ElMessage.error("获取枚举列表失败--" + res.msg);
+      }
+    })
+    .catch(err => {
+      ElMessage.error("获取枚举列表失败--" + err.message);
+    });
+};
+
+// 依赖注入
+provide("spuList", spuList);
+//#endregion
+
 onMounted(() => {
+  fetchEnumList("spu");
+
   try {
     if (updateProductMaintainList()) {
       useAuthStoreHook().setIsAdmin(true);

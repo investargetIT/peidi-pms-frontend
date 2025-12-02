@@ -15,6 +15,8 @@
       :rules="rules"
       ref="productForm"
       :disabled="!useAuthStoreHook().isAdmin"
+      label-width="120px"
+      label-position="left"
     >
       <!-- 工厂名称选择 -->
       <el-form-item
@@ -42,6 +44,28 @@
       <!-- :disabled="isEdit -->
       <el-form-item prop="productName" label="产品名称">
         <el-input :disabled="false" v-model="newProduct.productName"></el-input>
+      </el-form-item>
+      <el-tag type="info" class="mb-3">SPU</el-tag>
+      <el-form-item prop="spu.spuId" label="SPU">
+        <el-select
+          v-model="newProduct.spu.spuId"
+          placeholder="请选择SPU"
+          filterable
+          clearable
+        >
+          <el-option
+            v-for="item in spuList"
+            :key="item.id"
+            :label="item.value"
+            :value="item.id"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item prop="spu.suiteNo" label="u9编号">
+        <el-input v-model="newProduct.spu.suiteNo"></el-input>
+      </el-form-item>
+      <el-form-item prop="spu.u9Name" label="u9名称">
+        <el-input v-model="newProduct.spu.u9Name"></el-input>
       </el-form-item>
       <el-tag v-show="showDefaultInfo" type="info" class="mb-3">登录</el-tag>
       <el-form-item v-show="showDefaultInfo" label="登录网站">
@@ -529,7 +553,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { onMounted, ref, watch, inject } from "vue";
 import { ElMessage } from "element-plus";
 import factories from "./const";
 import { newTask, updateProduct, getFileDownLoadPath } from "@/api/pmApi.ts";
@@ -550,6 +574,9 @@ const { isEdit, details } = defineProps({
     default: () => ({})
   }
 });
+
+// 依赖注入
+const spuList = inject("spuList");
 
 const emits = defineEmits(["refresh"]);
 
@@ -698,7 +725,13 @@ const emptyValue = {
   // 新增核心卖点
   sellingPoint: "",
   // 新增核心卖点附件
-  sellingPointFile: []
+  sellingPointFile: [],
+  spu: {
+    spuId: "",
+    spuName: "",
+    suiteNo: "",
+    u9Name: ""
+  }
 };
 const newProduct = ref(emptyValue);
 
@@ -766,6 +799,10 @@ const saveProduct = () => {
     if (valid) {
       // 保存产品逻辑
       console.log("保存产品:", newProduct.value);
+      // 把spuName筛选出来放进去
+      newProduct.value.spu.spuName =
+        spuList.value.find(item => item.id === newProduct.value.spu.spuId)
+          ?.value || "";
       const postData = mapping(newProduct.value);
       console.log("postData:", postData);
       if (isEdit) {

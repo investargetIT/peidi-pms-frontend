@@ -21,8 +21,8 @@
         prop="onSiteEvaluation.factoryName"
         label="工厂名称/生产企业"
       >
+        <!-- :disabled="isEdit" -->
         <el-select
-          :disabled="isEdit"
           v-model="newProduct.onSiteEvaluation.factoryName"
           placeholder="请选择工厂名称/生产企业"
           @change="fillFactoryInfo"
@@ -736,9 +736,10 @@ const deepMerge = (target, source) => {
         }
         deepMerge(target[key], source[key]);
       } else {
-        if (!target[key]) {
-          target[key] = source[key];
-        }
+        target[key] = source[key];
+        // if (!target[key]) {
+        //   target[key] = source[key];
+        // }
       }
     }
   }

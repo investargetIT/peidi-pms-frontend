@@ -143,7 +143,8 @@ export const reverseMapping = postData => {
       sellingPoint: postData.sellingPoint,
       sellingPointFile: postData.sellingPointFile
         ? JSON.parse(postData.sellingPointFile)
-        : []
+        : [],
+      createAt: postData.createAt // 创建时间
     }
   };
   console.log("newProduct", newProduct);

@@ -3,6 +3,7 @@
     class="relative"
     v-model="visible"
     :title="isEdit ? '更新产品' : '新增产品'"
+    :style="{ minWidth: '580px' }"
   >
     <el-button
       class="absolute left-20 top-3"
@@ -61,7 +62,7 @@
           ></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item prop="spu.suiteNo" label="u9编号">
+      <el-form-item prop="spu.suiteNo" label="条形码">
         <el-input v-model="newProduct.spu.suiteNo"></el-input>
       </el-form-item>
       <el-form-item prop="spu.u9Name" label="u9名称">
@@ -412,134 +413,368 @@
       </el-form-item>
       <!-- 新增核心卖点附件 -->
       <el-form-item prop="sellingPointFile" label="核心卖点附件">
-        <el-upload
-          ref="upload"
-          class="upload-demo"
-          action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
-          :limit="5"
-          v-model:file-list="newProduct.sellingPointFile"
-          type="primary"
-          :headers="{
-            Authorization: formatToken(getToken().accessToken)
-          }"
-          :on-exceed="handleExceed"
-          :before-upload="beforeUpload"
-          :on-preview="handlePreview"
-          accept=".jpg,.png,.jpeg,.gif,.pdf"
-        >
-          <el-button>选择文件</el-button>
-          <template #tip>
-            <div class="el-upload__tip">
-              上传文件支持 jpg、png、jpeg、gif、pdf
-              格式,大小不超过10M，且最多上传5份。
+        <div class="flex flex-col">
+          <el-upload
+            ref="upload"
+            class="upload-demo"
+            action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
+            :limit="5"
+            v-model:file-list="newProduct.sellingPointFile"
+            type="primary"
+            :headers="{
+              Authorization: formatToken(getToken().accessToken)
+            }"
+            :on-exceed="handleExceed"
+            :before-upload="beforeUpload"
+            :on-preview="handlePreview"
+            accept=".jpg,.png,.jpeg,.gif,.pdf"
+            :show-file-list="false"
+          >
+            <el-button class="upload-button">选择文件</el-button>
+            <template #tip>
+              <div class="upload-tip">
+                上传文件支持 jpg、png、jpeg、gif、pdf
+                格式,大小不超过10M，且最多上传5份。
+              </div>
+            </template>
+          </el-upload>
+
+          <!-- 自定义文件列表（使用显示文件列表） -->
+          <div
+            class="file-list-container"
+            v-if="
+              displayFileLists.sellingPointFile &&
+              displayFileLists.sellingPointFile.length > 0
+            "
+          >
+            <div
+              v-for="file in displayFileLists.sellingPointFile"
+              :key="file.uid"
+              class="file-card"
+            >
+              <div class="file-info">
+                <span class="file-icon">{{ getFileIcon(file.name) }}</span>
+                <span class="file-name" :title="file.name">{{
+                  file.name
+                }}</span>
+              </div>
+              <div class="file-actions">
+                <button
+                  v-if="isImageFile(file.name)"
+                  class="action-btn preview-btn"
+                  @click="handlePreview(file)"
+                >
+                  预览
+                </button>
+                <button
+                  class="action-btn download-btn"
+                  @click="handleDownload(file)"
+                >
+                  下载
+                </button>
+                <button
+                  class="action-btn delete-btn"
+                  @click="handleRemove(file, 'sellingPointFile')"
+                >
+                  删除
+                </button>
+              </div>
             </div>
-          </template>
-        </el-upload>
+          </div>
+        </div>
       </el-form-item>
       <el-form-item prop="productPicture" label="产品图片">
-        <el-upload
-          ref="upload"
-          class="upload-demo"
-          action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
-          :limit="5"
-          type="primary"
-          v-model:file-list="newProduct.productPicture"
-          :headers="{
-            Authorization: formatToken(getToken().accessToken)
-          }"
-          :on-exceed="handleExceed"
-          :before-upload="beforeUpload"
-          :on-preview="handlePreview"
-          accept=".jpg,.png,.jpeg,.gif,.pdf"
-        >
-          <el-button>选择文件</el-button>
-          <template #tip>
-            <div class="el-upload__tip">
-              上传文件支持 jpg、png、jpeg、gif、pdf
-              格式,大小不超过10M，且最多上传5份。
+        <div class="flex flex-col">
+          <el-upload
+            ref="upload"
+            class="upload-demo"
+            action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
+            :limit="5"
+            type="primary"
+            v-model:file-list="newProduct.productPicture"
+            :headers="{
+              Authorization: formatToken(getToken().accessToken)
+            }"
+            :on-exceed="handleExceed"
+            :before-upload="beforeUpload"
+            :on-preview="handlePreview"
+            accept=".jpg,.png,.jpeg,.gif,.pdf"
+            :show-file-list="false"
+          >
+            <el-button class="upload-button">选择文件</el-button>
+            <template #tip>
+              <div class="upload-tip">
+                上传文件支持 jpg、png、jpeg、gif、pdf
+                格式,大小不超过10M，且最多上传5份。
+              </div>
+            </template>
+          </el-upload>
+
+          <!-- 自定义文件列表（使用显示文件列表） -->
+          <div
+            class="file-list-container"
+            v-if="
+              displayFileLists.productPicture &&
+              displayFileLists.productPicture.length > 0
+            "
+          >
+            <div
+              v-for="file in displayFileLists.productPicture"
+              :key="file.uid"
+              class="file-card"
+            >
+              <div class="file-info">
+                <span class="file-icon">{{ getFileIcon(file.name) }}</span>
+                <span class="file-name" :title="file.name">{{
+                  file.name
+                }}</span>
+              </div>
+              <div class="file-actions">
+                <button
+                  v-if="isImageFile(file.name)"
+                  class="action-btn preview-btn"
+                  @click="handlePreview(file)"
+                >
+                  预览
+                </button>
+                <button
+                  class="action-btn download-btn"
+                  @click="handleDownload(file)"
+                >
+                  下载
+                </button>
+                <button
+                  class="action-btn delete-btn"
+                  @click="handleRemove(file, 'productPicture')"
+                >
+                  删除
+                </button>
+              </div>
             </div>
-          </template>
-        </el-upload>
+          </div>
+        </div>
       </el-form-item>
+
       <el-form-item prop="productDetails" label="产品详情">
-        <el-upload
-          ref="upload"
-          class="upload-demo"
-          action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
-          :limit="5"
-          v-model:file-list="newProduct.productDetails"
-          type="primary"
-          :headers="{
-            Authorization: formatToken(getToken().accessToken)
-          }"
-          :on-exceed="handleExceed"
-          :before-upload="beforeUpload"
-          :on-preview="handlePreview"
-          accept=".jpg,.png,.jpeg,.gif,.pdf"
-        >
-          <el-button>选择文件</el-button>
-          <template #tip>
-            <div class="el-upload__tip">
-              上传文件支持 jpg、png、jpeg、gif、pdf
-              格式,大小不超过10M，且最多上传5份。
+        <div class="flex flex-col">
+          <el-upload
+            ref="upload"
+            class="upload-demo"
+            action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
+            :limit="5"
+            v-model:file-list="newProduct.productDetails"
+            type="primary"
+            :headers="{
+              Authorization: formatToken(getToken().accessToken)
+            }"
+            :on-exceed="handleExceed"
+            :before-upload="beforeUpload"
+            :on-preview="handlePreview"
+            accept=".jpg,.png,.jpeg,.gif,.pdf"
+            :show-file-list="false"
+          >
+            <el-button class="upload-button">选择文件</el-button>
+            <template #tip>
+              <div class="upload-tip">
+                上传文件支持 jpg、png、jpeg、gif、pdf
+                格式,大小不超过10M，且最多上传5份。
+              </div>
+            </template>
+          </el-upload>
+
+          <!-- 自定义文件列表（使用显示文件列表） -->
+          <div
+            class="file-list-container"
+            v-if="
+              displayFileLists.productDetails &&
+              displayFileLists.productDetails.length > 0
+            "
+          >
+            <div
+              v-for="file in displayFileLists.productDetails"
+              :key="file.uid"
+              class="file-card"
+            >
+              <div class="file-info">
+                <span class="file-icon">{{ getFileIcon(file.name) }}</span>
+                <span class="file-name" :title="file.name">{{
+                  file.name
+                }}</span>
+              </div>
+              <div class="file-actions">
+                <button
+                  v-if="isImageFile(file.name)"
+                  class="action-btn preview-btn"
+                  @click="handlePreview(file)"
+                >
+                  预览
+                </button>
+                <button
+                  class="action-btn download-btn"
+                  @click="handleDownload(file)"
+                >
+                  下载
+                </button>
+                <button
+                  class="action-btn delete-btn"
+                  @click="handleRemove(file, 'productDetails')"
+                >
+                  删除
+                </button>
+              </div>
             </div>
-          </template>
-        </el-upload>
+          </div>
+        </div>
       </el-form-item>
+
       <el-form-item prop="factoryPicture" label="工厂照片">
-        <el-upload
-          ref="upload"
-          class="upload-demo"
-          action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
-          :limit="5"
-          v-model:file-list="newProduct.factoryPicture"
-          type="primary"
-          :headers="{
-            Authorization: formatToken(getToken().accessToken)
-          }"
-          :on-exceed="handleExceed"
-          :before-upload="beforeUpload"
-          :on-preview="handlePreview"
-          accept=".jpg,.png,.jpeg,.gif,.pdf"
-        >
-          <el-button>选择文件</el-button>
-          <template #tip>
-            <div class="el-upload__tip">
-              上传文件支持 jpg、png、jpeg、gif、pdf
-              格式,大小不超过10M，且最多上传5份。
+        <div class="flex flex-col">
+          <el-upload
+            ref="upload"
+            class="upload-demo"
+            action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
+            :limit="5"
+            v-model:file-list="newProduct.factoryPicture"
+            type="primary"
+            :headers="{
+              Authorization: formatToken(getToken().accessToken)
+            }"
+            :on-exceed="handleExceed"
+            :before-upload="beforeUpload"
+            :on-preview="handlePreview"
+            accept=".jpg,.png,.jpeg,.gif,.pdf"
+            :show-file-list="false"
+          >
+            <el-button class="upload-button">选择文件</el-button>
+            <template #tip>
+              <div class="upload-tip">
+                上传文件支持 jpg、png、jpeg、gif、pdf
+                格式,大小不超过10M，且最多上传5份。
+              </div>
+            </template>
+          </el-upload>
+
+          <!-- 自定义文件列表（使用显示文件列表） -->
+          <div
+            class="file-list-container"
+            v-if="
+              displayFileLists.factoryPicture &&
+              displayFileLists.factoryPicture.length > 0
+            "
+          >
+            <div
+              v-for="file in displayFileLists.factoryPicture"
+              :key="file.uid"
+              class="file-card"
+            >
+              <div class="file-info">
+                <span class="file-icon">{{ getFileIcon(file.name) }}</span>
+                <span class="file-name" :title="file.name">{{
+                  file.name
+                }}</span>
+              </div>
+              <div class="file-actions">
+                <button
+                  v-if="isImageFile(file.name)"
+                  class="action-btn preview-btn"
+                  @click="handlePreview(file)"
+                >
+                  预览
+                </button>
+                <button
+                  class="action-btn download-btn"
+                  @click="handleDownload(file)"
+                >
+                  下载
+                </button>
+                <button
+                  class="action-btn delete-btn"
+                  @click="handleRemove(file, 'factoryPicture')"
+                >
+                  删除
+                </button>
+              </div>
             </div>
-          </template>
-        </el-upload>
+          </div>
+        </div>
       </el-form-item>
+
       <el-form-item prop="productionProcessDrawing" label="生产工艺图">
-        <el-upload
-          ref="upload"
-          class="upload-demo"
-          action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
-          :limit="5"
-          v-model:file-list="newProduct.productionProcessDrawing"
-          type="primary"
-          :headers="{
-            Authorization: formatToken(getToken().accessToken)
-          }"
-          :on-exceed="handleExceed"
-          :before-upload="beforeUpload"
-          :on-preview="handlePreview"
-          accept=".jpg,.png,.jpeg,.gif,.pdf"
-        >
-          <el-button>选择文件</el-button>
-          <template #tip>
-            <div class="el-upload__tip">
-              上传文件支持 jpg、png、jpeg、gif、pdf
-              格式,大小不超过10M，且最多上传5份。
+        <div class="flex flex-col">
+          <el-upload
+            ref="upload"
+            class="upload-demo"
+            action="https://api.peidigroup.cn/prm/traceability-flow/upload-oss"
+            :limit="5"
+            v-model:file-list="newProduct.productionProcessDrawing"
+            type="primary"
+            :headers="{
+              Authorization: formatToken(getToken().accessToken)
+            }"
+            :on-exceed="handleExceed"
+            :before-upload="beforeUpload"
+            :on-preview="handlePreview"
+            accept=".jpg,.png,.jpeg,.gif,.pdf"
+            :show-file-list="false"
+          >
+            <el-button class="upload-button">选择文件</el-button>
+            <template #tip>
+              <div class="upload-tip">
+                上传文件支持 jpg、png、jpeg、gif、pdf
+                格式,大小不超过10M，且最多上传5份。
+              </div>
+            </template>
+          </el-upload>
+
+          <!-- 自定义文件列表（使用显示文件列表） -->
+          <div
+            class="file-list-container"
+            v-if="
+              displayFileLists.productionProcessDrawing &&
+              displayFileLists.productionProcessDrawing.length > 0
+            "
+          >
+            <div
+              v-for="file in displayFileLists.productionProcessDrawing"
+              :key="file.uid"
+              class="file-card"
+            >
+              <div class="file-info">
+                <span class="file-icon">{{ getFileIcon(file.name) }}</span>
+                <span class="file-name" :title="file.name">{{
+                  file.name
+                }}</span>
+              </div>
+              <div class="file-actions">
+                <button
+                  v-if="isImageFile(file.name)"
+                  class="action-btn preview-btn"
+                  @click="handlePreview(file)"
+                >
+                  预览
+                </button>
+                <button
+                  class="action-btn download-btn"
+                  @click="handleDownload(file)"
+                >
+                  下载
+                </button>
+                <button
+                  class="action-btn delete-btn"
+                  @click="handleRemove(file, 'productionProcessDrawing')"
+                >
+                  删除
+                </button>
+              </div>
             </div>
-          </template>
-        </el-upload>
+          </div>
+        </div>
       </el-form-item>
     </el-form>
     <span slot="footer" class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button
+        :loading="loading"
         type="primary"
         @click="saveProduct"
         :disabled="!useAuthStoreHook().isAdmin"
@@ -580,6 +815,7 @@ const spuList = inject("spuList");
 
 const emits = defineEmits(["refresh"]);
 
+const loading = ref(false);
 const isFlod = ref(false);
 const dialogImageUrl = ref("");
 const dialogVisible = ref(false);
@@ -735,6 +971,29 @@ const emptyValue = {
 };
 const newProduct = ref(emptyValue);
 
+// 新增：显示文件列表的响应式数据（用于组件显示，不修改源数据）
+const displayFileLists = ref({
+  sellingPointFile: [],
+  productPicture: [],
+  productDetails: [],
+  factoryPicture: [],
+  productionProcessDrawing: []
+});
+
+// 监听源数据变化，同步到显示文件列表
+watch(
+  () => newProduct.value,
+  newVal => {
+    // 同步各个文件字段到显示列表
+    Object.keys(displayFileLists.value).forEach(fieldName => {
+      if (newVal[fieldName] && Array.isArray(newVal[fieldName])) {
+        displayFileLists.value[fieldName] = [...newVal[fieldName]];
+      }
+    });
+  },
+  { immediate: true, deep: true }
+);
+
 // 监听details的变化,如果是编辑状态，将details赋值给newProduct
 watch(
   () => details,
@@ -797,6 +1056,17 @@ if (isEdit) {
 const saveProduct = () => {
   productForm.value.validate(valid => {
     if (valid) {
+      loading.value = true;
+      // 在保存前同步显示文件列表到源数据
+      Object.keys(displayFileLists.value).forEach(fieldName => {
+        if (
+          displayFileLists.value[fieldName] &&
+          Array.isArray(displayFileLists.value[fieldName])
+        ) {
+          newProduct.value[fieldName] = [...displayFileLists.value[fieldName]];
+        }
+      });
+
       // 保存产品逻辑
       console.log("保存产品:", newProduct.value);
       // 把spuName筛选出来放进去
@@ -824,6 +1094,9 @@ const saveProduct = () => {
           .catch(err => {
             console.error("err:", err);
             ElMessage.error("产品更新失败");
+          })
+          .finally(() => {
+            loading.value = false;
           });
         return;
       } else {
@@ -844,7 +1117,11 @@ const saveProduct = () => {
           .catch(err => {
             console.error("err:", err);
             ElMessage.error("产品保存失败");
+          })
+          .finally(() => {
+            loading.value = false;
           });
+        return;
       }
     } else {
       ElMessage.error("表单还有未填项");
@@ -901,10 +1178,176 @@ const handlePreview = file => {
       ElMessage.error("图片预览失败");
     });
 };
+
+//#region el-upload相关方法
+// 新增方法：下载文件
+const handleDownload = file => {
+  getFileDownLoadPath({
+    objectName: "prm/traceability-Flow/" + file.name
+  })
+    .then(res => {
+      if (res.code === 200) {
+        const link = document.createElement("a");
+        link.href = res.data;
+        link.download = file.name;
+        link.click();
+      } else {
+        ElMessage.error("文件下载失败--" + res.msg);
+      }
+    })
+    .catch(err => {
+      ElMessage.error("文件下载失败");
+    });
+};
+
+// 修改方法：删除文件（只删除显示列表中的文件，不修改源数据）
+const handleRemove = (file, fieldName) => {
+  const index = displayFileLists.value[fieldName].findIndex(
+    item => item.uid === file.uid
+  );
+  if (index !== -1) {
+    displayFileLists.value[fieldName].splice(index, 1);
+    // ElMessage.success("文件已从列表中移除");
+  }
+};
+
+// 新增方法：判断是否为图片文件
+const isImageFile = fileName => {
+  const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"];
+  const extension = fileName?.split(".").pop()?.toLowerCase();
+  return imageExtensions.includes(extension);
+};
+
+// 新增方法：获取文件图标
+const getFileIcon = fileName => {
+  const extension = fileName?.split(".").pop()?.toLowerCase();
+  const iconMap = {
+    pdf: "📄",
+    jpg: "🖼️",
+    jpeg: "🖼️",
+    png: "🖼️",
+    gif: "🖼️",
+    doc: "📝",
+    docx: "📝",
+    xls: "📊",
+    xlsx: "📊",
+    zip: "📦",
+    rar: "📦"
+  };
+  return iconMap[extension] || "📎";
+};
+//#endregion
 </script>
 
 <style scoped>
 .dialog-footer {
   text-align: right;
+}
+
+/* 新增样式：现代化的文件列表样式 */
+.file-list-container {
+  margin-top: 16px;
+}
+
+.file-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.file-card:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
+  transform: translateY(-1px);
+}
+
+.file-info {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+}
+
+.file-icon {
+  flex-shrink: 0;
+  margin-right: 12px;
+  font-size: 20px;
+}
+
+.file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  color: #495057;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #6c757d;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  color: white;
+  background: #007bff;
+}
+
+.preview-btn {
+  color: white;
+  background: #28a745;
+}
+
+.preview-btn:hover {
+  background: #218838;
+}
+
+.download-btn {
+  color: white;
+  background: #17a2b8;
+}
+
+.download-btn:hover {
+  background: #138496;
+}
+
+.delete-btn {
+  color: white;
+  background: #dc3545;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+}
+
+/* 上传按钮样式优化 */
+.upload-button {
+  /* margin-bottom: 16px; */
+}
+
+.upload-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6c757d;
 }
 </style>

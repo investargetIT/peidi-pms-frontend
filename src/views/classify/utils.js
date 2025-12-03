@@ -150,7 +150,8 @@ export const reverseMapping = postData => {
         spuName: postData.spuName,
         suiteNo: postData.suiteNo,
         u9Name: postData.u9Name
-      }
+      },
+      nasUrl: postData.nasUrl
     }
   };
   console.log("newProduct", newProduct);
@@ -232,7 +233,8 @@ export const mapping = newProduct => {
     spuId: newProduct.spu.spuId,
     spuName: newProduct.spu.spuName,
     suiteNo: newProduct.spu.suiteNo,
-    u9Name: newProduct.spu.u9Name
+    u9Name: newProduct.spu.u9Name,
+    nasUrl: newProduct.nasUrl
   };
   return postData;
 };

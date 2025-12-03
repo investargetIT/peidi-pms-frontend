@@ -780,8 +780,25 @@
           </div>
         </div>
       </el-form-item>
+      <el-form-item label="NAS地址">
+        <div class="nas-url-container">
+          <el-input
+            v-model="newProduct.nasUrl"
+            placeholder="请输入NAS地址"
+            class="nas-input"
+          ></el-input>
+          <el-button
+            type="primary"
+            :disabled="!newProduct.nasUrl"
+            @click="previewNasUrl"
+            class="preview-btn"
+          >
+            打开
+          </el-button>
+        </div>
+      </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <div slot="footer" class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button
         :loading="loading"
@@ -790,7 +807,7 @@
         :disabled="!useAuthStoreHook().isAdmin"
         >保存</el-button
       >
-    </span>
+    </div>
   </el-dialog>
   <el-dialog v-model="dialogVisible">
     <img w-full :src="dialogImageUrl" alt="Preview Image" />
@@ -978,7 +995,9 @@ const emptyValue = {
     spuName: "",
     suiteNo: "",
     u9Name: ""
-  }
+  },
+  // NAS地址
+  nasUrl: ""
 };
 const newProduct = ref(emptyValue);
 
@@ -1248,6 +1267,27 @@ const getFileIcon = fileName => {
   return iconMap[extension] || "📎";
 };
 //#endregion
+
+//#region NAS地址逻辑
+// NAS地址预览功能
+const previewNasUrl = () => {
+  if (!newProduct.value.nasUrl) {
+    ElMessage.warning("请输入NAS地址");
+    return;
+  }
+
+  // 检查是否为有效的URL格式
+  const urlPattern =
+    /^(https?|ftp|file):\/\/[-A-Za-z0-9+&@#/%?=~_|!:,.;]*[-A-Za-z0-9+&@#/%=~_|]/;
+  if (!urlPattern.test(newProduct.value.nasUrl)) {
+    ElMessage.warning("请输入有效的URL地址");
+    return;
+  }
+
+  // 在新窗口打开NAS地址
+  window.open(newProduct.value.nasUrl, "_blank");
+};
+//#endregion
 </script>
 
 <style scoped>
@@ -1324,9 +1364,28 @@ const getFileIcon = fileName => {
   background: #007bff;
 }
 
+/* NAS地址预览按钮样式 */
+.nas-url-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.nas-input {
+  width: 300px;
+}
+
 .preview-btn {
+  flex-shrink: 0;
   color: white;
+  white-space: nowrap;
   background: #28a745;
+}
+
+/* 确保按钮在禁用状态下也有良好的视觉效果 */
+.preview-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .preview-btn:hover {

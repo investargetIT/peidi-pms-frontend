@@ -426,7 +426,6 @@
             }"
             :on-exceed="handleExceed"
             :before-upload="beforeUpload"
-            :on-preview="handlePreview"
             accept=".jpg,.png,.jpeg,.gif,.pdf"
             :show-file-list="false"
           >
@@ -455,26 +454,29 @@
               <div class="file-info">
                 <span class="file-icon">{{ getFileIcon(file.name) }}</span>
                 <span class="file-name" :title="file.name">{{
-                  file.name
+                  truncateString(file.name, 18)
                 }}</span>
               </div>
               <div class="file-actions">
                 <button
+                  type="button"
                   v-if="isImageFile(file.name)"
                   class="action-btn preview-btn"
-                  @click="handlePreview(file)"
+                  @click.stop="handlePreview(file)"
                 >
                   预览
                 </button>
                 <button
+                  type="button"
                   class="action-btn download-btn"
-                  @click="handleDownload(file)"
+                  @click.stop="handleDownload(file)"
                 >
                   下载
                 </button>
                 <button
+                  type="button"
                   class="action-btn delete-btn"
-                  @click="handleRemove(file, 'sellingPointFile')"
+                  @click.stop="handleRemove(file, 'sellingPointFile')"
                 >
                   删除
                 </button>
@@ -497,7 +499,6 @@
             }"
             :on-exceed="handleExceed"
             :before-upload="beforeUpload"
-            :on-preview="handlePreview"
             accept=".jpg,.png,.jpeg,.gif,.pdf"
             :show-file-list="false"
           >
@@ -526,26 +527,29 @@
               <div class="file-info">
                 <span class="file-icon">{{ getFileIcon(file.name) }}</span>
                 <span class="file-name" :title="file.name">{{
-                  file.name
+                  truncateString(file.name, 18)
                 }}</span>
               </div>
               <div class="file-actions">
                 <button
+                  type="button"
                   v-if="isImageFile(file.name)"
                   class="action-btn preview-btn"
-                  @click="handlePreview(file)"
+                  @click.stop="handlePreview(file)"
                 >
                   预览
                 </button>
                 <button
+                  type="button"
                   class="action-btn download-btn"
-                  @click="handleDownload(file)"
+                  @click.stop="handleDownload(file)"
                 >
                   下载
                 </button>
                 <button
+                  type="button"
                   class="action-btn delete-btn"
-                  @click="handleRemove(file, 'productPicture')"
+                  @click.stop="handleRemove(file, 'productPicture')"
                 >
                   删除
                 </button>
@@ -569,7 +573,6 @@
             }"
             :on-exceed="handleExceed"
             :before-upload="beforeUpload"
-            :on-preview="handlePreview"
             accept=".jpg,.png,.jpeg,.gif,.pdf"
             :show-file-list="false"
           >
@@ -598,26 +601,29 @@
               <div class="file-info">
                 <span class="file-icon">{{ getFileIcon(file.name) }}</span>
                 <span class="file-name" :title="file.name">{{
-                  file.name
+                  truncateString(file.name, 18)
                 }}</span>
               </div>
               <div class="file-actions">
                 <button
+                  type="button"
                   v-if="isImageFile(file.name)"
                   class="action-btn preview-btn"
-                  @click="handlePreview(file)"
+                  @click.stop="handlePreview(file)"
                 >
                   预览
                 </button>
                 <button
+                  type="button"
                   class="action-btn download-btn"
-                  @click="handleDownload(file)"
+                  @click.stop="handleDownload(file)"
                 >
                   下载
                 </button>
                 <button
+                  type="button"
                   class="action-btn delete-btn"
-                  @click="handleRemove(file, 'productDetails')"
+                  @click.stop="handleRemove(file, 'productDetails')"
                 >
                   删除
                 </button>
@@ -641,7 +647,6 @@
             }"
             :on-exceed="handleExceed"
             :before-upload="beforeUpload"
-            :on-preview="handlePreview"
             accept=".jpg,.png,.jpeg,.gif,.pdf"
             :show-file-list="false"
           >
@@ -670,26 +675,29 @@
               <div class="file-info">
                 <span class="file-icon">{{ getFileIcon(file.name) }}</span>
                 <span class="file-name" :title="file.name">{{
-                  file.name
+                  truncateString(file.name, 18)
                 }}</span>
               </div>
               <div class="file-actions">
                 <button
+                  type="button"
                   v-if="isImageFile(file.name)"
                   class="action-btn preview-btn"
-                  @click="handlePreview(file)"
+                  @click.stop="handlePreview(file)"
                 >
                   预览
                 </button>
                 <button
+                  type="button"
                   class="action-btn download-btn"
-                  @click="handleDownload(file)"
+                  @click.stop="handleDownload(file)"
                 >
                   下载
                 </button>
                 <button
+                  type="button"
                   class="action-btn delete-btn"
-                  @click="handleRemove(file, 'factoryPicture')"
+                  @click.stop="handleRemove(file, 'factoryPicture')"
                 >
                   删除
                 </button>
@@ -713,7 +721,6 @@
             }"
             :on-exceed="handleExceed"
             :before-upload="beforeUpload"
-            :on-preview="handlePreview"
             accept=".jpg,.png,.jpeg,.gif,.pdf"
             :show-file-list="false"
           >
@@ -742,11 +749,12 @@
               <div class="file-info">
                 <span class="file-icon">{{ getFileIcon(file.name) }}</span>
                 <span class="file-name" :title="file.name">{{
-                  file.name
+                  truncateString(file.name, 18)
                 }}</span>
               </div>
               <div class="file-actions">
                 <button
+                  type="button"
                   v-if="isImageFile(file.name)"
                   class="action-btn preview-btn"
                   @click="handlePreview(file)"
@@ -754,14 +762,16 @@
                   预览
                 </button>
                 <button
+                  type="button"
                   class="action-btn download-btn"
-                  @click="handleDownload(file)"
+                  @click.stop="handleDownload(file)"
                 >
                   下载
                 </button>
                 <button
+                  type="button"
                   class="action-btn delete-btn"
-                  @click="handleRemove(file, 'productionProcessDrawing')"
+                  @click.stop="handleRemove(file, 'productionProcessDrawing')"
                 >
                   删除
                 </button>
@@ -796,6 +806,7 @@ import { getToken, formatToken } from "@/utils/auth";
 import { mapping, downloadFileFun } from "./utils";
 // import { getTaskUnassigned } from "@/api/task";
 import { useAuthStoreHook } from "@/store/modules/auth";
+import { truncateString } from "@/utils/fun";
 const visible = defineModel("visible");
 const productForm = ref(null);
 // 接受props的isEdit，默认是false

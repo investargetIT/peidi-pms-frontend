@@ -49,26 +49,26 @@ const Layout = () => import("@/layout/index.vue");
 
 /** 原始静态路由（未做任何处理） */
 const routes = [
-  {
-    path: "/classify",
-    name: "classify",
-    redirect: "/classify/index",
-    component: Layout,
-    meta: {
-      title: "产品维护列表",
-      icon: "prime:book"
-    },
-    children: [
-      {
-        path: "/classify/index",
-        name: "classify",
-        component: () => import("@/views/classify/index.vue"),
-        meta: {
-          title: "产品维护列表"
-        }
-      }
-    ]
-  },
+  // {
+  //   path: "/classify",
+  //   name: "classify",
+  //   redirect: "/classify/index",
+  //   component: Layout,
+  //   meta: {
+  //     title: "产品维护列表",
+  //     icon: "prime:book"
+  //   },
+  //   children: [
+  //     {
+  //       path: "/classify/index",
+  //       name: "classify",
+  //       component: () => import("@/views/classify/index.vue"),
+  //       meta: {
+  //         title: "产品维护列表"
+  //       }
+  //     }
+  //   ]
+  // },
   // {
   //   path: "/dashboard",
   //   name: "dashboard",

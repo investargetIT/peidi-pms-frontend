@@ -1,4 +1,9 @@
 // import { getAdminUserEnum } from "../api/pmApi";
+// 判断是否是开发环境 返回true代表是开发环境
+export function isDevEnv() {
+  return process.env.NODE_ENV === "development";
+}
+
 // 相关权限的判断
 const isInArr = (val, arr) => {
   const item = arr.find(item => item.userId == val);
@@ -187,12 +192,13 @@ export const updatePrivorty = data => {
   return isInArr(userId, workerAds);
 };
 
-// 是否可以修改产品维护列表
+// 是否可以修改产品维护列表 开发环境给权限
 export const updateProductMaintainList = () => {
+  if (isDevEnv()) return true;
   // return true;
   // 新产品研发中心NPD -854426504; 产品市场PM -982315056 测试信息939900386
-  const admin_ids = [854426504, 982315056];
-  let ddUserInfo = localStorage.getItem("ddUserInfo");
+  const admin_ids = [854426504, 982315056, 939900386];
+  let ddUserInfo: any = localStorage.getItem("ddUserInfo");
   if (ddUserInfo) {
     ddUserInfo = JSON.parse(ddUserInfo);
   } else {
@@ -204,7 +210,27 @@ export const updateProductMaintainList = () => {
         return true;
       }
     }
+  }
+  return false;
+};
+
+// 是否可以查看项目进度管理系统
+export const canViewProjectProgress = () => {
+  if (isDevEnv()) return true;
+  // 新产品研发中心NPD -854426504; 产品市场PM -982315056 测试信息939900386
+  const admin_ids = [854426504, 982315056, 939900386];
+  let ddUserInfo: any = localStorage.getItem("ddUserInfo");
+  if (ddUserInfo) {
+    ddUserInfo = JSON.parse(ddUserInfo);
   } else {
     return false;
   }
+  if (ddUserInfo?.dept_id_list && ddUserInfo.dept_id_list.length > 0) {
+    for (const item of ddUserInfo.dept_id_list) {
+      if (admin_ids.includes(item)) {
+        return true;
+      }
+    }
+  }
+  return false;
 };

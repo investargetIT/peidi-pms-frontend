@@ -4,21 +4,20 @@ import cateIcon from "../../assets/png/cateIcon.png";
 export default {
   path: "/",
   name: "Home",
-  redirect: "/index",
+  redirect: "/classify/index",
   component: Layout,
   meta: {
-    icon: "prime:box",
-    title: "产品进度概览",
-    rank: 0
+    title: "产品维护列表",
+    rank: 0,
+    icon: "prime:book"
   },
   children: [
     {
-      path: "/index",
-      name: "dashboard",
-      component: () => import("@/views/dashboard/index.vue"),
+      path: "/classify/index",
+      name: "classify",
+      component: () => import("@/views/classify/index.vue"),
       meta: {
-        title: "产品进度概览",
-        showParent: false
+        title: "产品维护列表"
       }
     }
   ]

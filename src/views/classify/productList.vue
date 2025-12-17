@@ -1,6 +1,10 @@
 <template>
   <div class="mt-3 rounded-sm">
-    <el-table :data="tableData" style="width: 100%">
+    <el-table
+      :data="tableData"
+      style="width: 100%"
+      @sort-change="handleSortChange"
+    >
       <el-table-column prop="productNo" label="产品编号">
         <template #default="scope">
           <span
@@ -34,6 +38,16 @@
               </template>
             </el-popover>
           </div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="createAt" label="创建时间" sortable="custom">
+        <template #default="scope">
+          <!-- 格式化时间 -->
+          {{
+            scope.row.createAt
+              ? dayjs(scope.row.createAt).format("YYYY-MM-DD HH:mm:ss")
+              : ""
+          }}
         </template>
       </el-table-column>
       <el-table-column label="操作">
@@ -84,6 +98,8 @@ import addProduct from "./addProduct.vue";
 import recordList from "./recordList.vue";
 import { status } from "nprogress";
 import { useAuthStoreHook } from "@/store/modules/auth";
+import { ElMessageBox } from "element-plus";
+import dayjs from "dayjs";
 const tableData = ref([]);
 const pagination = ref({
   pageNo: 1,
@@ -129,6 +145,7 @@ interface IQueryParams {
   pageNo: number;
   pageSize: number;
   searchStr?: string;
+  sortStr?: string;
 }
 
 const debouncedFetch = debounce(() => {
@@ -142,6 +159,42 @@ watch(
   },
   { immediate: true, deep: true }
 );
+
+//#region 排序逻辑
+// 请求的排序参数
+const sortStr = ref<{ sortName: string; sortType: string }[]>([]);
+// 处理排序变化
+const handleSortChange = (column: any) => {
+  console.log("column:", column);
+  // 处理排序逻辑
+  if (column.column.sortable === "custom") {
+    // 自定义排序逻辑
+    // 这里可以根据 column.prop 来判断是哪个列在排序
+    // 并根据 column.order 来判断排序方向（ascending 或 descending）
+    // 最后更新表格数据即可
+    if (!column.order) {
+      sortStr.value = [];
+    }
+    if (column.order === "descending") {
+      sortStr.value = [
+        {
+          sortName: column.prop,
+          sortType: "desc"
+        }
+      ];
+    }
+    if (column.order === "ascending") {
+      sortStr.value = [
+        {
+          sortName: column.prop,
+          sortType: "asc"
+        }
+      ];
+    }
+    fetchProductList();
+  }
+};
+//#endregion
 
 const fetchProductList = () => {
   const searchStr: any = [];
@@ -160,7 +213,9 @@ const fetchProductList = () => {
     }
   });
   commonInfo.searchStr = JSON.stringify(searchArr);
+  commonInfo.sortStr = JSON.stringify(sortStr.value);
   getProductList(commonInfo).then(res => {
+    console.log("getProductList:", res);
     // 为每个产品添加默认状态
     const products = res.data.records.map(product => ({
       ...product
@@ -183,12 +238,21 @@ const showDetails = row => {
 };
 
 const deleteProductFun = row => {
-  deleteProduct(mapping(row)).then(res => {
-    if (res.code === 200) {
-      ElMessage.success("删除成功");
-      fetchProductList();
-    }
-  });
+  ElMessageBox.confirm(`确认删除产品 【${row.productName}】 吗？`, "删除确认", {
+    confirmButtonText: "确认",
+    cancelButtonText: "取消",
+    type: "warning",
+    confirmButtonClass: "el-button--danger"
+  })
+    .then(() => {
+      deleteProduct(mapping(row)).then(res => {
+        if (res.code === 200) {
+          ElMessage.success("删除成功");
+          fetchProductList();
+        }
+      });
+    })
+    .catch(() => {});
 };
 
 fetchProductList();

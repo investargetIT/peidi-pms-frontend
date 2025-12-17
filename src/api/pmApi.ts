@@ -122,6 +122,13 @@ export const downloadFile = params => {
   });
 };
 
+// 获取枚举列表
+export const getEnumList = (params: { type: string }) => {
+  return http.request("get", baseUrlApi("prm/common/enum", false), {
+    params
+  });
+};
+
 export const fetchStatusList = (type = "status") => {
   return http.request("get", baseUrlApi("prm/common/enum", false), {
     params: {

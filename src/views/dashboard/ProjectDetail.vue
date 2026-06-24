@@ -403,22 +403,29 @@ const handleAutoSaveStageAssignees = async saveData => {
     }
     console.log("saveData", saveData);
 
-    // 构建API请求数据，参考handleSaveStage的格式
+    // 从当前displayStages中获取该阶段的完整数据，确保数据完整性
+    const currentStage = displayStages.value.find(
+      s => s.stageId === saveData.stageId
+    );
+    console.log("currentStage", currentStage);
+
+    // 构建API请求数据，使用当前最新的阶段数据作为基础
     const requestData = {
       infoId: saveData.infoId,
       stageId: saveData.stageId,
-      statusId: saveData.statusId,
-      deadlineDate: saveData.deadlineDate,
-      remark: saveData.remark,
+      statusId: currentStage?.statusId ?? saveData.statusId ?? 115, // 确保有statusId，默认115(待开始)
+      deadlineDate: currentStage?.deadlineDate ?? saveData.deadlineDate,
+      remark: currentStage?.remark ?? saveData.remark ?? "",
       // 处理负责人数据，提取emplId或dingId
       chargeIds:
         saveData.assignees?.map(user => user.emplId || user.dingId) || [],
       // 处理文件列表数据
-      fileUrlList: saveData.fileUrlList || []
+      fileUrlList: currentStage?.fileUrlList ?? saveData.fileUrlList ?? []
     };
 
-    if (saveData.finishDate) {
-      requestData.finishDate = saveData.finishDate;
+    const finishDate = currentStage?.finishDate ?? saveData.finishDate;
+    if (finishDate) {
+      requestData.finishDate = finishDate;
     }
 
     console.log("自动保存阶段负责人数据请求:", requestData);

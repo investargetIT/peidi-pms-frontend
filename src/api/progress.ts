@@ -1,7 +1,15 @@
 import { http } from "@/utils/http";
 
+// 环境配置，根据不同环境使用不同的基础 URL
+const getBaseUrl = () => {
+  // 开发环境
+  return "http://12.18.1.36:8089";
+  // 生产/预发布环境
+  return "https://api.peidigroup.cn";
+};
+
 const baseUrlApi = (url: string, hasPm = true) => {
-  return `https://api.peidigroup.cn/${hasPm ? "prm" : ""}${url}`;
+  return `${getBaseUrl()}/${hasPm ? "prm" : ""}${url}`;
 };
 
 // 获取项目进度列表

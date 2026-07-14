@@ -2,8 +2,24 @@
   <div class="right-panel w-96">
     <el-card class="project-detail-card">
       <template #header>
-        <div class="card-header">
+        <div class="card-header flex items-center justify-between">
           <span class="text-lg font-semibold">项目详情</span>
+          <el-button
+            v-if="isEditing && selectedProject"
+            type="primary"
+            size="small"
+            @click="handleSaveAllStages"
+          >
+            保存
+          </el-button>
+          <el-button
+            v-else-if="selectedProject"
+            type="default"
+            size="small"
+            @click="startEditing"
+          >
+            编辑
+          </el-button>
         </div>
       </template>
 
@@ -52,86 +68,133 @@
 
         <!-- 阶段进度 -->
         <div class="stages-section">
-          <h4 class="font-medium text-gray-900 mb-3">阶段进度</h4>
-          <div class="space-y-2">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-medium text-gray-900">阶段进度</h4>
+            <el-button
+              v-if="isEditing"
+              type="primary"
+              size="small"
+              link
+              @click="handleAddStage"
+            >
+              <el-icon><Plus /></el-icon>
+              新增阶段
+            </el-button>
+          </div>
+          <div ref="stagesContainer" class="space-y-2">
             <div
-              v-for="stage in displayStages"
-              :key="stage.stageId"
-              class="stage-item p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-              @click="openStageDetail(stage)"
+              v-for="(stage, index) in editableStages"
+              :key="stage.stageId || `new-${index}`"
+              class="stage-item p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-move"
+              :class="{ 'cursor-pointer': !isEditing }"
+              @click="!isEditing && openStageDetail(stage)"
             >
               <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium">{{ stage.stageName }}</span>
-                <div
-                  :class="getStatusColor(stage.statusName)"
-                  class="status-badge"
-                >
-                  {{ stage.statusName }}
-                </div>
-              </div>
-
-              <!-- 负责人区域 -->
-              <div class="flex items-center justify-between mt-2">
-                <div class="flex items-center gap-1 flex-1" @click.stop>
-                  <PersonSelector
-                    label="负责人"
-                    :model-value="stage.chargeDingUser || []"
-                    @auto-save="handleAutoSaveStageAssignees"
-                    :max-count="5"
-                    :show-avatar="true"
+                <div class="flex items-center gap-2 flex-1">
+                  <el-icon
+                    v-if="isEditing"
+                    class="drag-handle text-gray-400 cursor-move"
+                    ><Rank
+                  /></el-icon>
+                  <el-input
+                    v-if="isEditing"
+                    :model-value="stage.progressName || stage.stageName"
+                    @update:model-value="
+                      val => {
+                        stage.progressName = val;
+                        stage.stageName = val;
+                      }
+                    "
                     size="small"
-                    data-format="system"
-                    display-mode="tag"
-                    :auto-save="true"
-                    :save-params="{
-                      infoId: selectedProject.id,
-                      stageId: stage.stageId,
-                      statusId: stage.statusId,
-                      deadlineDate: stage.deadlineDate,
-                      finishDate: stage.finishDate,
-                      remark: stage.remark,
-                      fileUrlList: stage.fileUrlList || []
-                    }"
-                    class="stage-person-selector"
+                    class="flex-1"
+                    placeholder="阶段名称"
                   />
+                  <span v-else class="text-sm font-medium">{{
+                    stage.stageName
+                  }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div
+                    v-if="!isEditing"
+                    :class="getStatusColor(stage.statusName)"
+                    class="status-badge"
+                  >
+                    {{ stage.statusName }}
+                  </div>
+                  <el-button
+                    v-if="isEditing"
+                    type="danger"
+                    size="small"
+                    link
+                    @click.stop="handleDeleteStage(index)"
+                  >
+                    <el-icon><Delete /></el-icon>
+                  </el-button>
+                </div>
+              </div>
+
+              <template v-if="!isEditing">
+                <!-- 负责人区域 -->
+                <div class="flex items-center justify-between mt-2">
+                  <div class="flex items-center gap-1 flex-1" @click.stop>
+                    <PersonSelector
+                      label="负责人"
+                      :model-value="stage.chargeDingUser || []"
+                      @auto-save="handleAutoSaveStageAssignees"
+                      :max-count="5"
+                      :show-avatar="true"
+                      size="small"
+                      data-format="system"
+                      display-mode="tag"
+                      :auto-save="true"
+                      :save-params="{
+                        infoId: selectedProject.id,
+                        stageId: stage.stageId,
+                        statusId: stage.statusId,
+                        deadlineDate: stage.deadlineDate,
+                        finishDate: stage.finishDate,
+                        remark: stage.remark,
+                        fileUrlList: stage.fileUrlList || []
+                      }"
+                      class="stage-person-selector"
+                    />
+                  </div>
+
+                  <!-- 查看详情按钮 -->
+                  <button
+                    @click.stop="openStageDetail(stage)"
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 h-6 px-2 text-xs bg-transparent"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="w-3 h-3 mr-1"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    详情
+                  </button>
                 </div>
 
-                <!-- 查看详情按钮 -->
-                <button
-                  @click.stop="openStageDetail(stage)"
-                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 h-6 px-2 text-xs bg-transparent"
+                <!-- 附件信息 -->
+                <div
+                  v-if="stage.fileUrlList && stage.fileUrlList.length > 0"
+                  class="flex items-center gap-1 mt-2"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="w-3 h-3 mr-1"
+                  <el-icon class="text-gray-400"><Paperclip /></el-icon>
+                  <span class="text-xs text-gray-500"
+                    >{{ stage.fileUrlList.length }} 个附件</span
                   >
-                    <path
-                      d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"
-                    ></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  详情
-                </button>
-              </div>
-
-              <!-- 附件信息 -->
-              <div
-                v-if="stage.fileUrlList && stage.fileUrlList.length > 0"
-                class="flex items-center gap-1 mt-2"
-              >
-                <el-icon class="text-gray-400"><Paperclip /></el-icon>
-                <span class="text-xs text-gray-500"
-                  >{{ stage.fileUrlList.length }} 个附件</span
-                >
-              </div>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -149,10 +212,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
-import { View, Paperclip } from "@element-plus/icons-vue";
-import { ElMessage, ElLoading } from "element-plus";
+import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { View, Paperclip, Plus, Delete, Rank } from "@element-plus/icons-vue";
+import { ElMessage, ElLoading, ElMessageBox } from "element-plus";
 import { AlertTriangle, Flag } from "lucide-vue-next";
+import Sortable from "sortablejs";
 import {
   getProjectProgressList,
   getProjectStageList,
@@ -181,14 +245,20 @@ const emit = defineEmits(["refreshList"]);
 // 响应式数据
 const stageDialogVisible = ref(false);
 const selectedStage = ref(null);
-
+const isEditing = ref(false);
 const stageListConfig = ref([]);
+const editableStages = ref([]);
+const stagesContainer = ref(null);
+let sortableInstance = null;
 
 const fetchStageConfigList = async () => {
   if (!props.selectedProject?.id) return;
   getProjectStageList({ infoId: props.selectedProject.id }).then(res => {
     if (res?.code === 200) {
       stageListConfig.value = res.data;
+      if (!isEditing.value) {
+        editableStages.value = JSON.parse(JSON.stringify(res.data));
+      }
     }
   });
 };
@@ -196,13 +266,11 @@ const fetchStageConfigList = async () => {
 watch(
   () => props.selectedProject,
   newVal => {
+    isEditing.value = false;
     fetchStageConfigList();
   },
   { immediate: true, deep: true }
 );
-
-// 阶段数据管理
-const stageData = ref({});
 
 // 计算属性
 const displayStages = computed(() => {
@@ -213,7 +281,7 @@ const displayStages = computed(() => {
     }
     return props.stageList.map(stage => ({
       stageId: stage.id,
-      stateName: stage.value,
+      stageName: stage.value,
       status: "pending",
       statusName: "待开始",
       chargeDingUser: [],
@@ -237,6 +305,133 @@ const displayStages = computed(() => {
     remark: stage.remark
   }));
 });
+
+// 初始化拖拽功能
+const initSortable = () => {
+  if (sortableInstance) {
+    sortableInstance.destroy();
+  }
+
+  nextTick(() => {
+    if (stagesContainer.value && isEditing.value) {
+      sortableInstance = Sortable.create(stagesContainer.value, {
+        animation: 150,
+        handle: ".drag-handle",
+        onEnd: evt => {
+          const { oldIndex, newIndex } = evt;
+          if (oldIndex !== newIndex) {
+            const movedItem = editableStages.value.splice(oldIndex, 1)[0];
+            editableStages.value.splice(newIndex, 0, movedItem);
+          }
+        }
+      });
+    }
+  });
+};
+
+// 开始编辑
+const startEditing = () => {
+  isEditing.value = true;
+  editableStages.value = JSON.parse(JSON.stringify(stageListConfig.value));
+  nextTick(() => {
+    initSortable();
+  });
+};
+
+// 取消编辑
+const cancelEditing = () => {
+  isEditing.value = false;
+  editableStages.value = JSON.parse(JSON.stringify(stageListConfig.value));
+  if (sortableInstance) {
+    sortableInstance.destroy();
+    sortableInstance = null;
+  }
+};
+
+// 新增阶段
+const handleAddStage = () => {
+  editableStages.value.push({
+    stageId: null,
+    progressName: "新节点",
+    stageName: "新节点",
+    statusId: null,
+    statusName: "待开始",
+    chargeDingUser: [],
+    fileUrlList: [],
+    startTime: "",
+    deadlineDate: null,
+    finishDate: null,
+    remark: "",
+    sort: editableStages.value.length + 1
+  });
+};
+
+// 删除阶段
+const handleDeleteStage = index => {
+  ElMessageBox.confirm("确定要删除这个阶段吗？", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning"
+  })
+    .then(() => {
+      editableStages.value.splice(index, 1);
+    })
+    .catch(() => {});
+};
+
+// 保存所有阶段
+const handleSaveAllStages = async () => {
+  if (!props.selectedProject?.id) {
+    ElMessage.error("项目信息不完整");
+    return;
+  }
+
+  const loading = ElLoading.service({
+    lock: true,
+    text: "保存中...",
+    background: "rgba(0, 0, 0, 0.7)"
+  });
+
+  try {
+    // 构建阶段数组
+    const stagesArray = editableStages.value.map((stage, index) => ({
+      infoId: props.selectedProject.id,
+      stageId: stage.stageId || 0,
+      progressName: stage.progressName || stage.stageName,
+      sort: index + 1,
+      statusId: stage.statusId || 0,
+      startTime: stage.startTime || "",
+      deadlineDate: stage.deadlineDate || "",
+      finishDate: stage.finishDate || "",
+      remark: stage.remark || "",
+      chargeIds: (stage.chargeDingUser || []).map(
+        user => user.emplId || user.dingId
+      ),
+      fileUrlList: stage.fileUrlList || []
+    }));
+
+    // 直接传递数组给接口
+    const res = await updateProjectStateProgress(stagesArray);
+
+    if (res?.code === 200) {
+      ElMessage.success("保存成功");
+      isEditing.value = false;
+      await fetchStageConfigList();
+      emit("refreshList");
+      if (sortableInstance) {
+        sortableInstance.destroy();
+        sortableInstance = null;
+      }
+    } else {
+      ElMessage.error(res?.msg || "保存失败，请重试");
+    }
+  } catch (error) {
+    console.error("保存阶段数据异常:", error);
+    ElMessage.error("网络错误，请检查网络连接后重试");
+  } finally {
+    loading.close();
+  }
+};
 
 // 方法
 const getStatusFromName = statusName => {
@@ -302,17 +497,12 @@ const getPriorityIcon = priority => {
 };
 
 const openStageDetail = stage => {
-  console.log("openStageDetail called with stage:", stage);
-  console.log("stageDialogVisible before:", stageDialogVisible.value);
   selectedStage.value = stage;
   stageDialogVisible.value = true;
-  console.log("stageDialogVisible after:", stageDialogVisible.value);
-  console.log("selectedStage:", selectedStage.value);
 };
 
 const handleSaveStage = async updatedStage => {
   try {
-    // 验证必要字段
     if (!updatedStage.stageId) {
       ElMessage.error("阶段ID不能为空");
       return;
@@ -323,67 +513,44 @@ const handleSaveStage = async updatedStage => {
       return;
     }
 
-    // 显示加载状态
     const loading = ElLoading.service({
       lock: true,
       text: "保存中...",
       background: "rgba(0, 0, 0, 0.7)"
     });
 
-    console.log("updatedStage", updatedStage);
-
     try {
-      // 构建API请求数据
       const requestData = {
         infoId: props.selectedProject.id,
         stageId: updatedStage.stageId,
         statusId: updatedStage.statusId,
         deadlineDate: updatedStage.deadlineDate,
         remark: updatedStage.remark,
-        // 处理负责人数据，提取emplId
         chargeIds:
           updatedStage.chargeIds?.map(user => user.emplId || user.dingId) || [],
-        // 处理文件列表数据
         fileUrlList: updatedStage.fileUrlList || []
       };
       if (updatedStage.finishDate) {
         requestData.finishDate = updatedStage.finishDate;
       }
 
-      console.log("保存阶段数据请求:", requestData);
-
-      // 调用API保存数据
       const res = await updateProjectStateProgress(requestData);
 
       if (res?.code === 200) {
-        // API调用成功，重新获取最新数据
         await fetchStageConfigList();
-
-        // 显示成功消息
         ElMessage.success("保存成功");
-
-        // 关闭弹窗
         stageDialogVisible.value = false;
-
-        console.log("阶段数据保存成功:", updatedStage);
-
-        // 触发事件通知父组件更新列表数据
         emit("refreshList");
       } else {
-        // API返回错误
         ElMessage.error(res?.msg || "保存失败，请重试");
-        console.error("保存阶段数据失败:", res);
       }
     } catch (apiError) {
-      // API调用异常
       console.error("保存阶段数据API调用失败:", apiError);
       ElMessage.error("网络错误，请检查网络连接后重试");
     } finally {
-      // 关闭加载状态
       loading.close();
     }
   } catch (error) {
-    // 其他异常
     console.error("保存阶段数据异常:", error);
     ElMessage.error("保存过程中发生错误，请重试");
   }
@@ -391,7 +558,6 @@ const handleSaveStage = async updatedStage => {
 
 const handleAutoSaveStageAssignees = async saveData => {
   try {
-    // 验证必要字段
     if (!saveData.stageId) {
       ElMessage.error("阶段ID不能为空");
       return;
@@ -401,25 +567,19 @@ const handleAutoSaveStageAssignees = async saveData => {
       ElMessage.error("项目信息不完整");
       return;
     }
-    console.log("saveData", saveData);
 
-    // 从当前displayStages中获取该阶段的完整数据，确保数据完整性
     const currentStage = displayStages.value.find(
       s => s.stageId === saveData.stageId
     );
-    console.log("currentStage", currentStage);
 
-    // 构建API请求数据，使用当前最新的阶段数据作为基础
     const requestData = {
       infoId: saveData.infoId,
       stageId: saveData.stageId,
-      statusId: currentStage?.statusId ?? saveData.statusId ?? 115, // 确保有statusId，默认115(待开始)
+      statusId: currentStage?.statusId ?? saveData.statusId ?? 115,
       deadlineDate: currentStage?.deadlineDate ?? saveData.deadlineDate,
       remark: currentStage?.remark ?? saveData.remark ?? "",
-      // 处理负责人数据，提取emplId或dingId
       chargeIds:
         saveData.assignees?.map(user => user.emplId || user.dingId) || [],
-      // 处理文件列表数据
       fileUrlList: currentStage?.fileUrlList ?? saveData.fileUrlList ?? []
     };
 
@@ -428,29 +588,16 @@ const handleAutoSaveStageAssignees = async saveData => {
       requestData.finishDate = finishDate;
     }
 
-    console.log("自动保存阶段负责人数据请求:", requestData);
-
-    // 调用API保存数据
     const res = await updateProjectStateProgress(requestData);
 
     if (res?.code === 200) {
-      // API调用成功，重新获取最新数据
       await fetchStageConfigList();
-
-      // 显示成功消息
       ElMessage.success("负责人更新成功");
-
-      console.log("阶段负责人数据保存成功:", saveData);
-
-      // 触发事件通知父组件更新列表数据
       emit("refreshList");
     } else {
-      // API返回错误
       ElMessage.error(res?.msg || "负责人更新失败，请重试");
-      console.error("保存阶段负责人数据失败:", res);
     }
   } catch (error) {
-    // API调用异常
     console.error("保存阶段负责人数据异常:", error);
     ElMessage.error("网络错误，请检查网络连接后重试");
   }
@@ -532,32 +679,6 @@ const handleAutoSaveStageAssignees = async saveData => {
 .stage-item:hover {
   box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
   transform: translateY(-1px);
-}
-
-.assignee-tag {
-  background-color: #e6f4ff;
-  border-color: #91caff;
-}
-
-.add-assignee-btn {
-  width: 20px;
-  height: 20px;
-  background: transparent;
-  border: 1px dashed #d9d9d9;
-}
-
-.add-assignee-btn:hover {
-  color: #1890ff;
-  border-color: #1890ff;
-}
-
-.user-option:hover {
-  background-color: #f5f5f5;
-}
-
-.stage-detail {
-  max-height: 60vh;
-  overflow-y: auto;
 }
 
 .stage-person-selector {

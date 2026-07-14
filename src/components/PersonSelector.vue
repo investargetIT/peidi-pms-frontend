@@ -236,9 +236,10 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
+import { ElMessage } from "element-plus";
 import * as dd from "dingtalk-jsapi";
 import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
-import { ddAuthFun } from "@/utils/ddAuth";
+import { ddAuthFun, isInDingTalk } from "@/utils/ddAuth";
 
 const props = defineProps({
   label: {
@@ -296,10 +297,15 @@ const DINGTALK_CORP_ID = "dingfc722e531a4125b735c2f4657eb6378f";
 // 全局标记，确保钉钉授权只执行一次
 if (!window.__DD_AUTH_INITIALIZED__) {
   window.__DD_AUTH_INITIALIZED__ = true;
-  setTimeout(() => {
-    initDingH5RemoteDebug();
-  }, 100);
-  ddAuthFun();
+  // 只在钉钉环境中执行初始化
+  if (isInDingTalk()) {
+    setTimeout(() => {
+      initDingH5RemoteDebug();
+    }, 100);
+    ddAuthFun();
+  } else {
+    console.log('不在钉钉环境中，跳过钉钉初始化');
+  }
 }
 
 const emit = defineEmits(["update:modelValue", "autoSave"]);
@@ -333,6 +339,17 @@ const extractEmplId = users => {
 const choosePerson = () => {
   if (props.readonly) return;
 
+  // 检测是否在钉钉环境中
+  if (!isInDingTalk() || !dd.biz || !dd.biz.contact || !dd.biz.contact.choose) {
+    ElMessage.warning({
+      message: '请在钉钉环境中使用人员选择功能',
+      duration: 3000,
+      showClose: true
+    });
+    console.warn('不在钉钉环境中，无法使用人员选择功能');
+    return;
+  }
+
   dd.biz.contact.choose({
     multiple: true,
     users: extractEmplId(normalizedPersons.value),
@@ -361,6 +378,11 @@ const choosePerson = () => {
     },
     onFail: function (err) {
       console.error("选择人员失败:", err);
+      ElMessage.error({
+        message: '选择人员失败，请稍后重试',
+        duration: 3000,
+        showClose: true
+      });
     }
   });
 };

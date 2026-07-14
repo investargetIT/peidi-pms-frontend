@@ -4,40 +4,41 @@
       :data="tableData"
       style="width: 100%"
       :row-class-name="getRowClassName"
+      size="small"
     >
-      <el-table-column prop="productName" label="产品信息">
+      <el-table-column prop="productName" label="产品信息" min-width="200">
         <template #default="scope">
           <div>
-            <div class="text-base font-medium text-gray-900">
+            <div class="text-sm font-medium text-gray-900 product-name" :title="scope.row.productName">
               {{ scope.row.productName }}
             </div>
-            <div class="text-xs text-gray-500">{{ scope.row.brandName }}</div>
+            <div class="text-xs text-gray-500 truncate" :title="scope.row.brandName">{{ scope.row.brandName }}</div>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="pmDingUser" label="PM负责人">
+      <el-table-column prop="pmDingUser" label="PM负责人" min-width="100">
         <template #default="scope">
           <div
             v-for="item in scope.row.pmDingUser"
             :key="item.dingId"
-            class="text-sm text-gray-900 mb-1"
+            class="text-xs text-gray-700 mb-0.5"
           >
             {{ item.userName }}
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="npdDingUser" label="NPD负责人">
+      <el-table-column prop="npdDingUser" label="NPD负责人" min-width="100">
         <template #default="scope">
           <div
             v-for="item in scope.row.npdDingUser"
             :key="item.dingId"
-            class="text-sm text-gray-900 mb-1"
+            class="text-xs text-gray-700 mb-0.5"
           >
             {{ item.userName }}
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="statusName" label="状态">
+      <el-table-column prop="statusName" label="状态" width="100">
         <template #default="scope">
           <div
             :class="getStatusColor(scope.row.statusName)"
@@ -47,7 +48,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="priorityName" label="优先级">
+      <el-table-column prop="priorityName" label="优先级" width="90">
         <template #default="scope">
           <div
             :class="getPriorityColor(scope.row.priorityName)"
@@ -56,15 +57,15 @@
             <div class="flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
+                width="12"
+                height="12"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="w-3 h-3 mr-1"
+                class="w-3 h-3 mr-0.5"
                 v-if="scope.row.priorityName === '高'"
               >
                 <path
@@ -75,15 +76,15 @@
               </svg>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
+                width="12"
+                height="12"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="w-3 h-3 mr-1"
+                class="w-3 h-3 mr-0.5"
                 v-else-if="scope.row.priorityName === '中'"
               >
                 <path
@@ -93,15 +94,15 @@
               </svg>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
+                width="12"
+                height="12"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="w-3 h-3 mr-1"
+                class="w-3 h-3 mr-0.5"
                 v-else-if="scope.row.priorityName === '低'"
               >
                 <path
@@ -114,38 +115,44 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="progress" label="进度">
+      <el-table-column prop="progress" label="进度" width="80">
         <template #default="scope">
-          <!-- <el-progress :percentage="scope.row.progress" /> -->
-          <span>{{ `${scope.row.progress}%` }}</span>
+          <span class="text-xs text-gray-700">{{ `${Math.round(scope.row.progress)}%` }}</span>
         </template>
       </el-table-column>
       <el-table-column
         prop="expectedListingDate"
         label="预计上市"
-      ></el-table-column>
-      <el-table-column label="操作">
+        width="110"
+      >
         <template #default="scope">
-          <button
-            @click="handleShowDetails(scope.row)"
-            class="inline-flex items-center justify-center text-gray-600 hover:text-blue-600 transition-colors p-1 bg-transparent border-none outline-none"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-4 h-4"
+          <span class="text-xs text-gray-700">{{ scope.row.expectedListingDate || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="90" align="center">
+        <template #default="scope">
+          <el-tooltip content="查看详情" placement="top">
+            <button
+              @click="handleShowDetails(scope.row)"
+              class="inline-flex items-center justify-center text-gray-500 hover:text-blue-600 transition-colors p-1.5 bg-transparent border-none outline-none rounded hover:bg-blue-50"
             >
-              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -161,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, readonly } from "vue";
+import { ref, watch, computed, readonly, onMounted } from "vue";
 import { Badge } from "lucide-vue-next";
 import { getProjectProgressList } from "@/api/progress";
 import { ElMessage } from "element-plus";
@@ -223,17 +230,7 @@ interface IQueryParams {
   searchStr?: string;
 }
 
-const debouncedFetch = debounce(() => {
-  fetchProductList();
-}, 500);
-
-watch(
-  () => props.searchInfo,
-  newVal => {
-    debouncedFetch();
-  },
-  { immediate: true, deep: true }
-);
+// 移除自动监听，改为手动触发搜索
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -306,12 +303,10 @@ function extractEmplId(arr) {
 }
 
 const fetchProductList = () => {
-  const searchStr: any = [];
-  const commonInfo = {} as any;
-  const searchArr = [] as any;
+  const searchArr = [];
   console.log("props.searchInfo:", props.searchInfo);
   Object.keys(props.searchInfo)?.forEach(key => {
-    const searchParams = {} as any;
+    const searchParams = {};
     const validKey = ["pmUserName", "npdUserName"];
     const isValidStringKey =
       props.searchInfo[key] && !Array.isArray(props.searchInfo[key]);
@@ -336,9 +331,10 @@ const fetchProductList = () => {
     }
   });
   console.log("searchArr:", searchArr);
-  commonInfo.searchStr = JSON.stringify(searchArr);
-  getProjectProgressList(commonInfo).then(res => {
-    tableData.value = res?.data || [];
+  const commonInfo = { searchStr: JSON.stringify(searchArr) };
+  return getProjectProgressList(commonInfo).then(res => {
+    // 产品进度列表顺序按照id从大到小排序
+    tableData.value = (res?.data || []).sort((a, b) => b.id - a.id);
     // pagination.value.total = res.data.total;
 
     // 将数据传递给父组件
@@ -369,6 +365,11 @@ const getRowClassName = ({ row, rowIndex }) => {
   }
   return "";
 };
+
+onMounted(() => {
+  // 组件挂载时获取初始数据
+  fetchProductList();
+});
 
 defineExpose({
   fetchProductList,
@@ -430,8 +431,8 @@ defineExpose({
 }
 
 .table-container {
-  width: 100%;
-  overflow: hidden;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 /* 表格表头样式 */
@@ -440,22 +441,23 @@ defineExpose({
 }
 
 :deep(.el-table th.el-table__cell) {
-  padding: 16px;
+  padding: 10px 12px;
   font-weight: 500;
-  color: #111827;
+  color: #374151;
   text-align: left;
   background-color: #f9fafb !important;
   border-bottom: 1px solid #e5e7eb;
+  font-size: 13px;
 }
 
 :deep(.el-table th .cell) {
   font-weight: 500;
-  color: #111827;
+  color: #374151;
 }
 
 /* 表格行样式优化 */
 :deep(.el-table td.el-table__cell) {
-  padding: 16px;
+  padding: 10px 12px;
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -473,6 +475,18 @@ defineExpose({
   flex-shrink: 0;
   align-items: center;
   white-space: nowrap;
+}
+
+/* 产品名称最多显示2行，超过显示省略号 */
+.product-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.4;
+  max-height: 2.8em;
 }
 
 :deep(.el-table tbody tr:hover > td) {
@@ -493,18 +507,18 @@ defineExpose({
 :deep(.el-table) {
   width: 100%;
   overflow: hidden;
-  table-layout: fixed;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
-/* 禁用横向滚动 */
+/* 允许横向滚动 */
 :deep(.el-table__body-wrapper) {
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
 }
 
 :deep(.el-table__header-wrapper) {
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
 }
 
 :deep(.el-table__inner-wrapper::before) {
@@ -528,13 +542,13 @@ defineExpose({
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  padding: 0 8px;
+  padding: 2px 8px;
   font-size: 11px;
-  font-weight: 400;
+  font-weight: 500;
   white-space: nowrap;
   cursor: default;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.2s;
 }
 
@@ -543,8 +557,8 @@ defineExpose({
   flex-shrink: 0;
   padding: 2px 8px;
   font-size: 11px;
-  font-weight: 400;
-  line-height: 1.4;
+  font-weight: 500;
+  line-height: 1.3;
   text-align: center;
   white-space: nowrap;
   border-radius: 12px;

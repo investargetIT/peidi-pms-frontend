@@ -4,7 +4,18 @@ import { getJsApi } from "@/api/user";
 const DINGTALK_CORP_ID = "dingfc722e531a4125b735c2f4657eb6378f";
 const nonceStr = "pmUsed";
 
+// 检测是否在钉钉环境中
+export const isInDingTalk = () => {
+  return typeof dd !== 'undefined' && dd.ready && dd.version;
+};
+
 export const ddAuthFun = () => {
+  // 只在钉钉环境中执行授权
+  if (!isInDingTalk()) {
+    console.log('不在钉钉环境中，跳过钉钉授权');
+    return;
+  }
+
   getJsApi({
     nonceStr,
     url: location.href
@@ -34,8 +45,10 @@ export const ddAuthFun = () => {
       });
 
       dd.error(function (err) {
-        // alert('dd error: ' + location.href + JSON.stringify(err));
+        console.warn('钉钉授权错误:', err);
       });
     }
+  }).catch(err => {
+    console.warn('获取钉钉JS API配置失败:', err);
   });
 };

@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-container p-4">
+  <div class="dashboard-container">
     <!-- 调试信息 -->
     <div
       style="
@@ -23,10 +23,10 @@
         <p class="text-gray-500 mt-1 text-base">产品开发全流程跟踪与管理</p>
       </div>
       <div class="header-right flex items-center gap-3">
-        <el-button class="flex items-center gap-2 px-4 h-9">
+        <!-- <el-button class="flex items-center gap-2 px-4 h-9">
           <el-icon><Download /></el-icon>
           导出报告
-        </el-button>
+        </el-button> -->
         <el-button
           type="primary"
           class="flex items-center gap-2 px-4 h-9"
@@ -41,57 +41,73 @@
 
     <!-- 统计面板 -->
     <div
-      class="statistics-panel flex flex-col gap-2 mb-4 md:grid md:grid-cols-3 md:gap-6"
+      class="statistics-panel flex flex-col gap-3 mb-6 md:grid md:grid-cols-3 md:gap-6"
     >
       <div
-        class="stat-card w-full mb-2 md:mb-0 bg-white rounded-lg p-4 shadow-sm"
+        class="stat-card w-full bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-lg border border-gray-100 transition-all hover:shadow-xl"
       >
-        <div class="text-gray-500 text-base">总项目数</div>
-        <div class="text-3xl font-semibold mt-2">{{ totalProjectCount }}</div>
-        <div class="absolute right-4 top-1/2 -translate-y-1/2">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-gray-500 text-sm font-medium mb-2">总项目数</div>
+            <div class="text-4xl font-bold text-gray-800">
+              {{ totalProjectCount }}
+            </div>
+          </div>
           <div
-            class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+            class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-md"
           >
-            <LucideCalendar class="w-4 h-4 text-blue-600" />
+            <LucideCalendar class="w-7 h-7 text-white" />
           </div>
         </div>
       </div>
       <div
-        class="stat-card w-full mb-2 md:mb-0 bg-white rounded-lg p-4 shadow-sm"
+        class="stat-card w-full bg-gradient-to-br from-white to-blue-50 rounded-2xl p-6 shadow-lg border border-blue-100 transition-all hover:shadow-xl"
       >
-        <div class="text-gray-500 text-base">开发中</div>
-        <div class="text-3xl font-semibold mt-2 text-blue-500">
-          {{ developingCount }}
-        </div>
-        <div class="absolute right-4 top-1/2 -translate-y-1/2">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-gray-500 text-sm font-medium mb-2">开发中</div>
+            <div class="text-4xl font-bold text-blue-600">
+              {{ developingCount }}
+            </div>
+          </div>
           <div
-            class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+            class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-md"
           >
-            <div class="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+            <div class="w-5 h-5 bg-white rounded-full animate-pulse"></div>
           </div>
         </div>
       </div>
-      <div class="stat-card w-full bg-white rounded-lg p-4 shadow-sm">
-        <div class="text-gray-500 text-base">已上市</div>
-        <div class="text-3xl font-semibold mt-2 text-green-500">
-          {{ listedCount }}
-        </div>
-        <div class="absolute right-4 top-1/2 -translate-y-1/2">
+      <div
+        class="stat-card w-full bg-gradient-to-br from-white to-green-50 rounded-2xl p-6 shadow-lg border border-green-100 transition-all hover:shadow-xl"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-gray-500 text-sm font-medium mb-2">已上市</div>
+            <div class="text-4xl font-bold text-green-600">
+              {{ listedCount }}
+            </div>
+          </div>
           <div
-            class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
+            class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-md"
           >
-            <div class="w-3 h-3 bg-green-600 rounded-full"></div>
+            <div class="w-5 h-5 bg-white rounded-full"></div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 搜索区域 -->
-    <div class="search-area px-4 py-3 rounded-xl bg-gray-50 shadow-sm mb-4">
+    <div
+      class="search-area px-6 py-5 rounded-2xl bg-white shadow-md mb-6 border border-gray-100"
+    >
+      <div class="mb-4 flex items-center gap-2">
+        <el-icon class="text-blue-500 text-xl"><Search /></el-icon>
+        <h3 class="text-lg font-semibold text-gray-700">筛选条件</h3>
+      </div>
       <el-form :model="searchForm" :inline="true" class="search-form">
         <!-- 第一行：产品名称、品牌、状态 -->
         <div
-          class="search-row flex flex-col gap-2 md:grid md:grid-cols-3 md:gap-4 mb-3"
+          class="search-row flex flex-col gap-3 md:grid md:grid-cols-3 md:gap-4 mb-4"
         >
           <el-form-item prop="productName" label="产品名称" class="w-full mb-0">
             <el-input
@@ -99,11 +115,7 @@
               class="custom-search-input"
               placeholder="产品名称"
               clearable
-            >
-              <template #prefix>
-                <el-icon class="text-gray-400"><Search /></el-icon>
-              </template>
-            </el-input>
+            />
           </el-form-item>
           <el-form-item prop="brand" label="品牌" class="w-full mb-0">
             <el-select
@@ -139,9 +151,9 @@
           </el-form-item>
         </div>
 
-        <!-- 第二行：PM负责人和NPD负责人 -->
+        <!-- 第二行：PM负责人、NPD负责人、操作按钮 -->
         <div
-          class="search-row flex flex-col gap-2 md:grid md:grid-cols-3 md:gap-4"
+          class="search-row flex flex-col gap-3 md:grid md:grid-cols-4 md:gap-4"
         >
           <el-form-item
             prop="pmUserName"
@@ -165,17 +177,35 @@
               display-mode="simple"
             />
           </el-form-item>
-          <el-form-item class="w-full mb-0">
-            <!-- 预留第三列位置，保持布局对称 -->
+          <el-form-item
+            class="w-full mb-0 flex items-end gap-2 md:col-span-2 md:justify-end"
+          >
+            <el-button
+              type="primary"
+              @click="handleSearch"
+              :loading="loading"
+              class="h-10 px-6"
+            >
+              <el-icon class="mr-1"><Search /></el-icon>
+              搜索
+            </el-button>
+            <el-button
+              @click="handleReset"
+              :loading="loading"
+              class="h-10 px-6"
+            >
+              <el-icon class="mr-1"><RefreshCcw /></el-icon>
+              重置
+            </el-button>
           </el-form-item>
         </div>
       </el-form>
     </div>
 
     <!-- 主要内容区域 -->
-    <div class="main-content flex gap-4 items-start">
-      <!-- 左侧产品列表 -->
-      <div class="left-panel flex-1 panel-container">
+    <div class="dashboard-main-content">
+      <!-- 产品列表 -->
+      <div class="panel-container">
         <div class="panel-header">
           <h3 class="panel-title">产品进度列表</h3>
         </div>
@@ -188,17 +218,22 @@
           @updateTableData="handleUpdateTableData"
         />
       </div>
-
-      <!-- 右侧项目详情（仅桌面端显示） -->
-      <div v-if="!isMobile" class="panel-container right-panel hidden-mobile">
-        <ProjectDetail
-          :selectedProject="selectedProject"
-          :stageList="stageList"
-          :stageStatusList="stageStatusList"
-          @refreshList="refreshList"
-        />
-      </div>
     </div>
+
+    <!-- 项目详情抽屉 -->
+    <el-drawer
+      v-model="drawerVisible"
+      :title="selectedProject?.productName || '项目详情'"
+      size="560px"
+      :destroy-on-close="true"
+    >
+      <ProjectDetail
+        :selectedProject="selectedProject"
+        :stageList="stageList"
+        :stageStatusList="stageStatusList"
+        @refreshList="refreshList"
+      />
+    </el-drawer>
 
     <!-- 新增产品弹窗 -->
     <CreateProjectModal
@@ -220,11 +255,13 @@ import {
   Eye,
   Minus,
   AlertTriangle,
-  Flag
+  Flag,
+  RefreshCcw
 } from "lucide-vue-next";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 
-import { fetchStatusList } from "@/api/pmApi.ts";
+import { fetchStatusList } from "@/api/pmApi";
+import { getProjectProgressList } from "@/api/progress";
 
 import { ElMessage } from "element-plus";
 import {
@@ -239,6 +276,7 @@ import ProjectDetail from "./ProjectDetail.vue";
 import CreateProjectModal from "./CreateProjectModal.vue";
 import PersonSelector from "@/components/PersonSelector.vue";
 const showModal = ref(false);
+const drawerVisible = ref(false);
 const statusList = ref([]);
 const priorityList = ref([]);
 const stageList = ref([]);
@@ -248,7 +286,9 @@ const brandList = ref([]);
 const listRef = ref(null);
 const selectedProject = ref(null);
 const tableData = ref([]);
-const searchForm = ref({
+const allTableData = ref([]); // 全量数据用于统计
+const loading = ref(false); // 搜索 loading 状态
+const initialSearchForm = {
   productName: "",
   brandId: "",
   keyword: "",
@@ -256,7 +296,8 @@ const searchForm = ref({
   productNo: "",
   pmUserName: [],
   npdUserName: []
-});
+};
+const searchForm = ref({ ...initialSearchForm });
 
 const handleAddProduct = () => {
   showModal.value = true;
@@ -265,8 +306,34 @@ const handleAddProduct = () => {
 const handleSaveProject = newProject => {
   // 这里可以调用API保存项目数据
   console.log("保存新项目:", newProject);
-  // 刷新列表
+  // 刷新列表和全量数据
   refreshList();
+  fetchAllProductList();
+};
+
+const handleSearch = () => {
+  if (loading.value) return;
+  loading.value = true;
+  refreshList().finally(() => {
+    loading.value = false;
+  });
+};
+
+const handleReset = () => {
+  if (loading.value) return;
+  searchForm.value = { ...initialSearchForm };
+  loading.value = true;
+  refreshList().finally(() => {
+    loading.value = false;
+  });
+};
+
+// 获取全量数据用于统计
+const fetchAllProductList = () => {
+  const commonInfo = { searchStr: JSON.stringify([]) }; // 空搜索条件获取全量
+  getProjectProgressList(commonInfo).then(res => {
+    allTableData.value = (res?.data || []).sort((a, b) => b.id - a.id);
+  });
 };
 
 const getTypeList = () => {
@@ -279,13 +346,19 @@ const getTypeList = () => {
   ]).then(
     ([priorityRes, stageRes, stageStatusRes, infoStatusRes, brandRes]) => {
       if (priorityRes.code === 200) {
-        // 优先级
-        priorityList.value = priorityRes.data?.map(item => {
-          return {
-            label: item.value,
-            value: item.id
-          };
-        });
+        // 优先级，按低-中-高排序
+        const priorityOrder = { 低: 0, 中: 1, 高: 2 };
+        priorityList.value = priorityRes.data
+          ?.map(item => {
+            return {
+              label: item.value,
+              value: item.id
+            };
+          })
+          .sort(
+            (a, b) =>
+              (priorityOrder[a.label] ?? 999) - (priorityOrder[b.label] ?? 999)
+          );
       }
       if (stageRes.code === 200) {
         // 阶段任务状态
@@ -330,12 +403,13 @@ const getTypeList = () => {
 getTypeList();
 
 const refreshList = () => {
-  listRef.value.fetchProductList();
+  return listRef.value.fetchProductList();
 };
 
 const handleSelectProject = project => {
   selectedProject.value = project;
   console.log("选中的项目:", project);
+  drawerVisible.value = true;
 };
 
 const handleUpdateTableData = data => {
@@ -343,18 +417,18 @@ const handleUpdateTableData = data => {
   console.log("接收到的表格数据:", data);
 };
 
-// 计算项目统计数据
+// 计算项目统计数据 - 使用全量数据
 const totalProjectCount = computed(() => {
-  return tableData.value?.length || 0;
+  return allTableData.value?.length || 0;
 });
 
 const developingCount = computed(() => {
-  return tableData.value.filter(item => item.statusId == 113)?.length || 0;
+  return allTableData.value.filter(item => item.statusId == 113)?.length || 0;
 });
 
 const listedCount = computed(() => {
   // 兼容id字符与整型
-  return tableData.value.filter(item => item.statusId == 114).length;
+  return allTableData.value.filter(item => item.statusId == 114).length;
 });
 
 const isMobile = ref(false);
@@ -366,6 +440,9 @@ function checkMobile() {
 onMounted(() => {
   checkMobile();
   window.addEventListener("resize", checkMobile);
+  // 页面加载时获取全量数据和初始筛选数据
+  fetchAllProductList();
+  refreshList();
 });
 onUnmounted(() => {
   window.removeEventListener("resize", checkMobile);
@@ -387,18 +464,17 @@ onUnmounted(() => {
   }
 }
 
+.search-area {
+  box-sizing: border-box;
+}
+
+.dashboard-main-content {
+  box-sizing: border-box;
+}
+
 @media (width <= 768px) {
   .hidden-mobile {
     display: none !important;
-  }
-
-  .main-content {
-    flex-direction: column;
-  }
-
-  .left-panel {
-    align-self: stretch;
-    width: 100%;
   }
 
   .statistics-panel {
@@ -562,6 +638,8 @@ onUnmounted(() => {
 
 .dashboard-container {
   background-color: #f5f5f5;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .page-header {
@@ -682,11 +760,20 @@ onUnmounted(() => {
 .search-form {
   .el-form-item {
     margin-bottom: 0;
+    display: flex;
+    align-items: flex-end;
   }
 
   .el-form-item__content {
     display: flex;
     align-items: center;
+  }
+
+  .el-form-item__label {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    line-height: 1;
   }
 }
 
@@ -774,54 +861,32 @@ onUnmounted(() => {
 }
 
 .panel-container {
-  padding: 16px;
+  padding: 20px;
   overflow: hidden;
   background-color: white;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow:
-    0 1px 3px 0 rgb(0 0 0 / 10%),
-    0 1px 2px -1px rgb(0 0 0 / 10%);
-}
-
-.left-panel {
-  align-self: flex-start; /* 高度自适应内容，不随右侧变化 */
-}
-
-.main-content {
-  align-items: flex-start !important;
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-sizing: border-box;
 }
 
 .panel-container :deep(.el-table) {
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .panel-container :deep(.el-card) {
   border-radius: 12px;
 }
 
-.left-panel :deep(.mt-3) {
-  margin-top: 0;
-}
-
-.right-panel {
-  width: 320px; /* 设置右侧面板固定宽度 */
-  height: fit-content; /* 高度自适应内容 */
-  padding: 0;
-}
-
-.right-panel :deep(.el-card) {
-  margin: 0;
-  border-radius: 12px;
-}
-
 .panel-header {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .panel-title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: #1f2937;
 }
 </style>

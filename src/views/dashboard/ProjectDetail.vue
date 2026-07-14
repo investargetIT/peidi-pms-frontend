@@ -1,205 +1,152 @@
 <template>
-  <div class="right-panel w-96">
-    <el-card class="project-detail-card">
-      <template #header>
-        <div class="card-header flex items-center justify-between">
-          <span class="text-lg font-semibold">项目详情</span>
-          <el-button
-            v-if="isEditing && selectedProject"
-            type="primary"
-            size="small"
-            @click="handleSaveAllStages"
-          >
-            保存
-          </el-button>
-          <el-button
-            v-else-if="selectedProject"
-            type="default"
-            size="small"
-            @click="startEditing"
-          >
+  <div class="project-detail-panel">
+    <!-- 顶部操作栏 -->
+    <div v-if="selectedProject" class="panel-header">
+      <div class="header-spacer"></div>
+      <div class="header-actions">
+        <template v-if="!isEditing">
+          <el-button type="primary" size="default" @click="startEditing">
+            <el-icon><Edit /></el-icon>
             编辑
           </el-button>
-        </div>
-      </template>
+        </template>
+        <template v-else>
+          <el-button size="default" @click="cancelEditing">取消</el-button>
+          <el-button type="primary" size="default" @click="handleSaveAllStages">
+            <el-icon><Check /></el-icon>
+            保存
+          </el-button>
+        </template>
+      </div>
+    </div>
 
-      <div v-if="!selectedProject" class="empty-state text-center py-12">
-        <el-icon class="text-6xl text-gray-300 mb-4">
+    <!-- 空状态 -->
+    <div v-if="!selectedProject" class="empty-state">
+      <div class="empty-icon">
+        <el-icon size="64" color="#e5e7eb">
           <View />
         </el-icon>
-        <p class="text-gray-500 text-sm">选择一个产品查看详细信息</p>
+      </div>
+      <p class="empty-text">选择一个产品查看详细信息</p>
+    </div>
+
+    <!-- 项目详情 -->
+    <div v-else class="detail-content">
+      <!-- 头部区域 - 产品信息 -->
+      <div class="header-section">
+        <div class="product-name">{{ selectedProject.productName }}</div>
+        <div class="product-meta">
+          <span class="brand">{{ selectedProject.brandName }}</span>
+          <span class="separator">·</span>
+          <span class="priority" :class="getPriorityColor(selectedProject.priorityName)">
+            {{ selectedProject.priorityName }}
+          </span>
+        </div>
       </div>
 
-      <div v-else class="project-info space-y-4">
-        <!-- 产品基本信息 -->
-        <div class="product-header">
-          <h3 class="font-medium text-gray-900 text-base mb-1">
-            {{ selectedProject.productName }}
-          </h3>
-          <div class="flex items-center justify-between">
-            <p class="text-sm text-gray-500">{{ selectedProject.brandName }}</p>
-            <div
-              :class="getPriorityColor(selectedProject.priorityName)"
-              class="priority-badge"
-            >
-              <div class="flex items-center">
-                <component
-                  :is="getPriorityIcon(selectedProject.priorityName)"
-                  class="w-3 h-3 mr-1"
-                />
-                {{ selectedProject.priorityName }}
-              </div>
-            </div>
-          </div>
+      <!-- 进度条区域 -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-label">整体进度</span>
+          <span class="progress-value">{{ Math.round(selectedProject.progress) }}%</span>
         </div>
-
-        <!-- 整体进度 -->
-        <div class="progress-section">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm text-gray-600">整体进度</span>
-            <span class="font-medium">{{ selectedProject.progress }}%</span>
-          </div>
-          <el-progress
-            :percentage="selectedProject.progress"
-            :stroke-width="8"
-            :show-text="false"
-          />
+        <div class="progress-bar-container">
+          <div class="progress-bar" :style="{ width: `${Math.min(selectedProject.progress, 100)}%` }"></div>
         </div>
+      </div>
 
-        <!-- 阶段进度 -->
-        <div class="stages-section">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="font-medium text-gray-900">阶段进度</h4>
-            <el-button
-              v-if="isEditing"
-              type="primary"
-              size="small"
-              link
-              @click="handleAddStage"
-            >
+      <!-- 阶段区域 -->
+      <div class="stages-section">
+        <div class="stages-header">
+          <div class="stages-title">阶段进度</div>
+          <div v-if="isEditing" class="stages-actions">
+            <el-button type="primary" link @click="handleAddStage">
               <el-icon><Plus /></el-icon>
-              新增阶段
+              添加阶段
             </el-button>
           </div>
-          <div ref="stagesContainer" class="space-y-2">
-            <div
-              v-for="(stage, index) in editableStages"
-              :key="stage.stageId || `new-${index}`"
-              class="stage-item p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-move"
-              :class="{ 'cursor-pointer': !isEditing }"
-              @click="!isEditing && openStageDetail(stage)"
-            >
-              <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2 flex-1">
-                  <el-icon
-                    v-if="isEditing"
-                    class="drag-handle text-gray-400 cursor-move"
-                    ><Rank
-                  /></el-icon>
-                  <el-input
-                    v-if="isEditing"
-                    :model-value="stage.progressName || stage.stageName"
-                    @update:model-value="
-                      val => {
-                        stage.progressName = val;
-                        stage.stageName = val;
-                      }
-                    "
-                    size="small"
-                    class="flex-1"
+        </div>
+
+        <div ref="stagesContainer" class="stages-list">
+          <div
+            v-for="(stage, index) in editableStages"
+            :key="stage.stageId || `new-${index}`"
+            class="stage-card"
+            :class="{ 'editing': isEditing }"
+          >
+            <!-- 拖拽手柄 -->
+            <div v-if="isEditing" class="drag-handle">
+              <el-icon><Rank /></el-icon>
+            </div>
+
+            <!-- 阶段内容 -->
+            <div class="stage-content" @click="!isEditing && openStageDetail(stage)">
+              <!-- 阶段名称 -->
+              <div class="stage-header">
+                <template v-if="isEditing">
+                  <input
+                    v-model="stage.stageName"
+                    class="stage-name-input"
                     placeholder="阶段名称"
                   />
-                  <span v-else class="text-sm font-medium">{{
-                    stage.stageName
-                  }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <div
-                    v-if="!isEditing"
-                    :class="getStatusColor(stage.statusName)"
-                    class="status-badge"
-                  >
+                </template>
+                <template v-else>
+                  <div class="stage-name">{{ stage.stageName }}</div>
+                </template>
+
+                <!-- 状态标签 -->
+                <template v-if="!isEditing">
+                  <span class="status-badge" :class="getStatusColor(stage.statusName)">
                     {{ stage.statusName }}
-                  </div>
-                  <el-button
-                    v-if="isEditing"
-                    type="danger"
-                    size="small"
-                    link
-                    @click.stop="handleDeleteStage(index)"
-                  >
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </div>
+                  </span>
+                </template>
+
+                <!-- 删除按钮 -->
+                <button v-if="isEditing" class="btn-delete" @click.stop="handleDeleteStage(index)">
+                  <el-icon><Delete /></el-icon>
+                </button>
               </div>
 
+              <!-- 阶段详情 -->
               <template v-if="!isEditing">
-                <!-- 负责人区域 -->
-                <div class="flex items-center justify-between mt-2">
-                  <div class="flex items-center gap-1 flex-1" @click.stop>
-                    <PersonSelector
-                      label="负责人"
-                      :model-value="stage.chargeDingUser || []"
-                      @auto-save="handleAutoSaveStageAssignees"
-                      :max-count="5"
-                      :show-avatar="true"
-                      size="small"
-                      data-format="system"
-                      display-mode="tag"
-                      :auto-save="true"
-                      :save-params="{
-                        infoId: selectedProject.id,
-                        stageId: stage.stageId,
-                        statusId: stage.statusId,
-                        deadlineDate: stage.deadlineDate,
-                        finishDate: stage.finishDate,
-                        remark: stage.remark,
-                        fileUrlList: stage.fileUrlList || []
-                      }"
-                      class="stage-person-selector"
-                    />
+                <div class="stage-details">
+                  <!-- 负责人 -->
+                  <div v-if="stage.chargeDingUser && stage.chargeDingUser.length > 0" class="detail-item">
+                    <span class="detail-label">负责人</span>
+                    <div class="detail-value">
+                      <span
+                        v-for="user in stage.chargeDingUser"
+                        :key="user.dingId || user.emplId"
+                        class="user-tag"
+                      >
+                        {{ user.userName || user.name }}
+                      </span>
+                    </div>
                   </div>
 
-                  <!-- 查看详情按钮 -->
-                  <button
-                    @click.stop="openStageDetail(stage)"
-                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 h-6 px-2 text-xs bg-transparent"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="w-3 h-3 mr-1"
-                    >
-                      <path d="M2 12s3-7 10-7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    详情
-                  </button>
+                  <!-- 截止日期 -->
+                  <div v-if="stage.deadlineDate" class="detail-item">
+                    <span class="detail-label">截止日期</span>
+                    <span class="detail-value">{{ stage.deadlineDate }}</span>
+                  </div>
+
+                  <!-- 附件 -->
+                  <div v-if="stage.fileUrlList && stage.fileUrlList.length > 0" class="detail-item">
+                    <span class="detail-label">附件</span>
+                    <span class="detail-value">{{ stage.fileUrlList.length }} 个文件</span>
+                  </div>
                 </div>
 
-                <!-- 附件信息 -->
-                <div
-                  v-if="stage.fileUrlList && stage.fileUrlList.length > 0"
-                  class="flex items-center gap-1 mt-2"
-                >
-                  <el-icon class="text-gray-400"><Paperclip /></el-icon>
-                  <span class="text-xs text-gray-500"
-                    >{{ stage.fileUrlList.length }} 个附件</span
-                  >
-                </div>
+                <!-- 查看详情按钮 -->
+                <button class="btn-view-detail" @click.stop="openStageDetail(stage)">
+                  查看详情
+                </button>
               </template>
             </div>
           </div>
         </div>
       </div>
-    </el-card>
+    </div>
 
     <!-- 阶段详情弹窗 -->
     <StageDetailModal
@@ -213,7 +160,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted } from "vue";
-import { View, Paperclip, Plus, Delete, Rank } from "@element-plus/icons-vue";
+import { View, Paperclip, Plus, Delete, Rank, Edit, Check } from "@element-plus/icons-vue";
 import { ElMessage, ElLoading, ElMessageBox } from "element-plus";
 import { AlertTriangle, Flag } from "lucide-vue-next";
 import Sortable from "sortablejs";
@@ -452,18 +399,12 @@ const getStatusColor = status => {
   switch (status) {
     case "开发中":
     case "进行中":
-      return "status-developing";
+      return "status-in-progress";
     case "已上市":
     case "已完成":
-      return "status-listed";
+      return "status-completed";
     case "待开始":
       return "status-pending";
-    case "审核通过":
-      return "status-approved";
-    case "已上架":
-      return "status-listed";
-    case "已放弃":
-      return "status-abandoned";
     case "延期":
       return "status-delayed";
     default:
@@ -474,13 +415,13 @@ const getStatusColor = status => {
 const getPriorityColor = priority => {
   switch (priority) {
     case "高":
-      return "bg-red-50 text-red-600";
+      return "priority-high";
     case "中":
-      return "bg-yellow-50 text-yellow-600";
+      return "priority-medium";
     case "低":
-      return "bg-green-50 text-green-600";
+      return "priority-low";
     default:
-      return "bg-gray-50 text-gray-600";
+      return "priority-default";
   }
 };
 
@@ -605,6 +546,328 @@ const handleAutoSaveStageAssignees = async saveData => {
 </script>
 
 <style scoped>
+/* 新的样式 */
+.project-detail-panel {
+  height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #9ca3af;
+}
+
+.empty-icon {
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 14px;
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.header-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-name {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.product-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.brand {
+  color: #6b7280;
+}
+
+.separator {
+  color: #d1d5db;
+}
+
+.priority {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.priority-high {
+  color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.priority-medium {
+  color: #d97706;
+  background-color: #fffbeb;
+}
+
+.priority-low {
+  color: #059669;
+  background-color: #ecfdf5;
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.progress-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.stages-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stages-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stages-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.stages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stage-card {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.stage-card:hover {
+  border-color: #d1d5db;
+  background-color: #f3f4f6;
+}
+
+.stage-card.editing {
+  background-color: white;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+  cursor: default;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  color: #9ca3af;
+  cursor: grab;
+}
+
+.stage-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stage-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.stage-name-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.stage-name-input:focus {
+  border-color: #2563eb;
+  background-color: white;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-in-progress {
+  color: #2563eb;
+  background-color: #dbeafe;
+}
+
+.status-completed {
+  color: #059669;
+  background-color: #d1fae5;
+}
+
+.status-pending {
+  color: #6b7280;
+  background-color: #f3f4f6;
+}
+
+.status-delayed {
+  color: #dc2626;
+  background-color: #fee2e2;
+}
+
+.status-default {
+  color: #6b7280;
+  background-color: #f3f4f6;
+}
+
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  color: #ef4444;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-delete:hover {
+  background-color: #fef2f2;
+}
+
+.stage-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.detail-label {
+  min-width: 70px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  flex: 1;
+  color: #374151;
+}
+
+.user-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-right: 4px;
+  margin-bottom: 2px;
+  background-color: #e5e7eb;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.btn-view-detail {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view-detail:hover {
+  background-color: #eff6ff;
+}
+
+/* 旧的样式，保留 */
 .project-detail-card {
   height: fit-content;
 }

@@ -4,20 +4,22 @@
     :title="props.stage?.stageName"
     width="800px"
     :before-close="handleClose"
+    :close-on-click-modal="!isEditing"
+    :close-on-press-escape="!isEditing"
     class="stage-detail-modal"
   >
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <span class="text-xl font-medium">{{ props.stage?.statusName }}</span>
+        <span class="text-xl font-medium">{{ props.stage?.stageName }}</span>
         <div class="flex items-center gap-2">
           <el-button v-if="!isEditing" size="small" @click="startEdit">
             编辑
           </el-button>
           <template v-else>
-            <el-button size="small" @click="cancelEdit">
+            <el-button size="small" @click="cancelEdit" :disabled="isSaving">
               <el-icon><Close /></el-icon>
             </el-button>
-            <el-button type="primary" size="small" @click="handleSave">
+            <el-button type="primary" size="small" @click="handleSave" :loading="isSaving">
               <el-icon><Check /></el-icon>
               保存
             </el-button>
@@ -56,6 +58,26 @@
       <!-- 时间信息 -->
       <div class="grid grid-cols-2 gap-4">
         <div>
+          <el-form-item label="开始日期">
+            <el-date-picker
+              v-if="isEditing"
+              v-model="editedStage.startTime"
+              type="date"
+              placeholder="选择开始日期"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              style="width: 100%"
+            />
+            <div v-else class="flex items-center gap-2">
+              <el-icon class="text-gray-400"><Calendar /></el-icon>
+              <span class="text-sm">{{
+                props.stage?.startTime || "未设置"
+              }}</span>
+            </div>
+          </el-form-item>
+        </div>
+
+        <div>
           <el-form-item label="截止日期">
             <el-date-picker
               v-if="isEditing"
@@ -77,7 +99,16 @@
 
         <div v-if="shouldShowFinishDate">
           <el-form-item label="完成日期">
-            <div class="flex items-center gap-2">
+            <el-date-picker
+              v-if="isEditing"
+              v-model="editedStage.finishDate"
+              type="date"
+              placeholder="选择完成日期"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              style="width: 100%"
+            />
+            <div v-else class="flex items-center gap-2">
               <el-icon class="text-green-500"><Calendar /></el-icon>
               <span class="text-sm">{{ displayFinishDate }}</span>
             </div>
@@ -167,6 +198,10 @@ const props = defineProps({
   stageStatusList: {
     type: Array,
     default: () => []
+  },
+  isSaving: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -187,8 +222,35 @@ watch(
     dialogVisible.value = newVal;
     if (newVal && props.stage) {
       editedStage.value = JSON.parse(JSON.stringify(props.stage));
-      // 默认状态为待开始
-      editedStage.value.statusId = props.stage.statusId ?? 115;
+
+      console.log('初始化阶段数据:', props.stage);
+      console.log('原始 statusId:', props.stage.statusId);
+      console.log('stageStatusList:', props.stageStatusList);
+
+      // 正确初始化状态ID
+      let statusId = props.stage.statusId;
+
+      // 如果 statusId 不存在、为0或null，并且有 stageStatusList，尝试根据 statusName 找到对应的值
+      if ((!statusId || statusId === 0) && props.stage.statusName && props.stageStatusList?.length > 0) {
+        const statusItem = props.stageStatusList.find(item => item.label === props.stage.statusName);
+        if (statusItem) {
+          statusId = statusItem.value;
+          console.log('通过状态名称找到的 statusId:', statusId);
+        }
+      }
+
+      // 如果还是没有有效的 statusId，默认设置为 115（待开始）
+      if (!statusId || statusId === 0) {
+        statusId = 115;
+        console.log('使用默认 statusId:', statusId);
+      }
+
+      editedStage.value.statusId = statusId;
+
+      // 确保开始日期也被正确初始化
+      if (!editedStage.value.startTime) {
+        editedStage.value.startTime = props.stage.startTime || "";
+      }
 
       // 转换为 system 格式 {dingId, userName, avatarUrl}
       editedStage.value.chargeIds =
@@ -218,23 +280,19 @@ watch(dialogVisible, newVal => {
   }
 });
 
-// 监听statusId变化，当为117时设置完成日期
+// 监听statusId变化，当为117时自动设置完成日期（仅在没有值时）
 watch(
   () => editedStage.value?.statusId,
-  newStatusId => {
-    if (newStatusId === 117) {
-      // 设置完成日期为当前时间
+  (newStatusId, oldStatusId) => {
+    if (newStatusId === 117 && !editedStage.value?.finishDate) {
+      // 只有当状态变为已完成且没有设置完成日期时，才自动设置为当前时间
       const now = new Date();
       const currentDate = now.toISOString().split("T")[0]; // YYYY-MM-DD格式
       if (editedStage.value) {
         editedStage.value.finishDate = currentDate;
       }
-    } else {
-      // 如果不是117，清除完成日期
-      if (editedStage.value) {
-        editedStage.value.finishDate = null;
-      }
     }
+    // 注意：不再在状态变化时清除完成日期，允许用户手动修改
   }
 );
 
@@ -278,12 +336,29 @@ const handleSave = () => {
   isEditing.value = false;
 };
 
-const handleClose = () => {
+const handleClose = (done) => {
   if (isEditing.value) {
-    ElMessage.warning("请先保存或取消编辑");
-    return false;
+    ElMessageBox.confirm(
+      "您正在编辑中，关闭将放弃修改，确定要关闭吗？",
+      "提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }
+    )
+      .then(() => {
+        isEditing.value = false;
+        dialogVisible.value = false;
+        done();
+      })
+      .catch(() => {
+        // 用户取消，不关闭
+      });
+  } else {
+    dialogVisible.value = false;
+    done();
   }
-  dialogVisible.value = false;
 };
 
 const handleAssigneesChange = assignees => {
@@ -313,8 +388,12 @@ const handleFileListChange = fileNames => {
 
 // 计算属性
 const shouldShowFinishDate = computed(() => {
-  // 在编辑模式下检查editedStage，否则检查props.stage
-  const currentStage = isEditing.value ? editedStage.value : props.stage;
+  // 编辑模式下始终显示完成日期字段，方便用户修改
+  if (isEditing.value) {
+    return true;
+  }
+  // 非编辑模式下，只有状态为已完成时才显示
+  const currentStage = props.stage;
   return currentStage?.statusId === 117;
 });
 

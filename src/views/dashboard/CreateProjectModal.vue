@@ -55,6 +55,14 @@
               :value="item.value"
             />
           </el-select>
+          <!-- 品牌已选但无系列时的提示 -->
+          <div
+            v-if="formData.brandId && !hasAvailableSeries"
+            class="no-series-hint"
+          >
+            <el-icon class="hint-icon"><Warning /></el-icon>
+            <span>该品牌下暂无可用系列，请选择其他品牌</span>
+          </div>
         </el-form-item>
 
         <!-- 产品名称 -->
@@ -133,6 +141,7 @@
           size="large"
           @click="handleSave"
           :loading="saving"
+          :disabled="formData.brandId && !hasAvailableSeries"
           class="save-btn"
         >
           <el-icon class="btn-icon"><Document /></el-icon>
@@ -145,7 +154,7 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import { Document } from "@element-plus/icons-vue";
+import { Document, Warning } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { getProjectTypeList, addProjectProgress } from "@/api/progress";
 import PersonSelector from "@/components/PersonSelector.vue";
@@ -272,6 +281,11 @@ const handleBrandChange = value => {
   fetchTypeList(value);
 };
 
+// 检查当前品牌是否有可用系列
+const hasAvailableSeries = computed(() => {
+  return seriesList.value && seriesList.value.length > 0;
+});
+
 const fetchTypeList = brandId => {
   getProjectTypeList({ brandId }).then(res => {
     if (res?.code === 200) {
@@ -281,6 +295,10 @@ const fetchTypeList = brandId => {
           value: item.id
         };
       });
+      // 如果该品牌下没有系列数据，提示用户
+      if (seriesList.value.length === 0) {
+        ElMessage.warning("该品牌下暂无可用系列，请选择其他品牌");
+      }
     }
   });
 };
@@ -576,5 +594,24 @@ const handleClose = () => {
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 10%),
     0 2px 4px -1px rgb(0 0 0 / 6%);
+}
+
+.no-series-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #92400e;
+}
+
+.hint-icon {
+  color: #f59e0b;
+  font-size: 16px;
+  flex-shrink: 0;
 }
 </style>

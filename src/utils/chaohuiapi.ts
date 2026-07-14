@@ -72,44 +72,66 @@ export const testAllIPs = async () => {
   });
 };
 
+// 添加缓存，避免重复登录
+let cachedLoginPromise: Promise<any> | null = null;
+let loginCacheTime = 0;
+const LOGIN_CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
+
 // 登陆
 export const chaohuilogin = () => {
-  // debugger;
-  console.log("ddddd");
-  const loadingInstance1 = ElLoading.service({
-    fullscreen: true,
-    text: "局域网上传连接中。。。"
-  });
-  return new Promise((resolve, reject) => {
+  // 检查缓存
+  const now = Date.now();
+  if (cachedLoginPromise && (now - loginCacheTime) < LOGIN_CACHE_DURATION) {
+    return cachedLoginPromise;
+  }
+
+  console.log("开始连接上传服务...");
+
+  // 不再使用全屏加载遮罩
+  const promise = new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error("连接超时，请检查网络"));
+    }, 8000); // 8秒超时
+
     Axios.get(
-      `${uploadUrl}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=${USERNAME}&passwd=${PASSWORD}&session=FileStation&format=cookie`
+      `${uploadUrl}/webapi/auth.cgi?api=SYNO.API.Auth&version=3&method=login&account=${USERNAME}&passwd=${PASSWORD}&session=FileStation&format=cookie`,
+      { timeout: 8000 } // 添加请求超时
     )
       .then(res => {
+        clearTimeout(timeoutId);
         if (res?.data?.data?.sid) {
           sid = res?.data?.data?.sid;
           resolve({
             sid: res?.data?.data?.sid,
             postUrl: `${uploadUrl}/webapi/entry.cgi?api=SYNO.FileStation.Upload&method=upload&version=2&_sid=${res?.data?.data?.sid}`
           });
+        } else {
+          reject(new Error("登录响应格式错误"));
         }
-        // localStorage.setItem('QunHuiToken', res.data.data.sid)
-        // resolve(res.data.data.sid)
         console.log("res-------", res);
       })
       .catch(err => {
-        // reject(err)
+        clearTimeout(timeoutId);
         console.log("chaohuilogin err", err);
         localStorage.removeItem("ipThis");
-        // testAllIPs();
-      })
-      .finally(() => {
-        loadingInstance1.close();
+        reject(err);
       });
   });
+
+  // 缓存登录Promise
+  cachedLoginPromise = promise;
+  loginCacheTime = now;
+
+  // 如果失败，清除缓存
+  promise.catch(() => {
+    cachedLoginPromise = null;
+  });
+
+  return promise;
 };
 
 // 下载
-export const chaohuiDownload = filename => {
+export const chaohuiDownload = async filename => {
   const encodedFilename = encodeURIComponent(filename);
   console.log(
     "filename",
@@ -117,24 +139,30 @@ export const chaohuiDownload = filename => {
     encodedFilename,
     `${uploadUrl}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${"/web_packages/test/uploadFile"}/${encodedFilename}&_sid=${sid}`
   );
-  Axios.get(
-    `${uploadUrl}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${"/web_packages/test/uploadFile"}/${encodedFilename}&_sid=${sid}`,
-    {
-      responseType: "blob"
-    }
-  )
-    .then(res => {
-      const link = document.createElement("a");
-      const objectURL = window.URL.createObjectURL(res.data);
-      link.href = objectURL;
-      link.download = filename; // 自定义文件名，可选
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(objectURL); // 释放临时URL对象
-    })
-    .catch(err => {
-      localStorage.removeItem("ipThis");
-      testAllIPs();
-    });
+
+  try {
+    const res = await Axios.get(
+      `${uploadUrl}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${"/web_packages/test/uploadFile"}/${encodedFilename}&_sid=${sid}`,
+      {
+        responseType: "blob",
+        timeout: 10000 // 10秒超时
+      }
+    );
+
+    const link = document.createElement("a");
+    const objectURL = window.URL.createObjectURL(res.data);
+    link.href = objectURL;
+    link.download = filename; // 自定义文件名，可选
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(objectURL); // 释放临时URL对象
+  } catch (err) {
+    console.error("Download error:", err);
+    localStorage.removeItem("ipThis");
+    // 如果有需要，可以重新登录，但不要自动重试导致循环
+    // 清除缓存，下次需要时重新登录
+    cachedLoginPromise = null;
+    throw err;
+  }
 };

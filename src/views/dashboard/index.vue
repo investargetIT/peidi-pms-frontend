@@ -119,7 +119,7 @@
           </el-form-item>
           <el-form-item prop="brand" label="品牌" class="w-full mb-0">
             <el-select
-              v-model="searchForm.brandId"
+              v-model="searchForm.brandName"
               class="custom-select"
               placeholder="品牌"
               clearable
@@ -129,7 +129,7 @@
                 v-for="item in brandList"
                 :key="item.value"
                 :label="item.label"
-                :value="item.value"
+                :value="item.label"
               />
             </el-select>
           </el-form-item>
@@ -223,9 +223,9 @@
     <!-- 项目详情抽屉 -->
     <el-drawer
       v-model="drawerVisible"
-      :title="selectedProject?.productName || '项目详情'"
       size="560px"
       :destroy-on-close="true"
+      :with-header="false"
     >
       <ProjectDetail
         :selectedProject="selectedProject"
@@ -258,7 +258,7 @@ import {
   Flag,
   RefreshCcw
 } from "lucide-vue-next";
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 
 import { fetchStatusList } from "@/api/pmApi";
 import { getProjectProgressList } from "@/api/progress";
@@ -290,7 +290,7 @@ const allTableData = ref([]); // 全量数据用于统计
 const loading = ref(false); // 搜索 loading 状态
 const initialSearchForm = {
   productName: "",
-  brandId: "",
+  brandName: "",
   keyword: "",
   statusId: "",
   productNo: "",
@@ -321,10 +321,24 @@ const handleSearch = () => {
 
 const handleReset = () => {
   if (loading.value) return;
-  searchForm.value = { ...initialSearchForm };
-  loading.value = true;
-  refreshList().finally(() => {
-    loading.value = false;
+
+  // 完全重置搜索表单
+  searchForm.value = {
+    productName: "",
+    brandName: "",
+    keyword: "",
+    statusId: "",
+    productNo: "",
+    pmUserName: [],
+    npdUserName: []
+  };
+
+  // 等待 DOM 更新后再刷新列表
+  nextTick(() => {
+    loading.value = true;
+    refreshList().finally(() => {
+      loading.value = false;
+    });
   });
 };
 

@@ -176,24 +176,36 @@ const hasUploadingFiles = computed(() => {
   return fileList.value.some(file => file.status === "uploading");
 });
 
-// 初始化上传服务
-onMounted(() => {
-  initUploadService();
-});
+// 标志：是否已初始化
+let isServiceInitialized = false;
 
-const initUploadService = async () => {
+// 懒加载初始化上传服务 - 只在真正需要时才连接
+const ensureUploadService = async () => {
+  if (isServiceInitialized && sid.value) {
+    return true;
+  }
+
   try {
     const res = await testAllIPs();
     if (res.sid) {
       sid.value = res.sid;
       postUrl.value = res.postUrl;
+      isServiceInitialized = true;
       console.log("Upload URL initialized:", postUrl.value);
+      return true;
     }
   } catch (err) {
     console.error("Failed to initialize upload URL:", err);
-    postUrl.value = "/api/upload";
+    ElMessage.warning("上传服务连接失败，部分功能可能受限");
   }
+  return false;
 };
+
+// 初始化上传服务 - 只在组件挂载时做轻量检查
+onMounted(() => {
+  // 不再在挂载时自动连接，而是在需要时懒加载
+  console.log("FileUploader mounted - will connect on demand");
+});
 
 // 格式化文件列表为 el-upload 兼容格式
 const formatFileList = files => {
@@ -262,7 +274,7 @@ const handleRemove = (uploadFile, uploadFiles) => {
   );
 };
 
-const handleChange = file => {
+const handleChange = async file => {
   console.log("handleChange called with file:", file);
 
   if (file.response) {
@@ -272,6 +284,13 @@ const handleChange = file => {
   // 检查文件数量限制
   if (fileList.value.length >= props.maxCount) {
     ElMessage.warning(`最多只能上传 ${props.maxCount} 个文件`);
+    return;
+  }
+
+  // 在真正需要上传时才初始化服务
+  const initialized = await ensureUploadService();
+  if (!initialized) {
+    ElMessage.error("上传服务不可用，请稍后再试");
     return;
   }
 
@@ -366,10 +385,19 @@ const canDownload = file => {
   return file && (file.url || file.realFileName || file.raw?.name || file.name);
 };
 
-const downloadFile = file => {
+const downloadFile = async file => {
   const fileName = file.realFileName || file.raw?.name || file.name || file;
   if (fileName && fileName !== "string") {
-    chaohuiDownload(fileName);
+    try {
+      // 确保服务已连接
+      if (!sid.value) {
+        await ensureUploadService();
+      }
+      chaohuiDownload(fileName);
+    } catch (err) {
+      console.error("Download failed:", err);
+      ElMessage.error("下载失败，请稍后再试");
+    }
   }
 };
 

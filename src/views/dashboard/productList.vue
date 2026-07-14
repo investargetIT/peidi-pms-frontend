@@ -305,31 +305,48 @@ function extractEmplId(arr) {
 const fetchProductList = () => {
   const searchArr = [];
   console.log("props.searchInfo:", props.searchInfo);
+
+  if (!props.searchInfo) {
+    const commonInfo = { searchStr: JSON.stringify([]) };
+    return getProjectProgressList(commonInfo).then(res => {
+      tableData.value = (res?.data || []).sort((a, b) => b.id - a.id);
+      emit("updateTableData", tableData.value);
+    });
+  }
+
   Object.keys(props.searchInfo)?.forEach(key => {
-    const searchParams = {};
-    const validKey = ["pmUserName", "npdUserName"];
-    const isValidStringKey =
-      props.searchInfo[key] && !Array.isArray(props.searchInfo[key]);
-    const isValidArrKey =
-      Array.isArray(props.searchInfo[key]) && props.searchInfo[key].length > 0;
-    if (isValidStringKey || isValidArrKey) {
-      searchParams.searchName = key;
+    const value = props.searchInfo[key];
+
+    // 检查值是否有效
+    let isValid = false;
+    if (Array.isArray(value)) {
+      isValid = value.length > 0;
+    } else if (typeof value === 'string') {
+      isValid = value.trim() !== '';
+    } else if (value !== null && value !== undefined) {
+      isValid = true;
+    }
+
+    if (isValid) {
+      const searchParams = {};
       const keyMap = {
         pmUserName: "pm",
-        npdUserName: "npd"
+        npdUserName: "npd",
+        brandName: "brandName"
       };
       searchParams.searchName = keyMap[key] || key;
       searchParams.searchType = "like";
+
+      const validKey = ["pmUserName", "npdUserName"];
       if (validKey.includes(key)) {
-        searchParams.searchValue = extractEmplId(props.searchInfo[key]).join(
-          "&#&"
-        );
+        searchParams.searchValue = extractEmplId(value).join("&#&");
       } else {
-        searchParams.searchValue = props.searchInfo[key];
+        searchParams.searchValue = value;
       }
       searchArr.push(searchParams);
     }
   });
+
   console.log("searchArr:", searchArr);
   const commonInfo = { searchStr: JSON.stringify(searchArr) };
   return getProjectProgressList(commonInfo).then(res => {

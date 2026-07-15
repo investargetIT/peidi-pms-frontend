@@ -30,6 +30,10 @@
                 保存
               </el-button>
             </template>
+            <!-- 关闭按钮 -->
+            <button class="close-drawer-btn" @click="closeDrawer">
+              <el-icon><Close /></el-icon>
+            </button>
           </div>
         </div>
         <div class="product-meta">
@@ -68,13 +72,19 @@
         <div ref="stagesContainer" class="stages-list">
           <div
             v-for="(stage, index) in editableStages"
-            :key="stage.stageId || `new-${index}`"
+            :key="stage._uid"
             class="stage-card"
             :class="[
               isEditing ? 'editing' : '',
-              getStageCardClass(stage)
+              getStageCardClass(stage),
+              stage.is_del ? 'stage-deleted' : ''
             ]"
           >
+            <!-- 序号 -->
+            <div class="stage-index">
+              {{ index + 1 }}
+            </div>
+
             <!-- 拖拽手柄 -->
             <div v-if="isEditing" class="drag-handle">
               <el-icon><Rank /></el-icon>
@@ -103,7 +113,7 @@
                 </template>
 
                 <!-- 删除按钮 -->
-                <button v-if="isEditing" class="btn-delete" @click.stop="handleDeleteStage(index)">
+                <button v-if="isEditing" class="btn-delete" @click.stop="handleDeleteStage(stage, index)">
                   <el-icon><Delete /></el-icon>
                 </button>
               </div>
@@ -162,7 +172,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
-import { View, Paperclip, Plus, Delete, Rank, Edit, Check } from "@element-plus/icons-vue";
+import { View, Paperclip, Plus, Delete, Rank, Edit, Check, Close } from "@element-plus/icons-vue";
 import { ElMessage, ElLoading, ElMessageBox } from "element-plus";
 import { AlertTriangle, Flag } from "lucide-vue-next";
 import Sortable from "sortablejs";
@@ -200,6 +210,13 @@ const editableStages = ref([]);
 const stagesContainer = ref(null);
 let sortableInstance = null;
 let scrollContainer = null;
+let tempIdCounter = 0; // 临时 ID 计数器
+let uidCounter = 0; // 唯一 ID 计数器
+
+// 计算属性：过滤掉已删除的阶段
+const visibleStages = computed(() => {
+  return editableStages.value.filter(stage => !stage.is_del);
+});
 
 // 获取最近的可滚动父级容器
 const getScrollParent = (node) => {
@@ -251,9 +268,7 @@ const fetchStageConfigList = async () => {
   getProjectStageList({ infoId: props.selectedProject.id }).then(res => {
     if (res?.code === 200) {
       stageListConfig.value = res.data;
-      if (!isEditing.value) {
-        editableStages.value = JSON.parse(JSON.stringify(res.data));
-      }
+      editableStages.value = JSON.parse(JSON.stringify(res.data));
     }
   });
 };
@@ -362,7 +377,13 @@ const initSortable = () => {
 // 开始编辑
 const startEditing = () => {
   isEditing.value = true;
-  editableStages.value = JSON.parse(JSON.stringify(stageListConfig.value));
+  uidCounter = 0;
+  // 初始化数据时确保每个阶段都有 is_del 字段和唯一 _uid
+  editableStages.value = JSON.parse(JSON.stringify(stageListConfig.value)).map(stage => ({
+    ...stage,
+    is_del: stage.is_del || 0,
+    _uid: ++uidCounter // 添加唯一 ID
+  }));
   nextTick(() => {
     initSortable();
   });
@@ -371,6 +392,7 @@ const startEditing = () => {
 // 取消编辑
 const cancelEditing = () => {
   isEditing.value = false;
+  // 从原始数据恢复，清除所有临时修改和删除标记
   editableStages.value = JSON.parse(JSON.stringify(stageListConfig.value));
   // 清理滚轮监听和恢复滚动
   unlockScroll();
@@ -386,8 +408,12 @@ const cancelEditing = () => {
 
 // 新增阶段
 const handleAddStage = () => {
+  tempIdCounter++;
+  uidCounter++;
   editableStages.value.push({
     stageId: null,
+    tempId: `temp-${tempIdCounter}`, // 添加临时唯一 ID
+    _uid: uidCounter, // 添加唯一 ID
     progressName: "新节点",
     stageName: "新节点",
     statusId: null,
@@ -403,14 +429,25 @@ const handleAddStage = () => {
 };
 
 // 删除阶段
-const handleDeleteStage = index => {
+const handleDeleteStage = (stage, index) => {
   ElMessageBox.confirm("确定要删除这个阶段吗？", "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
   })
     .then(() => {
-      editableStages.value.splice(index, 1);
+      console.log('删除阶段:', stage, '索引:', index);
+      // 如果是临时新增的阶段（stageId 为 null 或 undefined），直接从数组中移除
+      if (stage.stageId == null) {
+        console.log('临时新增阶段，直接移除');
+        editableStages.value.splice(index, 1);
+      } else {
+        // 如果是已有阶段，标记 is_del = 1
+        console.log('已有阶段，标记 is_del = 1');
+        editableStages.value[index].is_del = 1;
+        // 强制触发响应式更新
+        editableStages.value = [...editableStages.value];
+      }
     })
     .catch(() => {});
 };
@@ -444,7 +481,8 @@ const handleSaveAllStages = async () => {
       chargeIds: (stage.chargeDingUser || []).map(
         user => user.emplId || user.dingId
       ),
-      fileUrlList: stage.fileUrlList || []
+      fileUrlList: stage.fileUrlList || [],
+      is_del: stage.is_del || 0 // 添加删除标记字段
     }));
 
     // 直接传递数组给接口
@@ -562,6 +600,12 @@ const getStageCardClass = stage => {
 const openStageDetail = stage => {
   selectedStage.value = stage;
   stageDialogVisible.value = true;
+};
+
+// 关闭抽屉
+const closeDrawer = () => {
+  // 通过 emit 事件让父组件关闭抽屉
+  emit("closeDrawer");
 };
 
 // 单个阶段保存的加载状态
@@ -744,6 +788,31 @@ onUnmounted(() => {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+  align-items: center;
+}
+
+.close-drawer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: transparent;
+  color: #6b7280;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.close-drawer-btn:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.close-drawer-btn .el-icon {
+  font-size: 18px;
 }
 
 .product-meta {
@@ -859,9 +928,35 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
+.stage-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
 .stage-card:hover {
   border-color: #d1d5db;
   background-color: #f3f4f6;
+}
+
+/* 已删除阶段的样式 */
+.stage-card.stage-deleted {
+  opacity: 0.4;
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+/* 非编辑模式下隐藏已删除的阶段 */
+.stage-card.stage-deleted:not(.editing) {
+  display: none;
 }
 
 .stage-card.editing {

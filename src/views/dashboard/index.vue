@@ -226,12 +226,14 @@
       size="560px"
       :destroy-on-close="true"
       :with-header="false"
+      :close-on-click-modal="false"
     >
       <ProjectDetail
         :selectedProject="selectedProject"
         :stageList="stageList"
         :stageStatusList="stageStatusList"
         @refreshList="refreshList"
+        @closeDrawer="drawerVisible = false"
       />
     </el-drawer>
 

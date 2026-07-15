@@ -70,7 +70,10 @@
             v-for="(stage, index) in editableStages"
             :key="stage.stageId || `new-${index}`"
             class="stage-card"
-            :class="{ 'editing': isEditing }"
+            :class="[
+              isEditing ? 'editing' : '',
+              getStageCardClass(stage)
+            ]"
           >
             <!-- 拖拽手柄 -->
             <div v-if="isEditing" class="drag-handle">
@@ -524,6 +527,38 @@ const getPriorityIcon = priority => {
   }
 };
 
+const getStageCardClass = stage => {
+  // 如果是编辑状态，不应用特殊样式
+  if (isEditing.value) return '';
+
+  // 检查是否已完成
+  if (stage.statusName === "已完成") {
+    return 'stage-card-completed';
+  }
+
+  // 检查是否进行中
+  if (stage.statusName === "进行中" || stage.statusName === "开发中") {
+    return 'stage-card-in-progress';
+  }
+
+  // 检查是否待开始
+  if (stage.statusName === "待开始") {
+    return 'stage-card-pending';
+  }
+
+  // 检查是否延期（截止时间小于当前日期）
+  if (stage.deadlineDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deadline = new Date(stage.deadlineDate);
+    if (deadline < today) {
+      return 'stage-card-delayed';
+    }
+  }
+
+  return '';
+};
+
 const openStageDetail = stage => {
   selectedStage.value = stage;
   stageDialogVisible.value = true;
@@ -548,7 +583,7 @@ const handleSaveStage = async updatedStage => {
     isSavingStage.value = true;
 
     try {
-      const requestData = {
+      const stageData = {
         infoId: props.selectedProject.id,
         id: updatedStage.id || undefined, // 如果有id就传id
         stageId: updatedStage.stageId,
@@ -561,8 +596,11 @@ const handleSaveStage = async updatedStage => {
         fileUrlList: updatedStage.fileUrlList || []
       };
       if (updatedStage.finishDate) {
-        requestData.finishDate = updatedStage.finishDate;
+        stageData.finishDate = updatedStage.finishDate;
       }
+
+      // 将单个阶段数据放入数组中
+      const requestData = [stageData];
 
       const res = await updateProjectStateProgress(requestData);
 
@@ -603,7 +641,7 @@ const handleAutoSaveStageAssignees = async saveData => {
       s => s.stageId === saveData.stageId
     );
 
-    const requestData = {
+    const stageData = {
       infoId: saveData.infoId,
       stageId: saveData.stageId,
       statusId: currentStage?.statusId ?? saveData.statusId ?? 115,
@@ -616,8 +654,11 @@ const handleAutoSaveStageAssignees = async saveData => {
 
     const finishDate = currentStage?.finishDate ?? saveData.finishDate;
     if (finishDate) {
-      requestData.finishDate = finishDate;
+      stageData.finishDate = finishDate;
     }
+
+    // 将单个阶段数据放入数组中
+    const requestData = [stageData];
 
     const res = await updateProjectStateProgress(requestData);
 
@@ -827,6 +868,46 @@ onUnmounted(() => {
   background-color: white;
   box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
   cursor: default;
+}
+
+/* 已完成阶段卡片样式 - 绿色背景 */
+.stage-card-completed {
+  background-color: #d1fae5;
+  border-color: #a7f3d0;
+}
+
+.stage-card-completed:hover {
+  background-color: #a7f3d0;
+}
+
+/* 进行中阶段卡片样式 - 浅蓝色背景 */
+.stage-card-in-progress {
+  background-color: #dbeafe;
+  border-color: #bfdbfe;
+}
+
+.stage-card-in-progress:hover {
+  background-color: #bfdbfe;
+}
+
+/* 待开始阶段卡片样式 - 保持原样 */
+.stage-card-pending {
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+}
+
+.stage-card-pending:hover {
+  background-color: #f3f4f6;
+}
+
+/* 延期阶段卡片样式 - 红色背景 */
+.stage-card-delayed {
+  background-color: #fee2e2;
+  border-color: #fecaca;
+}
+
+.stage-card-delayed:hover {
+  background-color: #fecaca;
 }
 
 .drag-handle {

@@ -236,7 +236,7 @@
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import * as dd from "dingtalk-jsapi";
 import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
 import { ddAuthFun, isInDingTalk } from "@/utils/ddAuth";
@@ -377,12 +377,9 @@ const choosePerson = () => {
       }
     },
     onFail: function (err) {
-      console.error("选择人员失败:", err);
-      ElMessage.error({
-        message: '选择人员失败，请稍后重试',
-        duration: 3000,
-        showClose: true
-      });
+      console.log("人员选择结束（可能是取消或失败）:", err);
+      // 不显示错误提示，因为大多数情况下是用户主动取消操作
+      // 如果是真正的网络错误等严重问题，用户可以再次尝试
     }
   });
 };
@@ -390,29 +387,43 @@ const choosePerson = () => {
 const removePerson = tag => {
   if (props.readonly) return;
 
-  let newPersons;
+  ElMessageBox.confirm(
+    `确定要删除负责人 \"${tag.name}\" 吗？`,
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    }
+  )
+    .then(() => {
+      let newPersons;
 
-  if (props.dataFormat === "system") {
-    // 系统格式：根据 dingId 匹配删除
-    newPersons = selectedPersons.value.filter(
-      item => item.dingId !== tag.emplId
-    );
-  } else {
-    // 钉钉格式：根据 emplId 匹配删除
-    newPersons = selectedPersons.value.filter(
-      item => item.emplId !== tag.emplId
-    );
-  }
+      if (props.dataFormat === "system") {
+        // 系统格式：根据 dingId 匹配删除
+        newPersons = selectedPersons.value.filter(
+          item => item.dingId !== tag.emplId
+        );
+      } else {
+        // 钉钉格式：根据 emplId 匹配删除
+        newPersons = selectedPersons.value.filter(
+          item => item.emplId !== tag.emplId
+        );
+      }
 
-  emit("update:modelValue", newPersons);
+      emit("update:modelValue", newPersons);
 
-  // 如果开启自动保存，触发保存事件
-  if (props.autoSave) {
-    emit("autoSave", {
-      ...props.saveParams,
-      assignees: newPersons
+      // 如果开启自动保存，触发保存事件
+      if (props.autoSave) {
+        emit("autoSave", {
+          ...props.saveParams,
+          assignees: newPersons
+        });
+      }
+    })
+    .catch(() => {
+      // 用户取消删除，不执行任何操作
     });
-  }
 };
 </script>
 

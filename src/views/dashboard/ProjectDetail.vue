@@ -121,17 +121,31 @@
               <!-- 阶段详情 -->
               <template v-if="!isEditing">
                 <div class="stage-details">
-                  <!-- 负责人 -->
-                  <div v-if="stage.chargeDingUser && stage.chargeDingUser.length > 0" class="detail-item">
+                  <!-- 负责人 - 新增快捷添加功能 -->
+                  <div class="detail-item" @click.stop>
                     <span class="detail-label">负责人</span>
                     <div class="detail-value">
-                      <span
-                        v-for="user in stage.chargeDingUser"
-                        :key="user.dingId || user.emplId"
-                        class="user-tag"
-                      >
-                        {{ user.userName || user.name }}
-                      </span>
+                      <PersonSelector
+                        label="添加负责人"
+                        :model-value="stage.chargeDingUser"
+                        @update:model-value="(val) => handleStageAssigneesChange(stage, val)"
+                        :show-avatar="true"
+                        size="small"
+                        data-format="system"
+                        display-mode="tag"
+                        :auto-save="true"
+                        :save-params="{
+                          infoId: selectedProject.id,
+                          stageId: stage.stageId,
+                          statusId: stage.statusId,
+                          deadlineDate: stage.deadlineDate,
+                          remark: stage.remark,
+                          fileUrlList: stage.fileUrlList,
+                          finishDate: stage.finishDate
+                        }"
+                        @auto-save="handleAutoSaveStageAssignees"
+                        class="stage-person-selector"
+                      />
                     </div>
                   </div>
 
@@ -602,6 +616,11 @@ const openStageDetail = stage => {
   stageDialogVisible.value = true;
 };
 
+const handleStageAssigneesChange = (stage, assignees) => {
+  // 更新阶段的负责人数据（本地响应式更新）
+  stage.chargeDingUser = assignees;
+};
+
 // 关闭抽屉
 const closeDrawer = () => {
   // 通过 emit 事件让父组件关闭抽屉
@@ -681,14 +700,17 @@ const handleAutoSaveStageAssignees = async saveData => {
       return;
     }
 
-    const currentStage = displayStages.value.find(
+    // 从 stageListConfig 中找到完整的阶段数据（包含 id 字段）
+    const currentStage = stageListConfig.value.find(
       s => s.stageId === saveData.stageId
     );
 
     const stageData = {
       infoId: saveData.infoId,
+      id: currentStage?.id, // 重要：包含 id 字段
       stageId: saveData.stageId,
       statusId: currentStage?.statusId ?? saveData.statusId ?? 115,
+      startTime: currentStage?.startTime ?? "", // 包含 startTime 字段
       deadlineDate: currentStage?.deadlineDate ?? saveData.deadlineDate,
       remark: currentStage?.remark ?? saveData.remark ?? "",
       chargeIds:
@@ -703,6 +725,8 @@ const handleAutoSaveStageAssignees = async saveData => {
 
     // 将单个阶段数据放入数组中
     const requestData = [stageData];
+
+    console.log("快捷更新阶段负责人，请求参数：", requestData);
 
     const res = await updateProjectStateProgress(requestData);
 
@@ -1264,9 +1288,47 @@ onUnmounted(() => {
   margin-left: 0;
 }
 
+.stage-person-selector :deep(.person-label) {
+  display: none;
+}
+
+.stage-person-selector :deep(.person-row) {
+  align-items: flex-start;
+}
+
 .stage-person-selector :deep(.add-person-btn) {
   height: 24px;
   padding: 0 8px;
   font-size: 11px;
+}
+
+/* 确保 PersonSelector 组件在阶段详情中正确显示 */
+.detail-item {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  align-items: flex-start;
+}
+
+.detail-value {
+  flex: 1;
+  color: #374151;
+}
+
+.stage-person-selector {
+  flex: 1;
+  width: 100%;
+}
+
+.stage-person-selector :deep(.person-selector) {
+  width: 100%;
+}
+
+.stage-person-selector :deep(.person-row) {
+  width: 100%;
+}
+
+.stage-person-selector :deep(.person-tags) {
+  width: 100%;
 }
 </style>

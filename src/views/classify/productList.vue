@@ -1,26 +1,31 @@
 <template>
-  <div class="mt-3 rounded-sm">
+  <div class="product-list-container">
     <el-table
       :data="tableData"
       style="width: 100%"
       @sort-change="handleSortChange"
+      stripe
     >
-      <el-table-column prop="productNo" label="产品编号">
+      <el-table-column prop="productNo" label="产品编号" width="150">
         <template #default="scope">
           <span
             @click="
               selectedDetails = scope.row;
               recordDialogVisible = true;
             "
-            class="cursor-pointer underline"
+            class="cursor-pointer underline text-blue-500 hover:text-blue-700"
             >{{ scope.row.productNo }}</span
           >
         </template>
       </el-table-column>
-      <el-table-column prop="productName" label="产品名称"></el-table-column>
-      <el-table-column prop="statusName" label="状态">
+      <el-table-column
+        prop="productName"
+        label="产品名称"
+        min-width="150"
+      ></el-table-column>
+      <el-table-column prop="statusName" label="状态" min-width="200">
         <template #default="scope">
-          <div class="flex gap-2">
+          <div class="status-tags-container flex flex-wrap gap-1">
             <el-popover
               v-for="(status, index) in getStatusTags(scope.row.statusName)"
               :key="index"
@@ -30,7 +35,7 @@
             >
               <template #reference>
                 <el-tag
-                  class="mx-1"
+                  size="small"
                   :type="status?.text === '审核通过' ? 'success' : 'info'"
                 >
                   {{ status?.text }}
@@ -40,7 +45,12 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="createAt" label="创建时间" sortable="custom">
+      <el-table-column
+        prop="createAt"
+        label="创建时间"
+        width="180"
+        sortable="custom"
+      >
         <template #default="scope">
           <!-- 格式化时间 -->
           {{
@@ -50,15 +60,31 @@
           }}
         </template>
       </el-table-column>
-      <el-table-column label="操作">
+      <el-table-column label="操作" width="120" fixed="right">
         <template #default="scope">
-          <el-button @click="showDetails(scope.row)">详情</el-button>
-          <el-button
-            @click="deleteProductFun(scope.row)"
-            type="danger"
-            :disabled="!useAuthStoreHook().isAdmin"
-            >删除</el-button
-          >
+          <div class="flex items-center gap-2">
+            <el-tooltip content="详情" placement="top">
+              <el-button
+                link
+                type="primary"
+                :icon="Edit"
+                @click="showDetails(scope.row)"
+              />
+            </el-tooltip>
+            <el-tooltip
+              content="删除"
+              placement="top"
+              v-if="useAuthStoreHook().isAdmin"
+            >
+              <el-button
+                link
+                type="danger"
+                :icon="Delete"
+                @click="deleteProductFun(scope.row)"
+                :disabled="!useAuthStoreHook().isAdmin"
+              />
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -88,18 +114,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, computed } from "vue";
 import { ElMessage } from "element-plus";
 import { getProductList, deleteProduct } from "@/api/pmApi.ts";
 import UpdateDialog from "./UpdateDialog.vue";
 import { reverseMapping, mapping } from "./utils";
-import { debounce, storageLocal } from "@pureadmin/utils";
+import { storageLocal } from "@pureadmin/utils";
 import addProduct from "./addProduct.vue";
 import recordList from "./recordList.vue";
 import { status } from "nprogress";
 import { useAuthStoreHook } from "@/store/modules/auth";
 import { ElMessageBox } from "element-plus";
 import dayjs from "dayjs";
+import { Edit, Delete, DocumentCopy } from "@element-plus/icons-vue";
 const tableData = ref([]);
 const pagination = ref({
   pageNo: 1,
@@ -147,18 +174,6 @@ interface IQueryParams {
   searchStr?: string;
   sortStr?: string;
 }
-
-const debouncedFetch = debounce(() => {
-  fetchProductList();
-}, 500);
-
-watch(
-  () => props.searchInfo,
-  newVal => {
-    debouncedFetch();
-  },
-  { immediate: true, deep: true }
-);
 
 //#region 排序逻辑
 // 请求的排序参数
@@ -214,7 +229,7 @@ const fetchProductList = () => {
   });
   commonInfo.searchStr = JSON.stringify(searchArr);
   commonInfo.sortStr = JSON.stringify(sortStr.value);
-  getProductList(commonInfo).then(res => {
+  return getProductList(commonInfo).then(res => {
     console.log("getProductList:", res);
     // 为每个产品添加默认状态
     const products = res.data.records.map(product => ({
@@ -261,8 +276,13 @@ defineExpose({
   fetchProductList
 });
 </script>
-<style>
-.hhh {
-  color: red;
+<style scoped>
+.product-list-container {
+  width: 100%;
+}
+
+.status-tags-container {
+  max-height: 80px;
+  overflow-y: auto;
 }
 </style>

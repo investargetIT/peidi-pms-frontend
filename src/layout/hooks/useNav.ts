@@ -44,8 +44,19 @@ export function useNav() {
       : useUserStoreHook()?.avatar;
   });
 
-  /** 昵称（如果昵称为空则显示用户名） */
+  /** 昵称（如果昵称为空则显示用户名，优先从 localStorage 的 dataSource 对象中获取） */
   const username = computed(() => {
+    try {
+      const dataSourceStr = localStorage.getItem("dataSource");
+      if (dataSourceStr) {
+        const dataSource = JSON.parse(dataSourceStr);
+        if (dataSource?.username) {
+          return dataSource.username;
+        }
+      }
+    } catch (error) {
+      console.error("解析 localStorage 中的 dataSource 失败", error);
+    }
     return isAllEmpty(useUserStoreHook()?.nickname)
       ? useUserStoreHook()?.username
       : useUserStoreHook()?.nickname;

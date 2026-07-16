@@ -216,6 +216,7 @@
           :selectedProject="selectedProject"
           @selectProject="handleSelectProject"
           @updateTableData="handleUpdateTableData"
+          @refreshAllData="fetchAllProductList"
         />
       </div>
     </div>
@@ -653,9 +654,9 @@ onUnmounted(() => {
 }
 
 .dashboard-container {
-  background-color: #f5f5f5;
-  overflow-x: hidden;
   box-sizing: border-box;
+  overflow-x: hidden;
+  background-color: #f5f5f5;
 }
 
 .page-header {
@@ -775,9 +776,9 @@ onUnmounted(() => {
 
 .search-form {
   .el-form-item {
-    margin-bottom: 0;
     display: flex;
     align-items: flex-end;
+    margin-bottom: 0;
   }
 
   .el-form-item__content {
@@ -786,9 +787,9 @@ onUnmounted(() => {
   }
 
   .el-form-item__label {
-    height: 40px;
     display: flex;
     align-items: center;
+    height: 40px;
     line-height: 1;
   }
 }
@@ -877,14 +878,14 @@ onUnmounted(() => {
 }
 
 .panel-container {
+  box-sizing: border-box;
   padding: 20px;
   overflow: hidden;
   background-color: white;
   border-radius: 16px;
   box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
-  box-sizing: border-box;
+    0 4px 6px -1px rgb(0 0 0 / 10%),
+    0 2px 4px -2px rgb(0 0 0 / 10%);
 }
 
 .panel-container :deep(.el-table) {

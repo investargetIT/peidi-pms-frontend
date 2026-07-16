@@ -46,3 +46,10 @@ export const updateProjectStateProgress = data => {
     data
   });
 };
+
+// 更新项目信息
+export const updateProjectInfo = data => {
+  return http.request("post", baseUrlApi("/pm/update-info"), {
+    data
+  });
+};

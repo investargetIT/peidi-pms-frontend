@@ -9,10 +9,18 @@
       <el-table-column prop="productName" label="产品信息" min-width="200">
         <template #default="scope">
           <div>
-            <div class="text-sm font-medium text-gray-900 product-name" :title="scope.row.productName">
+            <div
+              class="text-sm font-medium text-gray-900 product-name"
+              :title="scope.row.productName"
+            >
               {{ scope.row.productName }}
             </div>
-            <div class="text-xs text-gray-500 truncate" :title="scope.row.brandName">{{ scope.row.brandName }}</div>
+            <div
+              class="text-xs text-gray-500 truncate"
+              :title="scope.row.brandName"
+            >
+              {{ scope.row.brandName }}
+            </div>
           </div>
         </template>
       </el-table-column>
@@ -117,20 +125,44 @@
       </el-table-column>
       <el-table-column prop="progress" label="进度" width="80">
         <template #default="scope">
-          <span class="text-xs text-gray-700">{{ `${Math.round(scope.row.progress)}%` }}</span>
+          <span class="text-xs text-gray-700">{{
+            `${Math.round(scope.row.progress)}%`
+          }}</span>
         </template>
       </el-table-column>
-      <el-table-column
-        prop="expectedListingDate"
-        label="预计上市"
-        width="110"
-      >
+      <el-table-column prop="expectedListingDate" label="预计上市" width="110">
         <template #default="scope">
-          <span class="text-xs text-gray-700">{{ scope.row.expectedListingDate || '-' }}</span>
+          <span class="text-xs text-gray-700">{{
+            scope.row.expectedListingDate || "-"
+          }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="90" align="center">
+      <el-table-column label="操作" width="140" align="center">
         <template #default="scope">
+          <el-tooltip content="编辑预计上市日期" placement="top">
+            <button
+              @click="handleEditListingDate(scope.row)"
+              class="inline-flex items-center justify-center text-gray-500 hover:text-blue-600 transition-colors p-1.5 bg-transparent border-none outline-none rounded hover:bg-blue-50"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4"
+              >
+                <path
+                  d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                ></path>
+                <path d="m15 5 4 4"></path>
+              </svg>
+            </button>
+          </el-tooltip>
           <el-tooltip content="查看详情" placement="top">
             <button
               @click="handleShowDetails(scope.row)"
@@ -164,14 +196,46 @@
       :total="pagination.total"
       style="width: 100%; margin-top: 20px; text-align: center"
     ></el-pagination> -->
+
+    <!-- 编辑预计上市日期弹窗 -->
+    <el-dialog
+      v-model="listingDateDialogVisible"
+      title="编辑预计上市日期"
+      width="400px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-position="top">
+        <el-form-item label="产品名称">
+          <div class="text-sm text-gray-600">
+            {{ editingProject?.productName }}
+          </div>
+        </el-form-item>
+        <el-form-item label="预计上市日期">
+          <el-date-picker
+            v-model="tempListingDate"
+            type="date"
+            placeholder="选择日期"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            style="width: 100%"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="listingDateDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveListingDate"
+          >确定</el-button
+        >
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, computed, readonly, onMounted } from "vue";
 import { Badge } from "lucide-vue-next";
-import { getProjectProgressList } from "@/api/progress";
-import { ElMessage } from "element-plus";
+import { getProjectProgressList, updateProjectInfo } from "@/api/progress";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { getProductList, deleteProduct } from "@/api/pmApi.ts";
 import UpdateDialog from "./UpdateDialog.vue";
 import { reverseMapping, mapping } from "./utils";
@@ -186,6 +250,9 @@ const pagination = ref({
 const dialogVisible = ref(false);
 const recordDialogVisible = ref(false);
 const selectedDetails = ref({});
+const listingDateDialogVisible = ref(false);
+const editingProject = ref(null);
+const tempListingDate = ref("");
 // 在 computed 部分添加状态转换函数
 const getStatusTags = computed(() => {
   return (statusName: string) => {
@@ -222,7 +289,11 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(["selectProject", "updateTableData"]);
+const emit = defineEmits([
+  "selectProject",
+  "updateTableData",
+  "refreshAllData"
+]);
 
 interface IQueryParams {
   pageNo: number;
@@ -321,8 +392,8 @@ const fetchProductList = () => {
     let isValid = false;
     if (Array.isArray(value)) {
       isValid = value.length > 0;
-    } else if (typeof value === 'string') {
-      isValid = value.trim() !== '';
+    } else if (typeof value === "string") {
+      isValid = value.trim() !== "";
     } else if (value !== null && value !== undefined) {
       isValid = true;
     }
@@ -373,6 +444,31 @@ const showDetails = row => {
 
 const handleShowDetails = row => {
   emit("selectProject", row);
+};
+
+const handleEditListingDate = row => {
+  editingProject.value = { ...row };
+  tempListingDate.value = row.expectedListingDate || "";
+  listingDateDialogVisible.value = true;
+};
+
+const handleSaveListingDate = async () => {
+  if (!tempListingDate.value) {
+    ElMessage.warning("请选择预计上市日期");
+    return;
+  }
+  try {
+    await updateProjectInfo({
+      id: editingProject.value.id,
+      expectedListingDate: tempListingDate.value
+    });
+    ElMessage.success("修改成功");
+    listingDateDialogVisible.value = false;
+    await fetchProductList();
+    emit("refreshAllData");
+  } catch (error) {
+    ElMessage.error("修改失败，请稍后重试");
+  }
 };
 
 // 获取行的类名，用于高亮选中行
@@ -448,8 +544,8 @@ defineExpose({
 }
 
 .table-container {
-  overflow-x: auto;
   box-sizing: border-box;
+  overflow-x: auto;
 }
 
 /* 表格表头样式 */
@@ -459,12 +555,12 @@ defineExpose({
 
 :deep(.el-table th.el-table__cell) {
   padding: 10px 12px;
+  font-size: 13px;
   font-weight: 500;
   color: #374151;
   text-align: left;
   background-color: #f9fafb !important;
   border-bottom: 1px solid #e5e7eb;
-  font-size: 13px;
 }
 
 :deep(.el-table th .cell) {
@@ -497,13 +593,13 @@ defineExpose({
 /* 产品名称最多显示2行，超过显示省略号 */
 .product-name {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  max-height: 2.8em;
   overflow: hidden;
+  line-height: 1.4;
   text-overflow: ellipsis;
   word-break: break-word;
-  line-height: 1.4;
-  max-height: 2.8em;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 :deep(.el-table tbody tr:hover > td) {
@@ -526,7 +622,7 @@ defineExpose({
   overflow: hidden;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
 }
 
 /* 允许横向滚动 */

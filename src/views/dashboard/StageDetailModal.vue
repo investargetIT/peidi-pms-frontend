@@ -247,10 +247,10 @@ watch(
 
       editedStage.value.statusId = statusId;
 
-      // 确保开始日期也被正确初始化
-      if (!editedStage.value.startTime) {
-        editedStage.value.startTime = props.stage.startTime || "";
-      }
+      // 确保日期字段正确初始化（将 null 转换为空字符串以便日期选择器处理）
+      editedStage.value.startTime = props.stage.startTime !== null ? props.stage.startTime : "";
+      editedStage.value.deadlineDate = props.stage.deadlineDate !== null ? props.stage.deadlineDate : "";
+      editedStage.value.finishDate = props.stage.finishDate !== null ? props.stage.finishDate : "";
 
       // 转换为 system 格式 {dingId, userName, avatarUrl}
       editedStage.value.chargeIds =

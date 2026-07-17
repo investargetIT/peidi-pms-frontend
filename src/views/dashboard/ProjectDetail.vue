@@ -135,6 +135,7 @@
                         display-mode="tag"
                         :auto-save="true"
                         :save-params="{
+                          id: stage.id, // 添加 id 字段
                           infoId: selectedProject.id,
                           stageId: stage.stageId,
                           statusId: stage.statusId,
@@ -281,6 +282,7 @@ const fetchStageConfigList = async () => {
   if (!props.selectedProject?.id) return;
   getProjectStageList({ infoId: props.selectedProject.id }).then(res => {
     if (res?.code === 200) {
+      console.log("fetchStageConfigList 获取到的数据：", res.data);
       stageListConfig.value = res.data;
       editableStages.value = JSON.parse(JSON.stringify(res.data));
     }
@@ -612,7 +614,31 @@ const getStageCardClass = stage => {
 };
 
 const openStageDetail = stage => {
-  selectedStage.value = stage;
+  console.log("=== openStageDetail 调试 ===");
+  console.log("1. 点击的 stage：", stage);
+  console.log("2. stageListConfig：", stageListConfig.value);
+
+  // 尝试多种方式查找原始数据
+  let originalStage = null;
+
+  // 方式1：优先通过 id 查找（因为 id 是唯一的）
+  if (stage.id) {
+    originalStage = stageListConfig.value.find(s => s.id === stage.id);
+    console.log("通过 id 查找结果：", originalStage);
+  }
+
+  // 方式2：如果方式1没找到，再通过 stageId 查找
+  if (!originalStage && stage.stageId) {
+    originalStage = stageListConfig.value.find(s => s.stageId === stage.stageId);
+    console.log("通过 stageId 查找结果：", originalStage);
+  }
+
+  // 方式3：如果都没找到，直接使用传入的 stage
+  selectedStage.value = originalStage || JSON.parse(JSON.stringify(stage));
+
+  console.log("3. 最终使用的 selectedStage：", selectedStage.value);
+  console.log("=== 调试结束 ===");
+
   stageDialogVisible.value = true;
 };
 
@@ -646,24 +672,58 @@ const handleSaveStage = async updatedStage => {
     isSavingStage.value = true;
 
     try {
+      // 从 stageListConfig 中找到完整的阶段数据，确保我们有 sort、progressName 等所有需要的字段
+      let currentStage = null;
+
+      // 优先通过 id 查找
+      if (updatedStage.id) {
+        currentStage = stageListConfig.value.find(s => s.id === updatedStage.id);
+      }
+
+      // 如果没找到，再通过 stageId 查找
+      if (!currentStage && updatedStage.stageId) {
+        currentStage = stageListConfig.value.find(s => s.stageId === updatedStage.stageId);
+      }
+
+      console.log("=== handleSaveStage 调试信息 ===");
+      console.log("1. updatedStage（从模态框返回的数据）:", updatedStage);
+      console.log("2. currentStage（从 stageListConfig 找到的原始数据）:", currentStage);
+      console.log("3. stageListConfig 的完整内容:", stageListConfig.value);
+
+      // 明确判断用户是否清空了日期
+      // 如果 updatedStage 中的值是 null 或 ""，说明用户想要清空该字段
+      const isDateCleared = (value) => {
+        return value === null || value === "";
+      };
+
       const stageData = {
         infoId: props.selectedProject.id,
-        id: updatedStage.id || undefined, // 如果有id就传id
+        id: updatedStage.id || currentStage?.id || undefined, // 如果有id就传id
         stageId: updatedStage.stageId,
+        stageName: updatedStage.stageName || currentStage?.stageName || "", // 添加 stageName
         statusId: updatedStage.statusId,
-        startTime: updatedStage.startTime || "",
-        deadlineDate: updatedStage.deadlineDate,
-        remark: updatedStage.remark,
+        startTime: isDateCleared(updatedStage.startTime) ? "" : (updatedStage.startTime || currentStage?.startTime || ""),
+        deadlineDate: isDateCleared(updatedStage.deadlineDate) ? "" : (updatedStage.deadlineDate || currentStage?.deadlineDate || ""),
+        remark: updatedStage.remark !== undefined ? updatedStage.remark : (currentStage?.remark || ""),
         chargeIds:
           updatedStage.chargeIds?.map(user => user.emplId || user.dingId) || [],
-        fileUrlList: updatedStage.fileUrlList || []
+        fileUrlList: updatedStage.fileUrlList || [],
+        progressName: updatedStage.stageName || updatedStage.progressName || currentStage?.progressName || currentStage?.stageName || "",
+        sort: currentStage?.sort !== undefined ? currentStage.sort : 0 // 优先使用原始的 sort 值
       };
-      if (updatedStage.finishDate) {
+
+      // 处理 finishDate，支持清空
+      if (isDateCleared(updatedStage.finishDate)) {
+        stageData.finishDate = "";
+      } else if (updatedStage.finishDate) {
         stageData.finishDate = updatedStage.finishDate;
       }
 
       // 将单个阶段数据放入数组中
       const requestData = [stageData];
+
+      console.log("4. 最终发送给后端的请求参数：", requestData);
+      console.log("=== 调试信息结束 ===");
 
       const res = await updateProjectStateProgress(requestData);
 
@@ -690,6 +750,9 @@ const handleSaveStage = async updatedStage => {
 
 const handleAutoSaveStageAssignees = async saveData => {
   try {
+    console.log("=== handleAutoSaveStageAssignees 调试 ===");
+    console.log("saveData:", saveData);
+
     if (!saveData.stageId) {
       ElMessage.error("阶段ID不能为空");
       return;
@@ -701,25 +764,48 @@ const handleAutoSaveStageAssignees = async saveData => {
     }
 
     // 从 stageListConfig 中找到完整的阶段数据（包含 id 字段）
-    const currentStage = stageListConfig.value.find(
-      s => s.stageId === saveData.stageId
-    );
+    let currentStage = null;
+
+    // 优先通过 id 查找（因为 id 是唯一的）
+    if (saveData.id) {
+      currentStage = stageListConfig.value.find(s => s.id === saveData.id);
+      console.log("通过 id 查找结果：", currentStage);
+    }
+
+    // 如果没找到，再通过 stageId 查找
+    if (!currentStage && saveData.stageId) {
+      currentStage = stageListConfig.value.find(s => s.stageId === saveData.stageId);
+      console.log("通过 stageId 查找结果：", currentStage);
+    }
+
+    console.log("找到的 currentStage:", currentStage);
+
+    // 明确判断用户是否清空了日期
+    const isDateCleared = (value) => {
+      return value === null || value === "";
+    };
 
     const stageData = {
       infoId: saveData.infoId,
       id: currentStage?.id, // 重要：包含 id 字段
       stageId: saveData.stageId,
+      stageName: currentStage?.stageName || "", // 添加 stageName
       statusId: currentStage?.statusId ?? saveData.statusId ?? 115,
       startTime: currentStage?.startTime ?? "", // 包含 startTime 字段
-      deadlineDate: currentStage?.deadlineDate ?? saveData.deadlineDate,
+      deadlineDate: currentStage?.deadlineDate ?? saveData.deadlineDate ?? "",
       remark: currentStage?.remark ?? saveData.remark ?? "",
       chargeIds:
         saveData.assignees?.map(user => user.emplId || user.dingId) || [],
-      fileUrlList: currentStage?.fileUrlList ?? saveData.fileUrlList ?? []
+      fileUrlList: currentStage?.fileUrlList ?? saveData.fileUrlList ?? [],
+      progressName: currentStage?.progressName || currentStage?.stageName || "", // 添加 progressName
+      sort: currentStage?.sort !== undefined ? currentStage.sort : 0 // 添加 sort
     };
 
+    // 处理 finishDate
     const finishDate = currentStage?.finishDate ?? saveData.finishDate;
-    if (finishDate) {
+    if (isDateCleared(finishDate)) {
+      stageData.finishDate = "";
+    } else if (finishDate) {
       stageData.finishDate = finishDate;
     }
 
@@ -727,6 +813,7 @@ const handleAutoSaveStageAssignees = async saveData => {
     const requestData = [stageData];
 
     console.log("快捷更新阶段负责人，请求参数：", requestData);
+    console.log("=== 调试结束 ===");
 
     const res = await updateProjectStateProgress(requestData);
 

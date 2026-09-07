@@ -46,6 +46,24 @@ export function useNav() {
 
   /** 昵称（如果昵称为空则显示用户名，优先从 localStorage 的 dataSource 对象中获取） */
   const username = computed(() => {
+    // 关键：先读取 store 中用户名作为响应式依赖（否则会被下面的 return 提前跳过而不收集依赖，
+    // 导致登录切换后 store 变化无法触发本 computed 重算，出现显示旧用户需刷新才更新的情况）
+    const storeName = isAllEmpty(useUserStoreHook()?.nickname)
+      ? useUserStoreHook()?.username
+      : useUserStoreHook()?.nickname;
+    // 1. 优先从登录后存储的 user-check-info 中获取 username
+    try {
+      const userCheckStr = localStorage.getItem("user-check-info");
+      if (userCheckStr) {
+        const userCheck = JSON.parse(userCheckStr);
+        if (userCheck?.username) {
+          return userCheck.username;
+        }
+      }
+    } catch (error) {
+      console.error("解析 localStorage 中的 user-check-info 失败", error);
+    }
+    // 2. dataSource
     try {
       const dataSourceStr = localStorage.getItem("dataSource");
       if (dataSourceStr) {
@@ -57,9 +75,19 @@ export function useNav() {
     } catch (error) {
       console.error("解析 localStorage 中的 dataSource 失败", error);
     }
-    return isAllEmpty(useUserStoreHook()?.nickname)
-      ? useUserStoreHook()?.username
-      : useUserStoreHook()?.nickname;
+    // 3. store 兜底
+    if (!isAllEmpty(storeName)) return storeName;
+    // 4. 兜底：从钉钉用户信息中取真实姓名显示
+    try {
+      const ddUserInfoStr = localStorage.getItem("ddUserInfo");
+      if (ddUserInfoStr) {
+        const ddUserInfo = JSON.parse(ddUserInfoStr);
+        if (ddUserInfo?.name) return ddUserInfo.name;
+      }
+    } catch (error) {
+      console.error("解析 localStorage 中的 ddUserInfo 失败", error);
+    }
+    return "";
   });
 
   const avatarsStyle = computed(() => {

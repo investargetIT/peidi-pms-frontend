@@ -15,6 +15,7 @@ import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 import { initDingH5RemoteDebug } from "dingtalk-h5-remote-debug";
 import {
   getUserInfo,
+  getUserCheck,
   register,
   registerMobile,
   getUserSite
@@ -85,21 +86,37 @@ const onLogin = async (
             }
             //#endregion
 
-            // 获取后端路由
-            if (route.query.tabName == "worker") {
-              return initRouter().then(() => {
-                router.push({
-                  path: "/my/index",
-                  query: { tabName: "worker" }
-                });
+            // 登录后存储用户信息
+            return getUserCheck(res?.data)
+              .then((res: any) => {
+                localStorage.setItem(
+                  "user-check-info",
+                  JSON.stringify({ ...res?.data })
+                );
+                // 同步写入 pinia store，触发右上角用户名实时刷新
+                useUserStoreHook().SET_USERNAME(res?.data?.username);
+              })
+              .catch((error: any) => {
+                console.error("获取用户信息失败:", error);
+                message("获取用户信息失败:" + error.message, { type: "error" });
+              })
+              .then(() => {
+                // 获取后端路由
+                if (route.query.tabName == "worker") {
+                  return initRouter().then(() => {
+                    router.push({
+                      path: "/my/index",
+                      query: { tabName: "worker" }
+                    });
+                  });
+                } else {
+                  return initRouter().then(() => {
+                    router.push(getTopMenu(true).path).then(() => {
+                      message("登录成功", { type: "success" });
+                    });
+                  });
+                }
               });
-            } else {
-              return initRouter().then(() => {
-                router.push(getTopMenu(true).path).then(() => {
-                  message("登录成功", { type: "success" });
-                });
-              });
-            }
           } else {
             message("登录失败", { type: "error" });
           }
